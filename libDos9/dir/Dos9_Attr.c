@@ -20,43 +20,56 @@
 
 #include "../LibDos9.h"
 
-short Dos9_MakeFileAttributes(const char* lpToken)
+short Dos9_MakeFileAttributes(const wchar_t* lpToken)
 {
     short wAttr=0;
     short wFlag=0;
     char bNeg=FALSE;
+
     for (;*lpToken;lpToken++) {
+
         switch(toupper(*lpToken)){
-            case 'I':
+            case L'I':
                 wFlag=DOS9_CMD_ATTR_VOID;
                 break;
-            case 'A':
+
+            case L'A':
                 wFlag=DOS9_CMD_ATTR_ARCHIVE;
                 break;
-            case 'R':
+
+            case L'R':
                 wFlag=DOS9_CMD_ATTR_READONLY;
                 break;
-            case 'H':
+
+            case L'H':
                 wFlag=DOS9_CMD_ATTR_HIDEN;
                 break;
-            case 'S':
+
+            case L'S':
                 wFlag=DOS9_CMD_ATTR_SYSTEM;
                 break;
-            case 'D':
+
+            case L'D':
                 wFlag=DOS9_CMD_ATTR_DIR;
                 break;
-            case '-':
+
+            case L'-':
                 bNeg=TRUE;
-                wFlag=0;
+
             default:
                 wFlag=0;
         }
         if (bNeg && wFlag) {
+
             wFlag|=wFlag<<1;
             bNeg=FALSE;
+
         }
+
         wAttr|=wFlag;
+
     }
+
     return wAttr;
 }
 

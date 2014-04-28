@@ -50,7 +50,7 @@ LIBDOS9 int Dos9_AddCommandDynamic(LPCOMMANDINFO lpciCommandInfo, LPCOMMANDLIST*
 
     lpclList=*lpclListEntry;
 
-    while ((iRet=stricmp(lpciCommandInfo->ptrCommandName,lpclList->ptrCommandName))) {
+    while ((iRet=wcscasecmp(lpciCommandInfo->ptrCommandName,lpclList->ptrCommandName))) {
 
         if (iRet>0) {
 
@@ -115,12 +115,12 @@ LIBDOS9 int Dos9_AddCommandDynamic(LPCOMMANDINFO lpciCommandInfo, LPCOMMANDLIST*
 int _Dos9_FillCommandList(LPCOMMANDLIST lpclList, LPCOMMANDINFO lpciCommandInfo)
 {
 
-    lpclList->iLenght=strlen(lpciCommandInfo->ptrCommandName);
+    lpclList->iLenght=wcslen(lpciCommandInfo->ptrCommandName);
 
-    if (!(lpclList->ptrCommandName=malloc(lpclList->iLenght+1)))
+    if (!(lpclList->ptrCommandName=malloc((lpclList->iLenght+1)*sizeof(wchar_t))))
         return -1;
 
-    strcpy(lpclList->ptrCommandName,lpciCommandInfo->ptrCommandName);
+    wcscpy(lpclList->ptrCommandName,lpciCommandInfo->ptrCommandName);
 
     lpclList->cfFlag=lpciCommandInfo->cfFlag;
 
@@ -128,13 +128,13 @@ int _Dos9_FillCommandList(LPCOMMANDLIST lpclList, LPCOMMANDINFO lpciCommandInfo)
     if (lpciCommandInfo->cfFlag & DOS9_ALIAS_FLAG) {
 
         if (!(lpclList->lpCommandProc
-              =malloc(strlen(lpciCommandInfo->lpCommandProc)+1))) {
+              =malloc((wcslen(lpciCommandInfo->lpCommandProc)+1)*sizeof(wchar_t)))) {
 
             free(lpclList->ptrCommandName);
             return -1;
         }
 
-        strcpy(lpclList->lpCommandProc, lpciCommandInfo->lpCommandProc);
+        wcscpy(lpclList->lpCommandProc, lpciCommandInfo->lpCommandProc);
 
     } else {
 
@@ -151,7 +151,7 @@ int _Dos9_FillCommandList(LPCOMMANDLIST lpclList, LPCOMMANDINFO lpciCommandInfo)
 
 int _Dos9_Sort(const void* ptrS, const void* ptrD)
 {
-    return stricmp(((LPCOMMANDINFO)ptrS)->ptrCommandName,((LPCOMMANDINFO)ptrD)->ptrCommandName);
+    return wcscasecmp(((LPCOMMANDINFO)ptrS)->ptrCommandName,((LPCOMMANDINFO)ptrD)->ptrCommandName);
 }
 
 int _Dos9_PutSeed(LPCOMMANDINFO lpciCommandInfo, int iSegBottom, int iSegTop, LPCOMMANDLIST* lpclList)
@@ -183,14 +183,14 @@ LIBDOS9 LPCOMMANDLIST Dos9_MapCommandInfo(LPCOMMANDINFO lpciCommandInfo, int i)
     return lpclList;
 }
 
-LIBDOS9 COMMANDFLAG   Dos9_GetCommandProc(char* lpCommandLine, LPCOMMANDLIST lpclCommandList, void** lpcpCommandProcedure)
+LIBDOS9 COMMANDFLAG   Dos9_GetCommandProc(wchar_t* lpCommandLine, LPCOMMANDLIST lpclCommandList, void** lpcpCommandProcedure)
 {
     int iRet;
 
 
     while (lpclCommandList) {
 
-        iRet=strnicmp(lpCommandLine,
+        iRet=wcscasecmp(lpCommandLine,
                       lpclCommandList->ptrCommandName,
                       lpclCommandList->iLenght);
 
@@ -218,10 +218,12 @@ LIBDOS9 COMMANDFLAG   Dos9_GetCommandProc(char* lpCommandLine, LPCOMMANDLIST lpc
                 switch(lpCommandLine
                        [lpclCommandList->cfFlag & ~DOS9_ALIAS_FLAG]) {
 
-                    case ' ':
-                    case '\n':
-                    case '\t':
-                    case '\0':
+                    case L' ':
+                    case L'\n':
+                    case L'\t':
+					case L'/': /* accept '/' as valid delimiters in order to support
+								  switches like 'set/a'*/
+                    case L'\0':
                         *lpcpCommandProcedure=lpclCommandList->lpCommandProc;
                         return lpclCommandList->cfFlag;
 
@@ -229,7 +231,7 @@ LIBDOS9 COMMANDFLAG   Dos9_GetCommandProc(char* lpCommandLine, LPCOMMANDLIST lpc
 
                 /* it did not matched, just try again */
 
-                iRet=stricmp(lpCommandLine, lpclCommandList->ptrCommandName);
+                iRet=wcscasecmp(lpCommandLine, lpclCommandList->ptrCommandName);
 
                 goto loop_again;
 
@@ -255,12 +257,12 @@ LIBDOS9 int				Dos9_ReplaceCommand(LPCOMMANDINFO lpciCommand, LPCOMMANDLIST lpcl
 {
 	int iRet;
 
-	char  *lpCommandLine=lpciCommand->ptrCommandName,
-		  *lpBuf;
+	wchar_t *lpCommandLine=lpciCommand->ptrCommandName,
+		    *lpBuf;
 
     while (lpclCommandList) {
 
-        iRet=strnicmp(lpCommandLine,
+        iRet=wcscasecmp(lpCommandLine,
                       lpclCommandList->ptrCommandName,
                       lpclCommandList->iLenght);
 
@@ -278,7 +280,7 @@ LIBDOS9 int				Dos9_ReplaceCommand(LPCOMMANDINFO lpciCommand, LPCOMMANDLIST lpcl
 
 			if (lpciCommand->cfFlag & DOS9_ALIAS_FLAG) {
 
-				lpBuf=malloc(strlen(lpciCommand->lpCommandProc)+1);
+				lpBuf=malloc((wcslen(lpciCommand->lpCommandProc)+1)*sizeof(wchar_t));
 
 				if (!lpBuf)
 					return -1;
@@ -286,7 +288,7 @@ LIBDOS9 int				Dos9_ReplaceCommand(LPCOMMANDINFO lpciCommand, LPCOMMANDLIST lpcl
 				if (lpclCommandList->cfFlag & DOS9_ALIAS_FLAG)
 					free(lpclCommandList->lpCommandProc);
 
-				strcpy(lpBuf, lpciCommand->lpCommandProc);
+				wcscpy(lpBuf, lpciCommand->lpCommandProc);
 				lpclCommandList->lpCommandProc=lpBuf;
 
 			}
@@ -323,6 +325,10 @@ LIBDOS9 int Dos9_FreeCommandList(LPCOMMANDLIST lpclList)
 
 LIBDOS9 LPCOMMANDLIST   Dos9_ReMapCommandInfo(LPCOMMANDLIST lpclCommandList)
 {
+    /* Note : This function isn't thread safe at all.
+	   If lpclCommandList is free'd during the function is
+	   running, it will probably crash */
+
     /* trying to re-balance an unbalanced tree is
        to much difficult for me, thus, create a new
        commandinfo structure and Map it again */

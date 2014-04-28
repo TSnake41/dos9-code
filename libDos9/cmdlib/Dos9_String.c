@@ -20,38 +20,39 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <wchar.h>
 
 #include "../LibDos9.h"
 
-LIBDOS9 char* Dos9_SkipBlanks(char* lpCh)
+LIBDOS9 wchar_t* Dos9_SkipBlanks(wchar_t* lpCh)
 {
-    while (*lpCh==' ' || *lpCh=='\t')
+    while (*lpCh==L' ' || *lpCh==L'\t')
         lpCh++;
 
-    if (*lpCh=='^')
+    if (*lpCh==L'^')
         lpCh++;
 
     return lpCh;
 }
 
-LIBDOS9 char* Dos9_SkipAllBlanks(char* lpCh)
+LIBDOS9 wchar_t* Dos9_SkipAllBlanks(wchar_t* lpCh)
 {
-    while (*lpCh==' '
-           || *lpCh=='\t'
-           || *lpCh=='@' /* this is the silent character */
-           || *lpCh==';' /* and this the default eol-char */
+    while (*lpCh==L' '
+           || *lpCh==L'\t'
+           || *lpCh==L'@' /* this is the silent character */
+           || *lpCh==L';' /* and this the default eol-char */
            )
         lpCh++;
 
     return lpCh;
 }
 
-LIBDOS9 char* Dos9_SearchChar(char* lpCh, int cChar)
+LIBDOS9 wchar_t* Dos9_SearchChar(wchar_t* lpCh, wchar_t cChar)
 {
 
-    char* lpNxt;
+    wchar_t* lpNxt;
 
-    while ((lpNxt=strchr(lpCh, cChar))) {
+    while ((lpNxt=wcschr(lpCh, cChar))) {
 
         /* if the we are at the beginnig, of the
            string, don't search anymore and return
@@ -67,7 +68,7 @@ LIBDOS9 char* Dos9_SearchChar(char* lpCh, int cChar)
         /* if the character is not escaped, use it
            as the needed character */
 
-        if (*(lpNxt-1)!='^')
+        if (*(lpNxt-1)!=L'^')
             break;
 
         /* the character is escaped, just loop
@@ -81,12 +82,12 @@ LIBDOS9 char* Dos9_SearchChar(char* lpCh, int cChar)
 
 }
 
-LIBDOS9 char* Dos9_SearchLastChar(char* lpCh, int cChar)
+LIBDOS9 wchar_t* Dos9_SearchLastChar(wchar_t* lpCh, wchar_t cChar)
 {
-    char *lpLastMatch=NULL,
-         *lpNxt;
+    wchar_t *lpLastMatch=NULL,
+            *lpNxt;
 
-    while ((lpNxt=strchr(lpCh, cChar))) {
+    while ((lpNxt=wcschr(lpCh, cChar))) {
 
         if (lpCh==lpNxt) {
 
@@ -94,7 +95,7 @@ LIBDOS9 char* Dos9_SearchLastChar(char* lpCh, int cChar)
 
         } else {
 
-            if (*(lpNxt-1)!='^')
+            if (*(lpNxt-1)!=L'^')
                 lpLastMatch=lpNxt;
 
         }
@@ -106,13 +107,13 @@ LIBDOS9 char* Dos9_SearchLastChar(char* lpCh, int cChar)
     return lpLastMatch;
 }
 
-LIBDOS9 void Dos9_UnEscape(char* lpCh)
+LIBDOS9 void Dos9_UnEscape(wchar_t* lpCh)
 {
-    char *lpUnEscapeCh=lpCh;
+    wchar_t *lpUnEscapeCh=lpCh;
 
     while (TRUE) {
 
-        if (*lpCh=='^') {
+        if (*lpCh==L'^') {
 
             /* this should be un escaped */
 
@@ -122,7 +123,7 @@ LIBDOS9 void Dos9_UnEscape(char* lpCh)
             /* if the caracter escaped is a line-feed,
                don't copy the line feed */
 
-            if (*lpCh=='\n')
+            if (*lpCh==L'\n')
                 lpCh++;
 
         }
@@ -130,7 +131,7 @@ LIBDOS9 void Dos9_UnEscape(char* lpCh)
         if (lpUnEscapeCh!=lpCh)
             *lpUnEscapeCh=*lpCh;
 
-        if (*lpCh=='\0')
+        if (*lpCh==L'\0')
             return;
 
         lpUnEscapeCh++;
@@ -140,10 +141,10 @@ LIBDOS9 void Dos9_UnEscape(char* lpCh)
 
 }
 
-LIBDOS9 char* Dos9_GetNextNonEscaped(char* lpCh)
+LIBDOS9 wchar_t* Dos9_GetNextNonEscaped(wchar_t* lpCh)
 {
 
-    if (*lpCh=='^')
+    if (*lpCh==L'^')
         lpCh++;
 
     if (*lpCh)
@@ -152,17 +153,17 @@ LIBDOS9 char* Dos9_GetNextNonEscaped(char* lpCh)
     return lpCh;
 }
 
-LIBDOS9 char* Dos9_SearchToken(char* lpCh, char* lpDelims)
+LIBDOS9 wchar_t* Dos9_SearchToken(wchar_t* lpCh, wchar_t* lpDelims)
 {
 
-    char* lpNxt;
+    wchar_t* lpNxt;
 
-    while ((lpNxt=strpbrk(lpCh, lpDelims))) {
+    while ((lpNxt=wcspbrk(lpCh, lpDelims))) {
 
         if (lpNxt==lpCh)
             break;
 
-        if (*(lpNxt-1)!='^')
+        if (*(lpNxt-1)!=L'^')
             break;
 
         lpCh=lpNxt+1;
@@ -173,13 +174,13 @@ LIBDOS9 char* Dos9_SearchToken(char* lpCh, char* lpDelims)
 
 }
 
-LIBDOS9 char* Dos9_SearchLastToken(char* lpCh, char* lpDelims)
+LIBDOS9 wchar_t* Dos9_SearchLastToken(wchar_t* lpCh, wchar_t* lpDelims)
 {
-    char *lpNxt,
-         *lpLastOccurence=NULL;
+    wchar_t *lpNxt,
+			*lpLastOccurence=NULL;
 
 
-    while ((lpNxt=strpbrk(lpCh, lpDelims))) {
+    while ((lpNxt=wcspbrk(lpCh, lpDelims))) {
 
         if (lpCh==lpNxt) {
 
@@ -187,7 +188,7 @@ LIBDOS9 char* Dos9_SearchLastToken(char* lpCh, char* lpDelims)
 
         } else {
 
-            if (*(lpNxt-1)!='^')
+            if (*(lpNxt-1)!=L'^')
                 lpLastOccurence=lpNxt;
 
         }

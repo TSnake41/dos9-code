@@ -39,6 +39,7 @@
 #include <string.h>
 #include <ctype.h>
 #include <math.h>
+#include <wchar.h>
 
 #include <dirent.h>
 
@@ -59,7 +60,7 @@
 #include <process.h>
 #include <io.h>
 
-#define stat _stat
+#define wstat _wstat
 
 
 /** \defgroup FILE_ATTRIBUTES File attributes constants
@@ -108,7 +109,6 @@
 
 #define S_IREAD _S_IREAD
 #define O_IWRITE _S_IWRITE
-#define Dos9_GetFileAttributes(lpcstr) GetFileAttributes(lpcstr)
 
 #define _Dos9_Pipe(descriptors, size, mode) _pipe(descriptors, size, mode)
 
@@ -282,7 +282,7 @@ LIBDOS9     int Dos9_ClearStack(LPSTACK lpcsStack, void(*pFunc)(void*));
 
 /** A structure representing an extended string (e.g. a string that don't have a specific length) */
 typedef struct ESTR {
-	char* ptrString;/**< A pointer to a NULL terminated string that contains the string. Don't access it directly, use \link ESTR_MACRO extended strings macros\endlink to get its content*/
+	wchar_t* ptrString;/**< A pointer to a NULL terminated string that contains the string. Don't access it directly, use \link ESTR_MACRO extended strings macros\endlink to get its content*/
 	int iLenght;/**< An integer that stores the length of the buffer pointed by ptrString */
 } ESTR, *LPESTR;
 
@@ -344,27 +344,27 @@ LIBDOS9 int             Dos9_EsGet(ESTR* ptrESTR, FILE* ptrFile);
     \param ptrESTR : A pointer to an extended string that will recieve the copy of the string
     \param ptrChaine : A pointer to a NULL terminated string that will be copied
     \return Returns 0 if the function succeded, or 1 otherwise */
-LIBDOS9 int             Dos9_EsCpy(ESTR* ptrESTR, const char* ptrChaine);
+LIBDOS9 int             Dos9_EsCpy(ESTR* ptrESTR, const wchar_t* ptrChaine);
 
 /** \brief Copy at most N bytes from a NULL-terminated string into an extended string
     \param ptrESTR : A pointer to an extended string that will recieve the copy of the string
     \param ptrChaine : A pointer to a NULL terminated string that will be copied
     \param iSize : The maximum number of bytes to be cat
     \return Returns 0 if the function succeded, or 1 otherwise */
-LIBDOS9 int             Dos9_EsCpyN(ESTR* ptrESTR, const char* ptrChaine, size_t iSize);
+LIBDOS9 int             Dos9_EsCpyN(ESTR* ptrESTR, const wchar_t* ptrChaine, size_t iSize);
 
 /** \brief Cat a NULL-terminated string and an extended string
     \param ptrESTR : A pointer to an extended string that will be cat
     \param ptrChaine : A pointer to a NULL terminated string to be cat
     \return Returns 0 if the function succeded, or 1 otherwise */
-LIBDOS9 int             Dos9_EsCat(ESTR* ptrESTR, const char* ptrChaine);
+LIBDOS9 int             Dos9_EsCat(ESTR* ptrESTR, const wchar_t* ptrChaine);
 
 /** \brief Cat at most N bytes from a NULL-terminated string to an extended string
     \param ptrESTR : A pointer to an extended string that will be cat
     \param ptrChaine : A pointer to a NULL terminated string to be cat
     \param iSize : The maximun number of bytes to be cat
     \return Returns 0 if the function succeded, or 1 otherwise */
-LIBDOS9 int             Dos9_EsCatN(ESTR* ptrESTR, const char* ptrChaine, size_t iSize);
+LIBDOS9 int             Dos9_EsCatN(ESTR* ptrESTR, const wchar_t* ptrChaine, size_t iSize);
 
 /** \brief Frees an extended string
     \param ptrESTR: A pointer to an extended string to be freed
@@ -391,7 +391,7 @@ LIBDOS9 int             Dos9_EsCatE(ESTR* ptrDest, const ESTR* ptrSource);
     \return Returns 0 if the function succeded, or 1 otherwise.
 
 */
-LIBDOS9 int             Dos9_EsReplace(ESTR* ptrESTR, const char* ptrPattern, const char* ptrReplace);
+LIBDOS9 int             Dos9_EsReplace(ESTR* ptrESTR, const wchar_t* ptrPattern, const wchar_t* ptrReplace);
 
 /** \brief Replace at most N string occurence in an extended string
     \param ptrESTR : A pointer to an extended string were occurences will be replaced
@@ -401,20 +401,15 @@ LIBDOS9 int             Dos9_EsReplace(ESTR* ptrESTR, const char* ptrPattern, co
     \return Returns 0 if the function succeded, or 1 otherwise.
 
 */
-LIBDOS9 int             Dos9_EsReplaceN(ESTR* ptrESTR, const char* ptrPattern, const char* ptrReplace, int iN);
+LIBDOS9 int             Dos9_EsReplaceN(ESTR* ptrESTR, const wchar_t* ptrPattern, const wchar_t* ptrReplace, int iN);
 
 
 /** \} */
 /** \} */
 
-
-#ifndef DEFAULT_ESTR
-#define DEFAULT_ESTR 32
-#endif
-
-size_t          _Dos9_EsTotalLen2(const char* ptrChaine, const char* ptrString);
-size_t          _Dos9_EsTotalLen(const char* ptrChaine);
-size_t          _Dos9_EsTotalLen3(const char* ptrChaine, size_t iSize);
+size_t          _Dos9_EsTotalLen2(const wchar_t* ptrChaine, const wchar_t* ptrString);
+size_t          _Dos9_EsTotalLen(const wchar_t* ptrChaine);
+size_t          _Dos9_EsTotalLen3(const wchar_t* ptrChaine, size_t iSize);
 size_t          _Dos9_EsTotalLen4(const size_t iSize);
 
 
@@ -431,7 +426,7 @@ typedef int COMMANDFLAG;
 typedef struct COMMANDLIST {
 	void* lpCommandProc; /**< A pointer to the function associated to the command (must use cdelc) */
 	int iLenght;  /**< An integer that stores the command name length */
-	char* ptrCommandName; /**<A pointer to a NULL-terminated string that stores the command name */
+	wchar_t* ptrCommandName; /**<A pointer to a NULL-terminated string that stores the command name */
 	COMMANDFLAG cfFlag; /**< A COMMANDFLAG that has been choosed by programmer */
 	struct COMMANDLIST* lpclLeftRoot; /**<A pointer to the left-branch COMMANDLIST structure */
 	struct COMMANDLIST* lpclRightRoot;/**<A pointer to the right-branch COMMANDLIST structure */
@@ -440,7 +435,7 @@ typedef struct COMMANDLIST {
 
 /** A structure used to store information about commands before mapping it */
 typedef struct COMMANDINFO {
-	char* ptrCommandName; /**< A pointer to a null-terminated string that stores the command name */
+	wchar_t* ptrCommandName; /**< A pointer to a null-terminated string that stores the command name */
 	void* lpCommandProc; /**< A pointer to the function associated to the command (must use cdecl) */
 	COMMANDFLAG cfFlag; /**< A programmer-programmer defined constant for determine the command type */
 } COMMANDINFO,*LPCOMMANDINFO;
@@ -480,7 +475,7 @@ LIBDOS9 int             Dos9_FreeCommandList(LPCOMMANDLIST lpclList);
     \return Return the COMMANDFLAG associated to the command, or returns -1 (0xffffffff) if no command has been found
 	\note Before Dos9 version 2014.0.9, the function used to return the first match found if they were colisions. Since, it returns the largest
     */
-LIBDOS9 COMMANDFLAG     Dos9_GetCommandProc(char* lpCommandLine, LPCOMMANDLIST lpclCommandList,void** lpcpCommandProcedure);
+LIBDOS9 COMMANDFLAG     Dos9_GetCommandProc(wchar_t* lpCommandLine, LPCOMMANDLIST lpclCommandList,void** lpcpCommandProcedure);
 
 LIBDOS9 int				Dos9_ReplaceCommand(LPCOMMANDINFO lpciCommand, LPCOMMANDLIST lpclCommandList);
 /** \} */
@@ -729,7 +724,7 @@ LIBDOS9 void Dos9_SetConsoleCursorState(int bVisible, int iSize);
 /** Sets the console title
     \param lpTitle : a pointer to a string to be set as title
 */
-LIBDOS9 void Dos9_SetConsoleTitle(char* lpTitle); /* change the console title */
+LIBDOS9 void Dos9_SetConsoleTitle(wchar_t* lpTitle); /* change the console title */
 
 /** \} */
 /** \} */
@@ -813,7 +808,7 @@ LIBDOS9 void Dos9_SetConsoleTitle(char* lpTitle); /* change the console title */
 
 /** A structures that stores informations a file query */
 typedef struct FILELIST {
-	char  lpFileName[FILENAME_MAX]; /**< A pointer to a NULL-terminated string that stores the name of the file */
+	wchar_t  lpFileName[FILENAME_MAX]; /**< A pointer to a NULL-terminated string that stores the name of the file */
 	struct stat stFileStats; /**< A structure that stores information about the file. Use \link FILEINFO_MACRO file information macros \endlink to get these informations */
 	struct FILELIST* lpflNext; /**< A pointer to the list's next element */
 } FILELIST,*LPFILELIST;
@@ -830,7 +825,7 @@ typedef struct FILELIST {
     \return Return TRUE if lpMatch matches to lpRegExp, FALSE otherwise
     \attention The comparison is case-sensitive
 */
-LIBDOS9 int         Dos9_RegExpMatch(char* lpRegExp, char* lpMatch);
+LIBDOS9 int         Dos9_RegExpMatch(wchar_t* lpRegExp, wchar_t* lpMatch);
 
 /** \brief Determine wether a string match to an regular expression or not
     The functions uses dos-like regular expression, using wildcard '*' and joker '?'.
@@ -838,22 +833,22 @@ LIBDOS9 int         Dos9_RegExpMatch(char* lpRegExp, char* lpMatch);
     \param lpMatch: A pointer to a NULL-terminated string that stores the string to be compared
     \return Return TRUE if lpMatch matches to lpRegExp, FALSE otherwise */
 
-LIBDOS9 int         Dos9_RegExpCaseMatch(char* lpRegExp, char* lpMatch);
+LIBDOS9 int         Dos9_RegExpCaseMatch(wchar_t* lpRegExp, wchar_t* lpMatch);
 
 /** \brief Retrieves a list of matching files
     \param lpPathMatch : A pointer to a NULL-terminated string that stores the regular expression to which the file have to match
     \param iFlag : A search flag. The flag must be one of the flag defined in \link MATCH_FLAG file matching flags \endlink
     \return Returns a pointer to a FILELIST structure. If the function fails, it returns NULL */
-LIBDOS9 LPFILELIST  Dos9_GetMatchFileList(char* lpPathMatch, int iFlag);
+LIBDOS9 LPFILELIST  Dos9_GetMatchFileList(wchar_t* lpPathMatch, int iFlag);
 
-LIBDOS9 int         Dos9_GetMatchFileCallback(char* lpPathMatch, int iFlag, void(*pCallBack)(FILELIST*));
+LIBDOS9 int         Dos9_GetMatchFileCallback(wchar_t* lpPathMatch, int iFlag, void(*pCallBack)(FILELIST*));
 
 /** \brief Free a FILELIST structure
     \param lpflFileList : A pointer to the file list to be freed
     \return Returns 0 on success or 1 on failure */
 LIBDOS9 int         Dos9_FreeFileList(LPFILELIST lpflFileList);
 
-LIBDOS9 int         Dos9_FormatFileSize (char* lpBuf, int iLenght, unsigned int iSize);
+LIBDOS9 int         Dos9_FormatFileSize (wchar_t* lpBuf, int iLenght, unsigned int iSize);
 /** \} */
 /** \} */
 
@@ -863,17 +858,17 @@ typedef struct {
 	void(*pCallBack)(FILELIST*);
 } FILEPARAMETER,*LPFILEPARAMETER;
 
-char*               _Dos9_SeekPatterns(char* lpSearch, char* lpPattern);
-char*               _Dos9_SeekCasePatterns(char* lpSearch, char* lpPattern);
-int                 _Dos9_SplitMatchPath(const char* lpPathMatch, char* lpStaticPart, size_t iStaticSize,  char* lpMatchPart, size_t iMatchSize);
-int                 _Dos9_GetMatchPart(const char* lpRegExp, char* lpBuffer, size_t iLength, int iLvl);
-int                 _Dos9_GetMatchDepth(char* lpRegExp);
-int                 _Dos9_MakePath(char* lpPathBase, char* lpPathEnd, char* lpBuffer, int iLength);
-char*               _Dos9_GetFileName(char* lpPath);
+wchar_t*               _Dos9_SeekPatterns(wchar_t* lpSearch, wchar_t* lpPattern);
+wchar_t*               _Dos9_SeekCasePatterns(wchar_t* lpSearch, wchar_t* lpPattern);
+int                 _Dos9_SplitMatchPath(const wchar_t* lpPathMatch, wchar_t* lpStaticPart, size_t iStaticSize,  wchar_t* lpMatchPart, size_t iMatchSize);
+int                 _Dos9_GetMatchPart(const wchar_t* lpRegExp, wchar_t* lpBuffer, size_t iLength, int iLvl);
+int                 _Dos9_GetMatchDepth(wchar_t* lpRegExp);
+int                 _Dos9_MakePath(wchar_t* lpPathBase, wchar_t* lpPathEnd, wchar_t* lpBuffer, int iLength);
+wchar_t*               _Dos9_GetFileName(wchar_t* lpPath);
 int                 _Dos9_FreeFileList(LPFILELIST lpflFileList);
 LPFILELIST          _Dos9_WaitForFileList(LPFILEPARAMETER lpParam);
 int                 _Dos9_WaitForFileListCallBack(LPFILEPARAMETER lpParam);
-LPFILELIST          _Dos9_SeekFiles(char* lpDir, char* lpRegExp, int iLvl, int iMaxLvl, int iOutDescriptor, int iSearchFlag);
+LPFILELIST          _Dos9_SeekFiles(wchar_t* lpDir, wchar_t* lpRegExp, int iLvl, int iMaxLvl, int iOutDescriptor, int iSearchFlag);
 
 
 /* declaration for attributes commands */
@@ -899,7 +894,7 @@ LPFILELIST          _Dos9_SeekFiles(char* lpDir, char* lpRegExp, int iLvl, int i
     \param lpToken : The string token to be converted
     \return Returns a short representing the attributes
 */
-LIBDOS9 short Dos9_MakeFileAttributes(const char* lpToken);
+LIBDOS9 short Dos9_MakeFileAttributes(const wchar_t* lpToken);
 
 /** \brief Checks wether a file returned by Dos9_GetMatchFileList() as attributes matching to a set of attributes
     \param wAttr : A short retrieved by Dos9_MakeFileAttributes().
@@ -937,28 +932,14 @@ extern int _Dos9_TextMode;
 
 /** \} */
 
-/** \defgroup ENCODING_FUNC Encoding functions
-    \{ */
-
-/** \brief Get the addres of the begin of the next character consedering the encoding mode set
-    \param lpContent : A pointer to a string character
-    \return A pointer to the next string character
-    \note if encoding is byte based, this is roughly equivalent to lpContent++ */
-LIBDOS9 char* Dos9_GetNextChar(const char* lpContent);
-
-/** \} */
-/** \} */
-
-int _Dos9_IsFollowingByte(const char* lpChar);
-
 LIBDOS9 int Dos9_GetConsoleEncoding(char* lpEnc, size_t iSize);
 
-LIBDOS9 int Dos9_FileExists(char* lpPath);
-LIBDOS9 int Dos9_DirExists(char* lpPath);
+LIBDOS9 int Dos9_FileExists(wchar_t* lpPath);
+LIBDOS9 int Dos9_DirExists(wchar_t* lpPath);
 LIBDOS9 int Dos9_UpdateCurrentDir(void);
-LIBDOS9 int Dos9_SetCurrentDir(char* lpPath);
-LIBDOS9 char* Dos9_GetCurrentDir(void);
-LIBDOS9 int Dos9_GetExePath(char* lpBuf, size_t iBufSize);
+LIBDOS9 int Dos9_SetCurrentDir(wchar_t* lpPath);
+LIBDOS9 wchar_t* Dos9_GetCurrentDir(void);
+LIBDOS9 int Dos9_GetExePath(wchar_t* lpBuf, size_t iBufSize);
 
 
 
@@ -974,27 +955,27 @@ LIBDOS9 int      Dos9_CloseMutex(MUTEX* lpMuId);
 LIBDOS9 int      Dos9_LockMutex(MUTEX* lpMuId);
 LIBDOS9 int      Dos9_ReleaseMutex(MUTEX* lpMuId);
 
-LIBDOS9 int      Dos9_CreateProcess(PROCESS* pId, char* lpName, char** lpArgs);
+LIBDOS9 int      Dos9_CreateProcess(PROCESS* pId, wchar_t* lpName, char** lpArgs);
 LIBDOS9 int      Dos9_WaitForProcess(PROCESS* pId, void* iRes);
 
 /* skip blank characters ' ' and '\t' */
-LIBDOS9 char* Dos9_SkipBlanks(char* lpCh);
+LIBDOS9 wchar_t* Dos9_SkipBlanks(wchar_t* lpCh);
 
 /* skip blanck characrers ' ' and '\t' and '@' and ';' */
-LIBDOS9 char* Dos9_SkipAllBlanks(char* lpCh);
+LIBDOS9 wchar_t* Dos9_SkipAllBlanks(wchar_t* lpCh);
 
 /* search the first non escaped character */
-LIBDOS9 char* Dos9_SearchChar(char* lpCh, int cChar);
+LIBDOS9 wchar_t* Dos9_SearchChar(wchar_t* lpCh, wchar_t cChar);
 
 /* search the last non-escaped chararcter */
-LIBDOS9 char* Dos9_SearchLastChar(char* lpCh, int cChar);
+LIBDOS9 wchar_t* Dos9_SearchLastChar(wchar_t* lpCh, wchar_t cChar);
 
 /* un-escape the string */
-LIBDOS9 void Dos9_UnEscape(char* lpCh);
+LIBDOS9 void Dos9_UnEscape(wchar_t* lpCh);
 
-LIBDOS9 char* Dos9_SearchToken(char* lpCh, char* lpDelims);
+LIBDOS9 wchar_t* Dos9_SearchToken(wchar_t* lpCh, wchar_t* lpDelims);
 
-LIBDOS9 char* Dos9_SearchLastToken(char* lpCh, char* lpDelims);
+LIBDOS9 wchar_t* Dos9_SearchLastToken(wchar_t* lpCh, wchar_t* lpDelims);
 
 
 /* end of libDos9 declaration */

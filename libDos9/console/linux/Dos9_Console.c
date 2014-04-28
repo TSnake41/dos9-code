@@ -45,9 +45,9 @@ void Dos9_SetConsoleTextColor(COLOR cColor)
 
 }
 
-void Dos9_SetConsoleTitle(char* lpTitle)
+void Dos9_SetConsoleTitle(wchar_t* lpTitle)
 {
-    printf("\033]0;%s\007", lpTitle);
+    wprintf("\033]0;%s\007", lpTitle);
 }
 
 LIBDOS9 void Dos9_SetConsoleCursorPosition(CONSOLECOORD iCoord)

@@ -1,18 +1,12 @@
 #include "../LibDos9.h"
 
-#ifndef DOS9_MAX_FREEBUFFER_SIZE
-    #define DOS9_MAX_FREEBUFFER_SIZE 64
-    /*
-        defines the size of string garbage collection
-    */
-#endif // DOS9_MAX_FREEBUFFER_SIZE
+#ifndef DEFAULT_ESTR
+#define DEFAULT_ESTR 32
+#endif
 
-
-#define _Dos9_EsTotalLen(ptrChaine) ((strlen(ptrChaine)/DEFAULT_ESTR+1)*DEFAULT_ESTR)
-#define _Dos9_EsTotalLen2(ptrChaine, ptrString) (((strlen(ptrChaine)+strlen(ptrString))/DEFAULT_ESTR+1)*DEFAULT_ESTR)
-#define _Dos9_EsTotalLen3(ptrChaine,iSize) (((strlen(ptrChaine)+iSize)/DEFAULT_ESTR+1)*DEFAULT_ESTR)
-
-
+#define _Dos9_EsTotalLen(ptrChaine) ((wcslen(ptrChaine)/DEFAULT_ESTR+1)*DEFAULT_ESTR)
+#define _Dos9_EsTotalLen2(ptrChaine, ptrString) (((wcslen(ptrChaine)+wcslen(ptrString))/DEFAULT_ESTR+1)*DEFAULT_ESTR)
+#define _Dos9_EsTotalLen3(ptrChaine,iSize) (((wcslen(ptrChaine)+iSize)/DEFAULT_ESTR+1)*DEFAULT_ESTR)
 #define _Dos9_EsTotalLen4(iSize) ((iSize/DEFAULT_ESTR+1)*DEFAULT_ESTR)
 
 
@@ -38,7 +32,7 @@ ESTR* Dos9_EsInit(void)
     if (ptrESTR)
     {
 
-        ptrESTR->ptrString=malloc(DEFAULT_ESTR);
+        ptrESTR->ptrString=malloc(DEFAULT_ESTR*sizeof(wchar_t));
 
         if (!(ptrESTR->ptrString))
             goto Dos9_EsInit_Error;
@@ -82,9 +76,9 @@ LIBDOS9 int Dos9_EsGet(ESTR* ptrESTR, FILE* ptrFile)
 
     size_t iTotalBytesRead=0;
 
-    char *crLf=NULL,
-         *ptrCursor=NULL,
-         *lpResult;
+    wchar_t *crLf=NULL,
+         	*ptrCursor=NULL,
+         	*lpResult;
 
     ptrCursor=ptrESTR->ptrString;
     iCurrentL=ptrESTR->iLenght-1;
@@ -92,7 +86,7 @@ LIBDOS9 int Dos9_EsGet(ESTR* ptrESTR, FILE* ptrFile)
     while (1)
     {
 
-        lpResult=fgets(ptrCursor, iCurrentL+1, ptrFile);
+        lpResult=fgetws(ptrCursor, iCurrentL+1, ptrFile);
 
 
         if(lpResult==NULL) {
@@ -112,7 +106,7 @@ LIBDOS9 int Dos9_EsGet(ESTR* ptrESTR, FILE* ptrFile)
 
         }
 
-        crLf=strchr(ptrESTR->ptrString, '\n');
+        crLf=wcschr(ptrESTR->ptrString, L'\n');
 
         if (crLf!=NULL)
             break;
@@ -121,7 +115,7 @@ LIBDOS9 int Dos9_EsGet(ESTR* ptrESTR, FILE* ptrFile)
 
         ptrESTR->iLenght=ptrESTR->iLenght*2;
 
-        crLf=realloc(ptrESTR->ptrString, ptrESTR->iLenght);
+        crLf=realloc(ptrESTR->ptrString, ptrESTR->iLenght*sizeof(wchar_t));
 
         if (crLf==NULL) {
                 /* make if more fault tolerant, abort the loop,
@@ -143,24 +137,25 @@ LIBDOS9 int Dos9_EsGet(ESTR* ptrESTR, FILE* ptrFile)
 
         case DOS9_NEWLINE_WINDOWS :
 
-            Dos9_EsReplace(ptrESTR, "\r\n", "\x1\x2\x3\x4");
-            Dos9_EsReplace(ptrESTR, "\n", "\r\n");
-            Dos9_EsReplace(ptrESTR, "\r", "\r\n");
-            Dos9_EsReplace(ptrESTR, "\x1\x2\x3\x4", "\r\n");
+            Dos9_EsReplace(ptrESTR, L"\r\n", L"\x1\x2\x3\x4");
+            Dos9_EsReplace(ptrESTR, L"\n", L"\r\n");
+            Dos9_EsReplace(ptrESTR, L"\r", L"\r\n");
+            Dos9_EsReplace(ptrESTR, L"\x1\x2\x3\x4", L"\r\n");
+			/* not really stable */
 
             break;
 
         case DOS9_NEWLINE_LINUX :
 
-            Dos9_EsReplace(ptrESTR, "\r\n", "\n");
-            Dos9_EsReplace(ptrESTR, "\r", "\n");
+            Dos9_EsReplace(ptrESTR, L"\r\n", L"\n");
+            Dos9_EsReplace(ptrESTR, L"\r", L"\n");
 
             break;
 
         case DOS9_NEWLINE_MAC :
 
-            Dos9_EsReplace(ptrESTR, "\r\n", "\r");
-            Dos9_EsReplace(ptrESTR, "\n", "\r");
+            Dos9_EsReplace(ptrESTR, L"\r\n", L"\r");
+            Dos9_EsReplace(ptrESTR, L"\n", L"\r");
 
 
     }
@@ -171,31 +166,33 @@ LIBDOS9 int Dos9_EsGet(ESTR* ptrESTR, FILE* ptrFile)
 }
 
 
-LIBDOS9 int Dos9_EsCpy(ESTR* ptrESTR, const char* ptrChaine)
+LIBDOS9 int Dos9_EsCpy(ESTR* ptrESTR, const wchar_t* ptrChaine)
 {
     size_t iLen=_Dos9_EsTotalLen(ptrChaine);
-    char* ptrBuf=ptrESTR->ptrString;
+    wchar_t* ptrBuf=ptrESTR->ptrString;
+
     if (ptrESTR->iLenght < iLen) {
 
-        if (!(ptrBuf=realloc(ptrBuf, iLen)))
+        if (!(ptrBuf=realloc(ptrBuf, iLen*sizeof(wchar_t))))
             return -1;
 
         ptrESTR->ptrString=ptrBuf;
         ptrESTR->iLenght=iLen;
     }
 
-    strcpy(ptrBuf, ptrChaine);
+    wcscpy(ptrBuf, ptrChaine);
 
     return 0;
 }
 
-LIBDOS9 int Dos9_EsCpyN(ESTR* ptrESTR, const char* ptrChaine, size_t iSize)
+LIBDOS9 int Dos9_EsCpyN(ESTR* ptrESTR, const wchar_t* ptrChaine, size_t iSize)
 {
     size_t iLen=_Dos9_EsTotalLen4(iSize);
-    char* ptrBuf=ptrESTR->ptrString;
+    wchar_t* ptrBuf=ptrESTR->ptrString;
+
     if (ptrESTR->iLenght < iLen)
     {
-        if (!(ptrBuf=realloc(ptrBuf, iLen)))
+        if (!(ptrBuf=realloc(ptrBuf, iLen*sizeof(wchar_t))))
             return -1;
 
         ptrESTR->ptrString=ptrBuf;
@@ -209,46 +206,47 @@ LIBDOS9 int Dos9_EsCpyN(ESTR* ptrESTR, const char* ptrChaine, size_t iSize)
            is correct for C89 standard (afaik) */
 
     if (iSize)
-       strncpy(ptrBuf, ptrChaine, iSize);
+       wcsncpy(ptrBuf, ptrChaine, iSize);
 
-    ptrBuf[iSize]='\0';
+    ptrBuf[iSize]=L'\0';
 
     return 0;
 }
 
-LIBDOS9 int Dos9_EsCat(ESTR* ptrESTR, const char* ptrChaine)
+LIBDOS9 int Dos9_EsCat(ESTR* ptrESTR, const wchar_t* ptrChaine)
 {
    int iLen=_Dos9_EsTotalLen2(ptrESTR->ptrString,ptrChaine);
-   char *lpBuf=ptrESTR->ptrString;
+   wchar_t* lpBuf=ptrESTR->ptrString;
 
    if ((ptrESTR->iLenght<iLen)) {
 
-        if (!(lpBuf=realloc(lpBuf,iLen)))
+        if (!(lpBuf=realloc(lpBuf, iLen*sizeof(wchar_t))))
             return -1;
 
         ptrESTR->ptrString=lpBuf;
         ptrESTR->iLenght=iLen;
    }
 
-   strcat(lpBuf, ptrChaine);
+   wcscat(lpBuf, ptrChaine);
 
    return 0;
 }
 
-LIBDOS9 int Dos9_EsCatN(ESTR* ptrESTR, const char* ptrChaine, size_t iSize)
+LIBDOS9 int Dos9_EsCatN(ESTR* ptrESTR, const wchar_t* ptrChaine, size_t iSize)
 {
    int iLen=_Dos9_EsTotalLen3(ptrESTR->ptrString,iSize+1);
-   char *lpBuf=ptrESTR->ptrString;
+   wchar_t* lpBuf=ptrESTR->ptrString;
+
    if (ptrESTR->iLenght<iLen) {
 
-        if (!(lpBuf=realloc(lpBuf,iLen)))
+        if (!(lpBuf=realloc(lpBuf, iLen*sizeof(wchar_t))))
             return -1;
 
         ptrESTR->ptrString=lpBuf;
         ptrESTR->iLenght=iLen;
    }
 
-   strncat(lpBuf, ptrChaine, iSize);
+   wcsncat(lpBuf, ptrChaine, iSize);
 
    return 0;
 }
@@ -256,18 +254,18 @@ LIBDOS9 int Dos9_EsCatN(ESTR* ptrESTR, const char* ptrChaine, size_t iSize)
 LIBDOS9 int Dos9_EsCpyE(ESTR* ptrDest, const ESTR* ptrSource)
 {
     int iLen=_Dos9_EsTotalLen(ptrSource->ptrString);
-    char* ptrBuf=ptrDest->ptrString;
+    wchar_t* ptrBuf=ptrDest->ptrString;
 
     if (iLen > ptrDest->iLenght)
     {
-        if (!(ptrBuf=realloc(ptrBuf, iLen)))
+        if (!(ptrBuf=realloc(ptrBuf, iLen*sizeof(wchar_t))))
             return -1;
 
         ptrDest->ptrString=ptrBuf;
         ptrDest->iLenght=iLen;
     }
 
-    strcpy(ptrBuf, ptrSource->ptrString);
+    wcscpy(ptrBuf, ptrSource->ptrString);
 
     return 0;
 }
@@ -275,31 +273,31 @@ LIBDOS9 int Dos9_EsCpyE(ESTR* ptrDest, const ESTR* ptrSource)
 LIBDOS9 int Dos9_EsCatE(ESTR* ptrDest, const ESTR* ptrSource)
 {
     int iLen=_Dos9_EsTotalLen2(ptrDest->ptrString, ptrSource->ptrString);
-    char* lpBuf=ptrDest->ptrString;
+    wchar_t* lpBuf=ptrDest->ptrString;
 
     if (ptrDest->iLenght<iLen) {
 
-        if (!(lpBuf=realloc(lpBuf,iLen)))
+        if (!(lpBuf=realloc(lpBuf,iLen*sizeof(wchar_t))))
             return -1;
 
         ptrDest->ptrString=lpBuf;
         ptrDest->iLenght=iLen;
     }
 
-    strcat(lpBuf, ptrSource->ptrString);
+    wcscat(lpBuf, ptrSource->ptrString);
 
     return 0;
 }
 
-LIBDOS9 int Dos9_EsReplace(ESTR* ptrESTR, const char* ptrPattern, const char* ptrReplace)
+LIBDOS9 int Dos9_EsReplace(ESTR* ptrESTR, const wchar_t* ptrPattern, const wchar_t* ptrReplace)
 {
-    char* lpBuffer=Dos9_EsToChar(ptrESTR), *lpToken;
-    int iLength=strlen(ptrPattern);
+    wchar_t* lpBuffer=Dos9_EsToChar(ptrESTR), *lpToken;
+    int iLength=wcslen(ptrPattern);
     ESTR *lpReturn=Dos9_EsInit();
 
-    while ((lpToken=strstr(lpBuffer, ptrPattern))) {
+    while ((lpToken=wcsstr(lpBuffer, ptrPattern))) {
 
-        *lpToken='\0';
+        *lpToken=L'\0';
 
         Dos9_EsCat(lpReturn, lpBuffer);
         Dos9_EsCat(lpReturn, ptrReplace);

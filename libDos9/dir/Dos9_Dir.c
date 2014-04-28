@@ -18,73 +18,95 @@
  *
  */
 
-#include <ctype.h>
+#include <wctype.h>
+
 #include "../LibDos9.h"
 
-LIBDOS9 int Dos9_RegExpMatch(char* lpRegExp, char* lpMatch)
+#ifdef WIN32
+
+typedef _WDIR WDIR;
+#define dirent _wdirent
+#define wopendir _wopendir
+#define wreaddir  _wreaddir
+#define wclosedir _wclosedir
+
+#endif // WIN32
+
+LIBDOS9 int Dos9_RegExpMatch(wchar_t* lpRegExp, wchar_t* lpMatch)
 {
-	char* lpNextPos;
+	wchar_t* lpNextPos;
 
 	if (!(lpRegExp && lpMatch)) return FALSE;
 
 	for (; *lpRegExp && *lpMatch;
-	     lpRegExp=Dos9_GetNextChar(lpRegExp),
-	     lpMatch=Dos9_GetNextChar(lpMatch)
+	     lpRegExp++,
+	     lpMatch++
 	    ) {
+
 		switch(*lpRegExp) {
-		case '?':
+		case L'?':
 
 			break;
 
-		case '*':
+		case L'*':
 
-			lpRegExp=Dos9_GetNextChar(lpRegExp);
+			lpRegExp++;
 
-			while (*lpRegExp=='*' && *lpRegExp=='?') lpRegExp=Dos9_GetNextChar(lpRegExp);
+			while (*lpRegExp==L'*' && *lpRegExp==L'?') lpRegExp++;
 
 			if (!*lpRegExp) return TRUE;
 
 
-			if ((lpNextPos=_Dos9_SeekPatterns(lpMatch,lpRegExp))) lpMatch=lpNextPos; /* search if matching patterns exist*/
-			else return FALSE;
+			if ((lpNextPos=_Dos9_SeekPatterns(lpMatch,lpRegExp))) {
+
+				lpMatch=lpNextPos; /* search if matching patterns exist*/
+
+			} else {
+
+				return FALSE;
+
+			}
 
 			if (!*lpMatch) return TRUE; /* if there is no match string to test, the match is true */
 
-			if (*lpRegExp) while (*lpRegExp!='*' && *lpRegExp!='?' && *lpRegExp) lpRegExp=Dos9_GetNextChar(lpRegExp);
+			if (*lpRegExp) while (*lpRegExp!=L'*' && *lpRegExp!=L'?' && *lpRegExp)
+				lpRegExp++;
 			/* skip the next symbols, i.e. two '**' or '*?' are useless and so ignored */
 			lpRegExp--;
+
 			break;
 
 		default:
 			if (*lpRegExp != *lpMatch) return FALSE;
+
 		}
 	}
 
-	if (*lpRegExp) lpRegExp=Dos9_GetNextChar(lpRegExp);
+	if (*lpRegExp) lpRegExp++;
+
 	if (!(!*lpMatch && !*lpRegExp)) return FALSE;
 	return TRUE;
 }
 
-LIBDOS9 int Dos9_RegExpCaseMatch(char* lpRegExp, char* lpMatch)
+LIBDOS9 int Dos9_RegExpCaseMatch(wchar_t* lpRegExp, wchar_t* lpMatch)
 {
-	char* lpNextPos;
+	wchar_t* lpNextPos;
 
 	if (!(lpRegExp && lpMatch)) return FALSE;
 
 	for (; *lpRegExp && *lpMatch;
-	     lpRegExp=Dos9_GetNextChar(lpRegExp),
-	     lpMatch=Dos9_GetNextChar(lpMatch)
+			lpRegExp++,lpMatch++
 	    ) {
 		switch(*lpRegExp) {
-		case '?':
+		case L'?':
 
 			break;
 
-		case '*':
+		case L'*':
 
-			lpRegExp=Dos9_GetNextChar(lpRegExp);
+			lpRegExp++;
 
-			while (*lpRegExp=='*' && *lpRegExp=='?') lpRegExp=Dos9_GetNextChar(lpRegExp);
+			while (*lpRegExp==L'*' && *lpRegExp==L'?') lpRegExp++;
 
 			if (!*lpRegExp) return TRUE;
 
@@ -93,7 +115,7 @@ LIBDOS9 int Dos9_RegExpCaseMatch(char* lpRegExp, char* lpMatch)
 
 			if (!*lpMatch) return TRUE; /* if there is no match string to test, the match is true */
 
-			if (*lpRegExp) while (*lpRegExp!='*' && *lpRegExp!='?' && *lpRegExp) lpRegExp=Dos9_GetNextChar(lpRegExp);
+			if (*lpRegExp) while (*lpRegExp!=L'*' && *lpRegExp!=L'?' && *lpRegExp) lpRegExp++;
 			/* skip the next symbols, i.e. two '**' or '*?' are useless and so ignored */
 			lpRegExp--;
 			break;
@@ -103,37 +125,47 @@ LIBDOS9 int Dos9_RegExpCaseMatch(char* lpRegExp, char* lpMatch)
 		}
 	}
 
-	if (*lpRegExp) lpRegExp=Dos9_GetNextChar(lpRegExp);
+	if (*lpRegExp) lpRegExp++;
 	if (!(!*lpMatch && !*lpRegExp)) return FALSE;
 	return TRUE;
 }
 
 
-LIBDOS9 int Dos9_FormatFileSize(char* lpBuf, int iLength, unsigned int iFileSize)
+LIBDOS9 int Dos9_FormatFileSize(wchar_t* lpBuf, int iLength, unsigned int iFileSize)
 {
 	int i=0, iLastPart=0;
+	wchar_t* lpUnit[]= {L"o", L"ko", L"mo", L"go"};
+	/* Note : We conform to SI prefixes. We could have used
+	   O, Kio, Mio, Gio instead.*/
+
+
 	if (!iFileSize) {
-		return (int)strncpy(lpBuf, "", iLength);
+		return (int)wcsncpy(lpBuf, L"", iLength);
 	}
-	char* lpUnit[]= {"o", "ko", "mo", "go"};
+
 	while (iFileSize>=1000) {
 		iLastPart=iFileSize % 1000;
 		iFileSize/=1000;
 		i++;
 	}
-	if (iFileSize>=100) return snprintf(lpBuf, iLength, " %d %s", iFileSize, lpUnit[i%4]);
-	if (iFileSize>=10) return snprintf(lpBuf, iLength, "  %d %s", iFileSize, lpUnit[i%4]);
-	else {
-		iLastPart=iLastPart/10;
-		return snprintf(lpBuf, iLength, "%d,%.2d %s", iFileSize, iLastPart , lpUnit[i%4]);
-	}
+
+	if (iFileSize>=100)
+		return snwprintf(lpBuf, iLength, L" %d %s", iFileSize, lpUnit[i%4]);
+
+	if (iFileSize>=10)
+		return snwprintf(lpBuf, iLength, L"  %d %s", iFileSize, lpUnit[i%4]);
+
+	iLastPart=iLastPart/10;
+	return snwprintf(lpBuf, iLength, L"%d,%.2d %s",
+					 iFileSize, iLastPart , lpUnit[i%4]);
+
 }
 
-LIBDOS9 int         Dos9_GetMatchFileCallback(char* lpPathMatch, int iFlag, void(*pCallBack)(FILELIST*))
+LIBDOS9 int         Dos9_GetMatchFileCallback(wchar_t* lpPathMatch, int iFlag, void(*pCallBack)(FILELIST*))
 {
 	int iDepth; /* to store depth of  regexp */
-	char lpStaticPart[FILENAME_MAX],
-	     lpMatchPart[FILENAME_MAX];
+	wchar_t lpStaticPart[FILENAME_MAX],
+			lpMatchPart[FILENAME_MAX];
 
 	int iFileDescriptors[2];
 	size_t iReturn;
@@ -183,8 +215,8 @@ LIBDOS9 int         Dos9_GetMatchFileCallback(char* lpPathMatch, int iFlag, void
 		   static path
 		*/
 
-		*lpStaticPart='.';
-		lpStaticPart[1]='\0';
+		*lpStaticPart=L'.';
+		lpStaticPart[1]=L'\0';
 
 	}
 
@@ -196,15 +228,15 @@ LIBDOS9 int         Dos9_GetMatchFileCallback(char* lpPathMatch, int iFlag, void
 			   if the dir-compliant mode has been set, then the regexp will
 			   browse the directory */
 
-			*lpMatchPart='*';
-			lpMatchPart[1]='\0';
+			*lpMatchPart=L'*';
+			lpMatchPart[1]=L'\0';
 
 		} else if (Dos9_DirExists(lpStaticPart) || Dos9_FileExists(lpStaticPart)) {
 
 			/* if the regexp is trivial (ie. no regexp characters)
 			   then perform direct test and add it if go to end */
 
-			write(iFileDescriptors[1], lpStaticPart, FILENAME_MAX);
+			write(iFileDescriptors[1], lpStaticPart, FILENAME_MAX*sizeof(wchar_t));
 			goto Dos9_GetMatchFileList_End;
 
 		}
@@ -223,7 +255,7 @@ LIBDOS9 int         Dos9_GetMatchFileCallback(char* lpPathMatch, int iFlag, void
 Dos9_GetMatchFileList_End:
 
 
-	if (write(iFileDescriptors[1], "\1", 1)==-1)
+	if (write(iFileDescriptors[1], L"\1", sizeof(wchar_t))==-1)
 		return 0;
 
 	Dos9_WaitForThread(&hThread, &iReturn);
@@ -235,12 +267,14 @@ Dos9_GetMatchFileList_End:
 
 }
 
-LIBDOS9 LPFILELIST  Dos9_GetMatchFileList(char* lpPathMatch, int iFlag)
+LIBDOS9 LPFILELIST  Dos9_GetMatchFileList(wchar_t* lpPathMatch, int iFlag)
 {
 	int iDepth; /* to store depth of  regexp */
-	char lpStaticPart[FILENAME_MAX],
-	     lpMatchPart[FILENAME_MAX];
+	wchar_t lpStaticPart[FILENAME_MAX],
+			lpMatchPart[FILENAME_MAX];
+
 	int iFileDescriptors[2];
+
 	THREAD hThread;
 	LPFILELIST lpReturn;
 
@@ -284,8 +318,8 @@ LIBDOS9 LPFILELIST  Dos9_GetMatchFileList(char* lpPathMatch, int iFlag)
 		   static path
 		*/
 
-		*lpStaticPart='.';
-		lpStaticPart[1]='\0';
+		*lpStaticPart=L'.';
+		lpStaticPart[1]=L'\0';
 
 	}
 
@@ -297,15 +331,15 @@ LIBDOS9 LPFILELIST  Dos9_GetMatchFileList(char* lpPathMatch, int iFlag)
 			   if the dir-compliant mode has been set, then the regexp will
 			   browse the directory */
 
-			*lpMatchPart='*';
-			lpMatchPart[1]='\0';
+			*lpMatchPart=L'*';
+			lpMatchPart[1]=L'\0';
 
 		} else if (Dos9_DirExists(lpStaticPart) || Dos9_FileExists(lpStaticPart)) {
 
 			/* if the regexp is trivial (ie. no regexp characters)
 			   then perform direct test and add it if go to end */
 
-			write(iFileDescriptors[1], lpStaticPart, FILENAME_MAX);
+			write(iFileDescriptors[1], lpStaticPart, FILENAME_MAX*sizeof(wchar_t));
 			goto Dos9_GetMatchFileList_End;
 
 		}
@@ -322,7 +356,7 @@ LIBDOS9 LPFILELIST  Dos9_GetMatchFileList(char* lpPathMatch, int iFlag)
 
 Dos9_GetMatchFileList_End:
 
-	if (write(iFileDescriptors[1], "\1", 1)==-1) return NULL;
+	if (write(iFileDescriptors[1], L"\1", sizeof(wchar_t))==-1) return NULL;
 
 	Dos9_WaitForThread(&hThread, &lpReturn);
 
@@ -333,15 +367,15 @@ Dos9_GetMatchFileList_End:
 
 }
 
-LPFILELIST _Dos9_SeekFiles(char* lpDir, char* lpRegExp, int iLvl, int iMaxLvl, int iOutDescriptor, int iSearchFlag)
+LPFILELIST _Dos9_SeekFiles(wchar_t* lpDir, wchar_t* lpRegExp, int iLvl, int iMaxLvl, int iOutDescriptor, int iSearchFlag)
 {
-	DIR* pDir;
+	WDIR* pDir;
 	/* used to browse the directory */
 	struct dirent* lpDirElement;
 	/* used to browse the directory elements */
-	char lpRegExpLvl[FILENAME_MAX];
+	wchar_t lpRegExpLvl[FILENAME_MAX];
 	/* used to get the part of the path to deal with */
-	char lpFilePath[FILENAME_MAX];
+	wchar_t lpFilePath[FILENAME_MAX];
 	/* used to make file path */
 	int iFlagRecursive=FALSE,
 	    iIsPseudoDir;
@@ -354,9 +388,9 @@ LPFILELIST _Dos9_SeekFiles(char* lpDir, char* lpRegExp, int iLvl, int iMaxLvl, i
 	_Dos9_GetMatchPart(lpRegExp, lpRegExpLvl, FILENAME_MAX, iLvl);
 	/* returns the part of path that must the file must match */
 
-	if ((!strcmp(lpRegExpLvl, ".")) && (iLvl == iMaxLvl)) {
+	if ((!wcscmp(lpRegExpLvl, L".")) && (iLvl == iMaxLvl)) {
 
-		*lpRegExpLvl='\0';
+		*lpRegExpLvl=L'\0';
 		/*
 		    If the regexp is trivial (ie. '.') and at top level
 		    (including for recursive search), this is replaced
@@ -366,9 +400,9 @@ LPFILELIST _Dos9_SeekFiles(char* lpDir, char* lpRegExp, int iLvl, int iMaxLvl, i
 
 	}
 
-	if ((pDir=opendir(lpDir))) {
+	if ((pDir=wopendir(lpDir))) {
 
-		while ((lpDirElement=readdir(pDir))) {
+		while ((lpDirElement=wreaddir(pDir))) {
 
 
 			if ((
@@ -386,14 +420,14 @@ LPFILELIST _Dos9_SeekFiles(char* lpDir, char* lpRegExp, int iLvl, int iMaxLvl, i
 			            if the search is recursive don't care wether the element
 			            matches the regular expression. Just check that the
 			            element is neither '.' nor '..', since it will probably
-			            circular filesystem search.
+			            cause circular filesystem search.
 			        */
 			    )) {
 
 				_Dos9_MakePath(lpDir, lpDirElement->d_name, lpFilePath, FILENAME_MAX);
 
-				iIsPseudoDir=!(strcmp(".", lpDirElement->d_name)
-				               && strcmp("..", lpDirElement->d_name));
+				iIsPseudoDir=!(wcscmp(L".", lpDirElement->d_name)
+				               && wcscmp(L"..", lpDirElement->d_name));
 
 				switch(iFlagRecursive) {
 
@@ -413,7 +447,7 @@ LPFILELIST _Dos9_SeekFiles(char* lpDir, char* lpRegExp, int iLvl, int iMaxLvl, i
 						    && iIsPseudoDir)
 							goto Dos9_DirRecursive;
 
-						if (write(iOutDescriptor, lpFilePath, FILENAME_MAX)==-1)
+						if (write(iOutDescriptor, lpFilePath, FILENAME_MAX*sizeof(wchar_t))==-1)
 							return NULL;
 
 						if (iSearchFlag & DOS9_SEARCH_GET_FIRST_MATCH)
@@ -443,7 +477,7 @@ Dos9_DirRecursive:
 							break;
 
 
-						if (write(iOutDescriptor, lpFilePath, FILENAME_MAX)==-1)
+						if (write(iOutDescriptor, lpFilePath, FILENAME_MAX*sizeof(wchar_t))==-1)
 							return NULL;
 
 						if (iSearchFlag & DOS9_SEARCH_GET_FIRST_MATCH)
@@ -461,15 +495,15 @@ Dos9_DirRecursive:
 			}
 		}
 
-		closedir(pDir);
+		wclosedir(pDir);
 	}
 	return NULL;
 }
 
-int _Dos9_SplitMatchPath(const char* lpPathMatch, char* lpStaticPart, size_t iStaticSize,  char* lpMatchPart, size_t iMatchSize)
+int _Dos9_SplitMatchPath(const wchar_t* lpPathMatch, wchar_t* lpStaticPart, size_t iStaticSize,  wchar_t* lpMatchPart, size_t iMatchSize)
 {
-	const char* lpLastToken=NULL; /* a pointer to the last static delimiter */
-	const char* lpCh=lpPathMatch; /* a pointer to browse string */
+	const wchar_t* lpLastToken=NULL; /* a pointer to the last static delimiter */
+	const wchar_t* lpCh=lpPathMatch; /* a pointer to browse string */
 	int iContinue=TRUE;
 	size_t iSize;
 
@@ -482,13 +516,13 @@ int _Dos9_SplitMatchPath(const char* lpPathMatch, char* lpStaticPart, size_t iSt
 
 		switch(*lpCh) {
 
-		case '/':
-		case '\\':
+		case L'/':
+		case L'\\':
 			lpLastToken=lpCh+1;
 			break;
 
-		case '?':
-		case '*':
+		case L'?':
+		case L'*':
 			iContinue=FALSE;
 			break;
 
@@ -511,13 +545,11 @@ int _Dos9_SplitMatchPath(const char* lpPathMatch, char* lpStaticPart, size_t iSt
 
 			/* the token is just '/' which means
 			   volume root */
-			printf("Incrementing Size");
 			iSize++;
 
-		} else if ((iSize==3) && (*(lpPathMatch+1)==':'))  {
+		} else if ((iSize==3) && (*(lpPathMatch+1)==L':'))  {
 
 			/* the token is a windows drive letter */
-			printf("Incrementing Size");
 			iSize++;
 
 		}
@@ -525,41 +557,41 @@ int _Dos9_SplitMatchPath(const char* lpPathMatch, char* lpStaticPart, size_t iSt
 		if (iSize < iStaticSize)
 			iStaticSize=iSize;
 
-		strncpy(lpStaticPart, lpPathMatch, iStaticSize);
-		lpStaticPart[iStaticSize-1]='\0';
+		wcsncpy(lpStaticPart, lpPathMatch, iStaticSize);
+		lpStaticPart[iStaticSize-1]=L'\0';
 
-		strncpy(lpMatchPart, lpLastToken, iMatchSize);
-		lpStaticPart[iMatchSize-1]='\0';
+		wcsncpy(lpMatchPart, lpLastToken, iMatchSize);
+		lpStaticPart[iMatchSize-1]=L'\0';
 
 	} else if (!iContinue) {
 
 		/* if there is no static part */
 
 		if (iStaticSize)
-			*lpStaticPart='\0';
+			*lpStaticPart=L'\0';
 
-		strncpy(lpMatchPart, lpPathMatch, iMatchSize);
-		lpStaticPart[iMatchSize-1]='\0';
+		wcsncpy(lpMatchPart, lpPathMatch, iMatchSize);
+		lpStaticPart[iMatchSize-1]=L'\0';
 
 	} else {
 
 		/* if there is no match part */
 
 		if (iMatchSize)
-			*lpMatchPart='\0';
+			*lpMatchPart=L'\0';
 
-		strncpy(lpStaticPart, lpPathMatch, iStaticSize);
-		lpStaticPart[iStaticSize-1]='\0';
+		wcsncpy(lpStaticPart, lpPathMatch, iStaticSize);
+		lpStaticPart[iStaticSize-1]=L'\0';
 
 	}
 
 	return 0;
 }
 
-int _Dos9_GetMatchPart(const char* lpRegExp, char* lpBuffer, size_t iLength, int iLvl)
+int _Dos9_GetMatchPart(const wchar_t* lpRegExp, wchar_t* lpBuffer, size_t iLength, int iLvl)
 {
-	const char *lpCh=lpRegExp,
-	            *lpLastToken=lpRegExp;
+	const wchar_t *lpCh=lpRegExp,
+	              *lpLastToken=lpRegExp;
 	int iCurrentLvl=1, /* the first level is the level 1 */
 	    iContinue=TRUE;
 
@@ -567,7 +599,7 @@ int _Dos9_GetMatchPart(const char* lpRegExp, char* lpBuffer, size_t iLength, int
 
 	while (*lpCh && iContinue) {
 
-		if (*lpCh=='\\' || *lpCh=='/') {
+		if (*lpCh==L'\\' || *lpCh==L'/') {
 
 			if (iCurrentLvl==iLvl)
 				iContinue=FALSE;
@@ -587,12 +619,12 @@ int _Dos9_GetMatchPart(const char* lpRegExp, char* lpBuffer, size_t iLength, int
 
 		if (iLvl!=iCurrentLvl) {
 
-			*lpBuffer='\0';
+			*lpBuffer=L'\0';
 
 		} else {
 
-			strncpy(lpBuffer, lpLastToken, iLength);
-			lpBuffer[iLength-1]='\0';
+			wcsncpy(lpBuffer, lpLastToken, iLength);
+			lpBuffer[iLength-1]=L'\0';
 
 		}
 
@@ -605,19 +637,19 @@ int _Dos9_GetMatchPart(const char* lpRegExp, char* lpBuffer, size_t iLength, int
 	if (iSize < iLength)
 		iLength=iSize;
 
-	strncpy(lpBuffer, lpLastToken, iLength);
-	lpBuffer[iSize-1]='\0';
+	wcsncpy(lpBuffer, lpLastToken, iLength);
+	lpBuffer[iSize-1]=L'\0';
 
 	return 0;
 }
 
-int _Dos9_GetMatchDepth(char* lpRegExp)
+int _Dos9_GetMatchDepth(wchar_t* lpRegExp)
 {
 	int iDepth;
 
 	for (iDepth=1; *lpRegExp; lpRegExp++) {
 
-		if (*lpRegExp=='\\' || *lpRegExp=='/') iDepth++;
+		if (*lpRegExp==L'\\' || *lpRegExp==L'/') iDepth++;
 
 	}
 
@@ -625,35 +657,40 @@ int _Dos9_GetMatchDepth(char* lpRegExp)
 
 }
 
-int _Dos9_MakePath(char* lpPathBase, char* lpPathEnd, char* lpBuffer, int iLength)
+int _Dos9_MakePath(wchar_t* lpPathBase, wchar_t* lpPathEnd, wchar_t* lpBuffer, int iLength)
 {
-	int iLen=strlen(lpPathBase)+strlen(lpPathEnd);
+	int iLen=wcslen(lpPathBase)+wcslen(lpPathEnd);
 	int i=0;
 
-	if (lpPathBase[strlen(lpPathBase)-1] != '/' && lpPathBase[strlen(lpPathBase)-1] != '\\') {
+	if (lpPathBase[wcslen(lpPathBase)-1] != L'/' && lpPathBase[wcslen(lpPathBase)-1] != L'\\') {
 		iLen++;
 		i=1;
 	}
 
 	if (iLen>iLength) return -1;
 
-	if (!strcmp(lpPathBase, ".")) {
-		strcpy(lpBuffer,lpPathEnd);
+	if (!wcscmp(lpPathBase, L".")) {
+
+		wcscpy(lpBuffer, lpPathEnd);
 		return 0;
 	}
 
-	strcpy(lpBuffer, lpPathBase);
-	if (i) strcat(lpBuffer, "/");
-	strcat(lpBuffer, lpPathEnd);
+	wcscpy(lpBuffer, lpPathBase);
+
+	if (i)
+		wcscat(lpBuffer, L"/");
+
+	wcscat(lpBuffer, lpPathEnd);
+
 	return 0;
 }
 
-char* _Dos9_GetFileName(char* lpPath)
+wchar_t* _Dos9_GetFileName(wchar_t* lpPath)
 {
-	char* lpLastPos=NULL;
+	wchar_t* lpLastPos=NULL;
 
 	for (; *lpPath; lpPath++) {
-		if (*lpPath=='/' || *lpPath=='\\') lpLastPos=lpPath+1;
+		if (*lpPath==L'/' || *lpPath==L'\\') lpLastPos=lpPath+1;
 	}
 
 	return lpLastPos;
@@ -670,7 +707,7 @@ LIBDOS9 int Dos9_FreeFileList(LPFILELIST lpflFileList)
 
 LPFILELIST _Dos9_WaitForFileList(LPFILEPARAMETER lpParam)
 {
-	char lpFileName[FILENAME_MAX];
+	wchar_t lpFileName[FILENAME_MAX];
 	char cUseStat=lpParam->bStat;
 	int iInDescriptor=lpParam->iInput;
 	LPFILELIST lpflLast=NULL;
@@ -681,22 +718,22 @@ LPFILELIST _Dos9_WaitForFileList(LPFILEPARAMETER lpParam)
 		/* get data from the descriptor (take a large amount
 		   of FILENAME_MAX bytes because of binary type of
 		   the descriptor). */
-		if (read(iInDescriptor, lpFileName, FILENAME_MAX)) {
+		if (read(iInDescriptor, lpFileName, FILENAME_MAX*sizeof(wchar_t))) {
 
-			if (*lpFileName=='\1')
+			if (*lpFileName==L'\1')
 				break;
 
 			if ((lpflCurrent=malloc(sizeof(FILELIST)))) {
 
-				strcpy(lpflCurrent->lpFileName, lpFileName);
+				wcscpy(lpflCurrent->lpFileName, lpFileName);
 				lpflCurrent->lpflNext=lpflLast;
 
 				if ((cUseStat)) {
 
-					stat(lpFileName, &(lpflCurrent->stFileStats));
+					wstat(lpFileName, &(lpflCurrent->stFileStats));
 
 #if defined WIN32
-					lpflCurrent->stFileStats.st_mode=Dos9_GetFileAttributes(lpFileName);
+					lpflCurrent->stFileStats.st_mode=GetFileAttributesW(lpFileName);
 #endif
 
 				}
@@ -713,7 +750,7 @@ LPFILELIST _Dos9_WaitForFileList(LPFILEPARAMETER lpParam)
 
 int                 _Dos9_WaitForFileListCallBack(LPFILEPARAMETER lpParam)
 {
-	char lpFileName[FILENAME_MAX];
+	wchar_t lpFileName[FILENAME_MAX];
 	char cUseStat=lpParam->bStat;
 	int iInDescriptor=lpParam->iInput;
 	size_t i=0;
@@ -726,22 +763,22 @@ int                 _Dos9_WaitForFileListCallBack(LPFILEPARAMETER lpParam)
 		/* get data from the descriptor (take a large amount
 		   of FILENAME_MAX bytes because of binary type of
 		   the descriptor). */
-		if (read(iInDescriptor, lpFileName, FILENAME_MAX)) {
+		if (read(iInDescriptor, lpFileName, FILENAME_MAX*sizeof(wchar_t))) {
 
-			if (*lpFileName=='\1')
+			if (*lpFileName==L'\1')
 				break;
 
-			strcpy(flElement.lpFileName, lpFileName);
+			wcscpy(flElement.lpFileName, lpFileName);
 
 			if (cUseStat) {
 
-				stat(lpFileName, &(flElement.stFileStats));
+				wstat(lpFileName, &(flElement.stFileStats));
 
 #ifdef WIN32
 
 				/* Using windows, more detailled directory information
 				   can be obtained */
-				flElement.stFileStats.st_mode=Dos9_GetFileAttributes(lpFileName);
+				flElement.stFileStats.st_mode=GetFileAttributesW(lpFileName);
 
 #endif // WIN32
 
@@ -767,23 +804,26 @@ int _Dos9_FreeFileList(LPFILELIST lpflFileList)
 
 		lpflNext=lpflFileList->lpflNext;
 		free(lpflFileList);
+
 	}
 
 	return 0;
 }
 
-char* _Dos9_SeekCasePatterns(char* lpSearch, char* lpPattern)
+wchar_t* _Dos9_SeekCasePatterns(wchar_t* lpSearch, wchar_t* lpPattern)
 {
-	const char* lpPatternBegin=(const char*)lpPattern;
-	char* lpLastBegin;
+	const wchar_t* lpPatternBegin=(const wchar_t*)lpPattern;
+	wchar_t* lpLastBegin;
 	while (TRUE) {
+
 		for (; *lpSearch && (toupper(*lpPattern)!=toupper(*lpSearch)); lpSearch++);
 
 		lpLastBegin=lpSearch;
 
-		for (; *lpSearch && *lpPattern && *lpPattern!='*' && *lpPattern!='?' && (toupper(*lpPattern)==toupper(*lpSearch)); lpSearch++, lpPattern++);
+		for (; *lpSearch && *lpPattern && *lpPattern!=L'*' && *lpPattern!=L'?'
+				&& (towupper(*lpPattern)==towupper(*lpSearch)); lpSearch++, lpPattern++);
 
-		if (!*lpPattern || *lpPattern=='*' || *lpPattern=='?') {
+		if (!*lpPattern || *lpPattern==L'*' || *lpPattern==L'?') {
 			//printf("<FOUND> (returns: '%s')\n",lpLastBegin, lpSearch);
 			return lpSearch;
 		}
@@ -794,14 +834,16 @@ char* _Dos9_SeekCasePatterns(char* lpSearch, char* lpPattern)
 		}
 
 		lpSearch=lpLastBegin+1;
-		lpPattern=(char*)lpPatternBegin;
+		lpPattern=(wchar_t*)lpPatternBegin;
+
 	}
+
 }
 
-char* _Dos9_SeekPatterns(char* lpSearch, char* lpPattern)
+wchar_t* _Dos9_SeekPatterns(wchar_t* lpSearch, wchar_t* lpPattern)
 {
-	const char* lpPatternBegin=(const char*)lpPattern;
-	char* lpLastBegin;
+	const wchar_t* lpPatternBegin=(const wchar_t*)lpPattern;
+	wchar_t* lpLastBegin;
 	while (TRUE) {
 
 		/* search the next character identical to the given character */
@@ -812,11 +854,12 @@ char* _Dos9_SeekPatterns(char* lpSearch, char* lpPattern)
 
 		/* loop until the loop encounter a character '*' or '?'
 		   (the next regexp symbol) */
-		for (; *lpSearch && *lpPattern && *lpPattern!='*' && *lpPattern!='?' && (*lpPattern==*lpSearch); lpSearch++, lpPattern++) {
+		for (; *lpSearch && *lpPattern && *lpPattern!=L'*' && *lpPattern!=L'?'
+			   && (*lpPattern==*lpSearch); lpSearch++, lpPattern++) {
 		}
 
 		/* return if the pattern true is either finished or '*' or '?' */
-		if (!*lpPattern || *lpPattern=='*' || *lpPattern=='?') {
+		if (!*lpPattern || *lpPattern==L'*' || *lpPattern==L'?') {
 			//printf("<FOUND> (returns: '%s')\n",lpLastBegin, lpSearch);
 			return lpSearch;
 		}
@@ -829,7 +872,7 @@ char* _Dos9_SeekPatterns(char* lpSearch, char* lpPattern)
 		}
 
 		lpSearch=lpLastBegin+1;
-		lpPattern=(char*)lpPatternBegin;
+		lpPattern=(wchar_t*)lpPatternBegin;
 
 	}
 }

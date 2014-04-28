@@ -27,6 +27,7 @@
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <sys/stat.h>
+#include <wchar.h>
 
 #define LIBDOS9
 
@@ -147,7 +148,7 @@ LIBDOS9     int Dos9_GetStack(LPSTACK lpcsStack, void** ptrContent);
 LIBDOS9     int Dos9_ClearStack(LPSTACK lpcsStack, void(*pFunc)(void*));
 
 typedef struct ESTR {
-    char* ptrString;
+    wchar_t* ptrString;
     int iLenght;
 } ESTR, *LPESTR;
 
@@ -164,15 +165,15 @@ typedef struct ESTR {
 LIBDOS9 extern int      _Dos9_NewLine;
 LIBDOS9 ESTR*           Dos9_EsInit(void);
 LIBDOS9 int             Dos9_EsGet(ESTR* ptrESTR, FILE* ptrFile);
-LIBDOS9 int             Dos9_EsCpy(ESTR* ptrESTR, const char* ptrChaine);
-LIBDOS9 int             Dos9_EsCpyN(ESTR* ptrESTR, const char* ptrChaine, size_t iSize);
-LIBDOS9 int             Dos9_EsCat(ESTR* ptrESTR, const char* ptrChaine);
-LIBDOS9 int             Dos9_EsCatN(ESTR* ptrESTR, const char* ptrChaine, size_t iSize);
+LIBDOS9 int             Dos9_EsCpy(ESTR* ptrESTR, const wchar_t* ptrChaine);
+LIBDOS9 int             Dos9_EsCpyN(ESTR* ptrESTR, const wchar_t* ptrChaine, size_t iSize);
+LIBDOS9 int             Dos9_EsCat(ESTR* ptrESTR, const wchar_t* ptrChaine);
+LIBDOS9 int             Dos9_EsCatN(ESTR* ptrESTR, const wchar_t* ptrChaine, size_t iSize);
 LIBDOS9 int             Dos9_EsFree(ESTR* ptrESTR);
 LIBDOS9 int             Dos9_EsCpyE(ESTR* ptrSource, const ESTR* ptrDest);
 LIBDOS9 int             Dos9_EsCatE(ESTR* ptrDest, const ESTR* ptrSource);
-LIBDOS9 int             Dos9_EsReplace(ESTR* ptrESTR, const char* ptrPattern, const char* ptrReplace);
-LIBDOS9 int             Dos9_EsReplaceN(ESTR* ptrESTR, const char* ptrPattern, const char* ptrReplace, int iN);
+LIBDOS9 int             Dos9_EsReplace(ESTR* ptrESTR, const wchar_t* ptrPattern, const wchar_t* ptrReplace);
+LIBDOS9 int             Dos9_EsReplaceN(ESTR* ptrESTR, const wchar_t* ptrPattern, const wchar_t* ptrReplace, int iN);
 
 typedef int COMMANDFLAG;
 
@@ -180,14 +181,14 @@ typedef struct COMMANDLIST
 {
     void* lpCommandProc;
     int iLenght;
-    char* ptrCommandName;
+    wchar_t* ptrCommandName;
     COMMANDFLAG cfFlag;
     struct COMMANDLIST* lpclLeftRoot;
     struct COMMANDLIST* lpclRightRoot;
 } COMMANDLIST, *LPCOMMANDLIST;
 
 typedef struct COMMANDINFO {
-    char* ptrCommandName;
+    wchar_t* ptrCommandName;
     void* lpCommandProc;
     COMMANDFLAG cfFlag;
 } COMMANDINFO,*LPCOMMANDINFO;
@@ -199,7 +200,7 @@ LIBDOS9 LPCOMMANDLIST   Dos9_ReMapCommandInfo(LPCOMMANDLIST lpclCommandList);
 LIBDOS9 int             Dos9_AddCommandDynamic(LPCOMMANDINFO lpciCommandInfo, LPCOMMANDLIST* lpclListEntry);
 LIBDOS9 int				Dos9_ReplaceCommand(LPCOMMANDINFO lpciCommand, LPCOMMANDLIST lpclCommandList);
 LIBDOS9 int             Dos9_FreeCommandList(LPCOMMANDLIST lpclList);
-LIBDOS9 COMMANDFLAG     Dos9_GetCommandProc(char* lpCommandLine, LPCOMMANDLIST lpclCommandList,void** lpcpCommandProcedure);
+LIBDOS9 COMMANDFLAG     Dos9_GetCommandProc(wchar_t* lpCommandLine, LPCOMMANDLIST lpclCommandList,void** lpcpCommandProcedure);
 
 
 #define DOS9_CURSOR_SHOW 1
@@ -308,7 +309,7 @@ LIBDOS9 void            Dos9_SetConsoleTextColor(COLOR cColor);
 LIBDOS9 void            Dos9_SetConsoleCursorPosition(CONSOLECOORD iCoord);
 LIBDOS9 CONSOLECOORD    Dos9_GetConsoleCursorPosition(void);
 LIBDOS9 void            Dos9_SetConsoleCursorState(int bVisible, int iSize);
-LIBDOS9 void            Dos9_SetConsoleTitle(char* lpTitle);
+LIBDOS9 void            Dos9_SetConsoleTitle(wchar_t* lpTitle);
 
 #endif
 
@@ -327,17 +328,17 @@ LIBDOS9 void            Dos9_SetConsoleTitle(char* lpTitle);
 #define DOS9_SEARCH_DIR_MODE 0x10
 
 typedef struct FILELIST {
-    char  lpFileName[FILENAME_MAX];
+    wchar_t  lpFileName[FILENAME_MAX];
     struct stat stFileStats;
     struct FILELIST* lpflNext;
 } FILELIST,*LPFILELIST;
 
-LIBDOS9 int         Dos9_RegExpMatch(char* lpRegExp, char* lpMatch);
-LIBDOS9 int         Dos9_RegExpCaseMatch(char* lpRegExp, char* lpMatch);
-LIBDOS9 LPFILELIST  Dos9_GetMatchFileList(char* lpPathMatch, int iFlag);
-LIBDOS9 int         Dos9_GetMatchFileCallback(char* lpPathMatch, int iFlag, void(*pCallBack)(FILELIST*));
+LIBDOS9 int         Dos9_RegExpMatch(wchar_t* lpRegExp, wchar_t* lpMatch);
+LIBDOS9 int         Dos9_RegExpCaseMatch(wchar_t* lpRegExp, wchar_t* lpMatch);
+LIBDOS9 LPFILELIST  Dos9_GetMatchFileList(wchar_t* lpPathMatch, int iFlag);
+LIBDOS9 int         Dos9_GetMatchFileCallback(wchar_t* lpPathMatch, int iFlag, void(*pCallBack)(FILELIST*));
 LIBDOS9 THREAD      Dos9_FreeFileList(LPFILELIST lpflFileList);
-LIBDOS9 int         Dos9_FormatFileSize (char* lpBuf, int iLenght, unsigned int iSize);
+LIBDOS9 int         Dos9_FormatFileSize (wchar_t* lpBuf, int iLenght, unsigned int iSize);
 
 #define DOS9_CMD_ATTR_READONLY 0x01
 #define DOS9_CMD_ATTR_READONLY_N 0x02
@@ -353,7 +354,7 @@ LIBDOS9 int         Dos9_FormatFileSize (char* lpBuf, int iLenght, unsigned int 
 #define DOS9_CMD_ATTR_DIR_N 0x800
 #define DOS9_CMD_ATTR_ALL 0x000
 
-LIBDOS9 short Dos9_MakeFileAttributes(const char* lpToken);
+LIBDOS9 short Dos9_MakeFileAttributes(const wchar_t* lpToken);
 LIBDOS9 int Dos9_CheckFileAttributes(short wAttr, const FILELIST* lpflList);
 
 extern int _Dos9_TextMode;
@@ -361,23 +362,23 @@ extern int _Dos9_TextMode;
 #define DOS9_UTF8_ENCODING 1
 #define Dos9_SetEncoding(encoding) _Dos9_TextMode=encoding
 
-LIBDOS9 char* Dos9_GetNextChar(const char* lpContent);
-LIBDOS9 int Dos9_GetConsoleEncoding(char* lpEnc, size_t iSize);
+LIBDOS9 wchar_t* Dos9_GetNextChar(const wchar_t* lpContent);
+LIBDOS9 int Dos9_GetConsoleEncoding(wchar_t* lpEnc, size_t iSize);
 
-LIBDOS9 int Dos9_FileExists(char* lpPath);
-LIBDOS9 int Dos9_DirExists(char* lpPath);
+LIBDOS9 int Dos9_FileExists(wchar_t* lpPath);
+LIBDOS9 int Dos9_DirExists(wchar_t* lpPath);
 LIBDOS9 int Dos9_UpdateCurrentDir(void);
-LIBDOS9 int Dos9_SetCurrentDir(char* lpPath);
-LIBDOS9 char* Dos9_GetCurrentDir(void);
-LIBDOS9 int Dos9_GetExePath(char* lpBuf, size_t iBufSize);
+LIBDOS9 int Dos9_SetCurrentDir(wchar_t* lpPath);
+LIBDOS9 wchar_t* Dos9_GetCurrentDir(void);
+LIBDOS9 int Dos9_GetExePath(wchar_t* lpBuf, size_t iBufSize);
 
-LIBDOS9 char* Dos9_SkipBlanks(char* lpCh);
-LIBDOS9 char* Dos9_SkipAllBlanks(char* lpCh);
-LIBDOS9 char* Dos9_SearchChar(char* lpCh, int cChar);
-LIBDOS9 char* Dos9_SearchLastChar(char* lpCh, int cChar);
-LIBDOS9 void  Dos9_UnEscape(char* lpCh);
-LIBDOS9 char* Dos9_GetNextNonEscaped(char* lpCh);
-LIBDOS9 char* Dos9_SearchToken(char* lpCh, char* lpDelims);
-LIBDOS9 char* Dos9_SearchLastToken(char* lpCh, char* lpDelims);
+LIBDOS9 wchar_t* Dos9_SkipBlanks(wchar_t* lpCh);
+LIBDOS9 wchar_t* Dos9_SkipAllBlanks(wchar_t* lpCh);
+LIBDOS9 wchar_t* Dos9_SearchChar(wchar_t* lpCh, wchar_t cChar);
+LIBDOS9 wchar_t* Dos9_SearchLastChar(wchar_t* lpCh, wchar_t cChar);
+LIBDOS9 void  Dos9_UnEscape(wchar_t* lpCh);
+LIBDOS9 wchar_t* Dos9_GetNextNonEscaped(wchar_t* lpCh);
+LIBDOS9 wchar_t* Dos9_SearchToken(wchar_t* lpCh, wchar_t* lpDelims);
+LIBDOS9 wchar_t* Dos9_SearchLastToken(wchar_t* lpCh, wchar_t* lpDelims);
 
 #endif // LIBDOS9_INCLUDED_H

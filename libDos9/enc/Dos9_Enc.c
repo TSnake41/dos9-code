@@ -1,55 +1,5 @@
 #include "../LibDos9.h"
 
-int _Dos9_TextMode=DOS9_BYTE_ENCODING;
-
-#define UNICODE_BYTE 0x80
-#define UNICODE_FOLOWING_BYTE_MASK 0xC0
-#define UNICODE_FOLOWING_BYTE_MARK 0x80
-
-int _Dos9_IsFollowingByte(const char* lpChar)
-{
-    if ( ((*lpChar) & UNICODE_FOLOWING_BYTE_MASK) == UNICODE_FOLOWING_BYTE_MARK ) {
-
-        return TRUE;
-
-    } else {
-
-        return FALSE;
-
-    }
-}
-
-LIBDOS9 char* Dos9_GetNextChar(const char* lpContent)
-{
-
-    if (_Dos9_TextMode==DOS9_UTF8_ENCODING) {
-        /* système de gestion des caractères UTF-8 */
-
-        if (!(*lpContent & UNICODE_BYTE)) {
-            /* il s'agit d'un caractère de la norme ASCII */
-            return (char*)lpContent+1;
-        }
-
-        /* sinon on boucle pour parvenir au prochain caractère */
-
-        lpContent++;
-
-        /* on va jusqu'a prochain octet non suivant */
-        while (_Dos9_IsFollowingByte(lpContent)==TRUE && *lpContent) {
-
-            lpContent++;
-
-        }
-
-        return (char*)lpContent;
-
-    } else {
-
-        return (char*)lpContent+1;
-
-    }
-}
-
 #ifdef WIN32
 
 #include <windows.h>

@@ -276,12 +276,14 @@ BackTrackExternalCommand:
 		break;
 
 	default:
-		if (iFlag
+
+		/* Afaik, this as already been check by the function  Dos9_GetCommandProc
+			if (iFlag
 		    && lpCmdLine[iFlag & ~DOS9_ALIAS_FLAG]!=' '
 		    && lpCmdLine[iFlag & ~DOS9_ALIAS_FLAG]!='\t'
 		    && lpCmdLine[iFlag & ~DOS9_ALIAS_FLAG]!='\0')
-			goto BackTrackExternalCommand;
-
+		    goto BackTrackExternalCommand;
+		*/
 		if (iFlag & DOS9_ALIAS_FLAG) {
 			/* this is an alias */
 

@@ -96,8 +96,8 @@ int Dos9_BeginThread(THREAD* lpThId, void(*lpFunction)(void*) , int iMemAmount, 
 
     if (iRet) {
 
-        fprintf(stderr,
-                "[libDos9/Dos9_BeginThread()] Error: %s\n",
+        fwprintf(stderr,
+                L"[libDos9/Dos9_BeginThread()] Error: %s\n",
                 strerror(errno));
 
 
@@ -263,8 +263,8 @@ LIBDOS9 int Dos9_CreateMutex(MUTEX* lpMuId)
 
     if (iRet) {
 
-        fprintf(stderr,
-                "[libDos9/Dos9_CreateMutex()] Error: %s\n",
+        fwprintf(stderr,
+                L"[libDos9/Dos9_CreateMutex()] Error: %s\n",
                 strerror(errno));
 
         exit(-1);
@@ -291,8 +291,8 @@ LIBDOS9 int     Dos9_CloseMutex(MUTEX* lpMuId)
 
     if (iRet) {
 
-        fprintf(stderr,
-                "[libDos9/Dos9_CloseMutex()] Error: %s\n",
+        fwprintf(stderr,
+                L"[libDos9/Dos9_CloseMutex()] Error: %s\n",
                 strerror(errno));
 
         exit(-1);
@@ -315,8 +315,8 @@ LIBDOS9 int     Dos9_LockMutex(MUTEX* lpMuId)
 
     if (iRet) {
 
-        fprintf(stderr,
-                "[libDos9/Dos9_LockMutex()] Error: %s\n",
+        fwprintf(stderr,
+                L"[libDos9/Dos9_LockMutex()] Error: %s\n",
                 strerror(errno));
 
         exit(-1);
@@ -339,8 +339,8 @@ LIBDOS9 int     Dos9_ReleaseMutex(MUTEX* lpMuId)
 
     if (iRet) {
 
-        fprintf(stderr,
-                "[libDos9/Dos9_ReleaseMutex()] Error: %s\n",
+        fwprintf(stderr,
+                L"[libDos9/Dos9_ReleaseMutex()] Error: %s\n",
                 strerror(errno));
 
 
@@ -391,8 +391,8 @@ LIBDOS9 int  Dos9_BeginThread(THREAD* lpThId, void(*pFunc)(void*), int iMemAmoun
 
     if (hThread==INVALID_HANDLE_VALUE) {
 
-        fprintf(stderr,
-                "[libDos9/Dos9_BeginThread()] Error: Unable to start thread : %d.\n",
+        fwprintf(stderr,
+                L"[libDos9/Dos9_BeginThread()] Error: Unable to start thread : %d.\n",
                 (int)GetLastError()
                 );
 
@@ -551,11 +551,11 @@ LIBDOS9 int      Dos9_WaitForThread(THREAD* thId, void* lpRet)
     switch(iRet) {
         case WAIT_ABANDONED:
         case WAIT_TIMEOUT:
-            fprintf(stderr, "[libDos9/Dos9_WaitForThread()] Error : Unable to join the process.\n");
+            fwprintf(stderr, L"[libDos9/Dos9_WaitForThread()] Error : Unable to join the process.\n");
             exit(-1);
 
         case WAIT_FAILED:
-            fprintf(stderr, "[libDos9/Dos9_WaitForThread()] Error : Wait failed : %d", (int)GetLastError());
+            fwprintf(stderr, L"[libDos9/Dos9_WaitForThread()] Error : Wait failed : %d", (int)GetLastError());
             exit(-1);
     }
 
@@ -578,8 +578,8 @@ LIBDOS9 int      Dos9_CreateMutex(MUTEX* lpMuId)
 
     if (*lpMuId==NULL) {
 
-        fprintf(stderr,
-                "[libDos9/Dos9_CreateMutex()]Error : Unable create mutex object : %d",
+        fwprintf(stderr,
+                L"[libDos9/Dos9_CreateMutex()]Error : Unable create mutex object : %d",
                 (int)GetLastError()
                 );
 
@@ -609,13 +609,13 @@ LIBDOS9 int      Dos9_LockMutex(MUTEX* lpMuId)
     switch(iRet) {
         case WAIT_ABANDONED:
         case WAIT_TIMEOUT:
-            fprintf(stderr, "[libDos9/Dos9_LockMutex()] Error : Unable to get mutex back.\n");
+            fwprintf(stderr, L"[libDos9/Dos9_LockMutex()] Error : Unable to get mutex back.\n");
             exit(-1);
 
         case WAIT_FAILED:
-            fprintf(stderr,
-                    "[libDos9/Dos9_LockMutex()] Error : Try to get mutex "
-                    "failed : %d",
+            fwprintf(stderr,
+                    L"[libDos9/Dos9_LockMutex()] Error : Try to get mutex "
+                    L"failed : %d",
                     (int)GetLastError()
                    );
 
@@ -638,7 +638,7 @@ LIBDOS9 int      Dos9_ReleaseMutex(MUTEX* lpMuId)
 
     if (iRet == 0) {
 
-            fprintf(stderr, "Error : Unable to release Mutex : %d\n", (int)GetLastError());
+            fwprintf(stderr, L"Error : Unable to release Mutex : %d\n", (int)GetLastError());
             exit(-1);
 
     }

@@ -1,51 +1,65 @@
 #include "Dos9_File.h"
 
-#ifdef WIN32
+#if defined WIN32
 
-static char lpCurrentDir[FILENAME_MAX+3]="CD=";
+static wchar_t lpCurrentDir[FILENAME_MAX+3]=L"CD=";
 
-int Dos9_GetExePath(char* lpBuf, size_t iBufSize)
+int Dos9_GetExePath(wchar_t* lpBuf, size_t iBufSize)
 {
-    char* lpToken;
-    GetModuleFileName(NULL, lpBuf, iBufSize);
-    if ((lpToken=strrchr(lpBuf, '\\'))) {
-        *lpToken='\0';
+    wchar_t* lpToken;
+
+    GetModuleFileNameW(NULL, lpBuf, iBufSize);
+
+    if ((lpToken=wcsrchr(lpBuf, L'\\'))) {
+
+        *lpToken=L'\0';
+
     } else {
-        lpBuf[0]='\0';
+
+        lpBuf[0]=L'\0';
+
     }
+
     return 0;
 }
 
 
-int Dos9_FileExists(char* ptrName)
+int Dos9_FileExists(wchar_t* ptrName)
 {
-    int iAttrib = GetFileAttributes(ptrName);
+    int iAttrib = GetFileAttributesW(ptrName);
 
     return (iAttrib != INVALID_FILE_ATTRIBUTES &&
             !(iAttrib & FILE_ATTRIBUTE_DIRECTORY));
 }
 
-int Dos9_DirExists(char *ptrName)
+int Dos9_DirExists(wchar_t* ptrName)
 {
-    DIR* rep = NULL;
-    if ((rep = opendir(ptrName))==NULL) return 0; /* Ouverture d'un dossier */
-    closedir(rep);
-    return 1;
+    int iAttrib = GetFileAttributesW(ptrName);
+
+    return (iAttrib != INVALID_FILE_ATTRIBUTES &&
+            (iAttrib & FILE_ATTRIBUTE_DIRECTORY));
 }
 
 int Dos9_UpdateCurrentDir(void)
 {
-    _getcwd(lpCurrentDir+3, MAX_PATH);
-    return _putenv(lpCurrentDir);
+    _wgetcwd(lpCurrentDir+3, MAX_PATH);
+
+    return _wputenv(lpCurrentDir);
 }
 
-int Dos9_SetCurrentDir(char* lpPath)
+int Dos9_SetCurrentDir(wchar_t* lpPath)
 {
-    chdir(lpPath);
-    _getcwd(lpCurrentDir+3, MAX_PATH);
-    return _putenv(lpCurrentDir);
+	int iRes;
+
+    if (_wchdir(lpPath))
+    	return -1;
+
+    _wgetcwd(lpCurrentDir+3, MAX_PATH);
+
+    return _wputenv(lpCurrentDir);
 }
-char* Dos9_GetCurrentDir(void)
+
+wchar_t* Dos9_GetCurrentDir(void)
 {
     return lpCurrentDir+3;
 }
