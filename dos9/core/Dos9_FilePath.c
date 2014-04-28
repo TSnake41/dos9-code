@@ -22,6 +22,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdarg.h>
+#include <wchar.h>
 
 #include <libDos9.h>
 
@@ -30,13 +31,13 @@
 
 #include "Dos9_FilePath.h"
 
-int Dos9_GetFilePath(char* lpFullPath, const char* lpPartial, size_t iBufSize)
+int Dos9_GetFilePath(wchar_t* lpFullPath, const wchar_t* lpPartial, size_t iBufSize)
 {
 	ESTR* lpEsTmp=Dos9_EsInit();
 	ESTR* lpEsPart=Dos9_EsInit();
 	ESTR* lpEsFinalPath=Dos9_EsInit();
 
-	char *lpPathToken=getenv("PATH");
+	wchar_t *lpPathToken=wgetenv("PATH");
 
 	int   bFirstLoop=TRUE;
 
@@ -48,9 +49,9 @@ int Dos9_GetFilePath(char* lpFullPath, const char* lpPartial, size_t iBufSize)
 
 #endif // WIN32
 
-	DOS9_DBG("[Dos9_GetFilePath()]*** Start research of file : \"%s\"\n\n", lpPartial);
-	DOS9_DBG("[Dos9_GetFilePath()] PATH variable content=[\n%s\n]\n\n", getenv("PATH"));
-	DOS9_DBG("[Dos9_GetFilePath()] PATHEXT variable content=[\n%s\n]\n\n", getenv("PATHEXT"));
+	DOS9_DBG(L"[Dos9_GetFilePath()]*** Start research of file : \"%s\"\n\n", lpPartial);
+	DOS9_DBG(L"[Dos9_GetFilePath()] PATH variable content=[\n%s\n]\n\n", wgetenv("PATH"));
+	DOS9_DBG(L"[Dos9_GetFilePath()] PATHEXT variable content=[\n%s\n]\n\n", wgetenv("PATHEXT"));
 
 	do {
 
@@ -65,7 +66,7 @@ int Dos9_GetFilePath(char* lpFullPath, const char* lpPartial, size_t iBufSize)
 
 		}
 
-		DOS9_DBG("\t[*] trying \"%s\"\n", Dos9_EsToChar(lpEsTmp));
+		DOS9_DBG(L"\t[*] trying \"%s\"\n", Dos9_EsToChar(lpEsTmp));
 
 #ifdef WIN32
 
@@ -86,7 +87,7 @@ int Dos9_GetFilePath(char* lpFullPath, const char* lpPartial, size_t iBufSize)
 
 			}
 
-			DOS9_DBG("\t\t[*] trying \"%s\"\n", Dos9_EsToChar(lpEsFinalPath));
+			DOS9_DBG(L"\t\t[*] trying \"%s\"\n", Dos9_EsToChar(lpEsFinalPath));
 
 			if (Dos9_FileExists(Dos9_EsToChar(lpEsFinalPath)))
 				goto file_found;
@@ -119,19 +120,19 @@ int Dos9_GetFilePath(char* lpFullPath, const char* lpPartial, size_t iBufSize)
 	Dos9_EsFree(lpEsTmp);
 	Dos9_EsFree(lpEsFinalPath);
 
-	DOS9_DBG("[Dos9_GetFilePath()]*** Finished without match (-1)\n");
+	DOS9_DBG(L"[Dos9_GetFilePath()]*** Finished without match (-1)\n");
 
 	return -1;
 
 file_found:
 
-	snprintf(lpFullPath ,
-	         iBufSize,
-	         "%s",
-	         Dos9_EsToChar(lpEsFinalPath)
-	        );
+	snwprintf(lpFullPath ,
+			  iBufSize,
+			  L"%s",
+	          Dos9_EsToChar(lpEsFinalPath)
+			  );
 
-	DOS9_DBG("[Dos9_GetFilePath()]*** Found \"%s\"\n", Dos9_EsToChar(lpEsFinalPath));
+	DOS9_DBG(L"[Dos9_GetFilePath()]*** Found \"%s\"\n", Dos9_EsToChar(lpEsFinalPath));
 
 	Dos9_EsFree(lpEsPart);
 	Dos9_EsFree(lpEsTmp);
@@ -141,14 +142,14 @@ file_found:
 }
 
 
-char* Dos9_GetPathNextPart(char* lpPath, ESTR* lpReturn)
+wchar_t* Dos9_GetPathNextPart(wchar_t* lpPath, ESTR* lpReturn)
 {
-	char*   lpNextToken;
+	wchar_t*   lpNextToken;
 
-	if (*lpPath=='\0')
+	if (*lpPath==L'\0')
 		return NULL;
 
-	if (!(lpNextToken=strchr(lpPath, DOS9_PATH_DELIMITER))) {
+	if (!(lpNextToken=wcschr(lpPath, DOS9_PATH_DELIMITER))) {
 
 		Dos9_EsCpy(lpReturn, lpPath);
 
@@ -177,7 +178,7 @@ int Dos9_MakePath(ESTR* lpReturn, int nOps, ...)
 
 	va_start(vaList, nOps);
 
-	Dos9_EsCpy(lpReturn, "");
+	Dos9_EsCpy(lpReturn, L"");
 
 	for (i=0; i<nOps; i++) {
 
@@ -185,18 +186,18 @@ int Dos9_MakePath(ESTR* lpReturn, int nOps, ...)
 
 		lpEnd=Dos9_GetLastChar(lpReturn);
 
-		if (*lpBegin!='\0'
-		    && *lpEnd!='\\'
-		    && *lpEnd!='/') {
+		if (*lpBegin!=L'\0'
+		    && *lpEnd!=L'\\'
+		    && *lpEnd!=L'/') {
 
 			/* if there are no dir terminating characters and still
 			   arguments, just cat a '/' */
 
-			Dos9_EsCat(lpReturn, "/");
+			Dos9_EsCat(lpReturn, L"/");
 
 		}
 
-		Dos9_EsCat(lpReturn, va_arg(vaList,char*));
+		Dos9_EsCat(lpReturn, va_arg(vaList,wchar_t*));
 
 	}
 
@@ -205,10 +206,10 @@ int Dos9_MakePath(ESTR* lpReturn, int nOps, ...)
 	return 0;
 }
 
-char* Dos9_GetLastChar(ESTR* lpReturn)
+wchar_t* Dos9_GetLastChar(ESTR* lpReturn)
 {
 
-	char* lpCh=Dos9_EsToChar(lpReturn);
+	wchar_t* lpCh=Dos9_EsToChar(lpReturn);
 
 	if (*lpCh=='\0')
 		return lpCh;

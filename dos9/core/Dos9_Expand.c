@@ -1,13 +1,27 @@
-/* Dos9_Expand.c - Dos9 copyleft (c) DarkBatcher 2012 - Some rights reserved
-
-   The following file contain definition of funtions that are used for expansion of vars
-   (including delayed expansion) and some functions used for parsing these variable.
-
+/*
+ *
+ *   Dos9 - A Free, Cross-platform command prompt - The Dos9 project
+ *   Copyright (C) 2010-2014 DarkBatcher
+ *
+ *   This program is free software: you can redistribute it and/or modify
+ *   it under the terms of the GNU General Public License as published by
+ *   the Free Software Foundation, either version 3 of the License, or
+ *   (at your option) any later version.
+ *
+ *   This program is distributed in the hope that it will be useful,
+ *   but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *   GNU General Public License for more details.
+ *
+ *   You should have received a copy of the GNU General Public License
+ *   along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
 #include <stdio.h>
 #include <stdlib.h>
 #include <ctype.h>
+#include <wchar.h>
+#include <wctype.h>
 
 #include "Dos9_Core.h"
 
@@ -22,19 +36,19 @@ void Dos9_ExpandSpecialVar(ESTR* ptrCommandLine)
 	ESTR* lpVarContent=Dos9_EsInit();
 	ESTR* lpExpanded=Dos9_EsInit();
 
-	char *lpToken=Dos9_EsToChar(ptrCommandLine),
-	      *lpNextToken,
-	      *lpPreviousToken=lpToken,
-	       *lpTokenBegin;
+	wchar_t *lpToken=Dos9_EsToChar(ptrCommandLine),
+		 	*lpNextToken,
+		 	*lpPreviousToken=lpToken,
+		 	*lpTokenBegin;
 
-	while ((lpNextToken=Dos9_SearchChar(lpToken, '%'))) {
+	while ((lpNextToken=Dos9_SearchChar(lpToken, L'%'))) {
 
 		lpTokenBegin=lpNextToken+1;
 
 		if ((lpTokenBegin=Dos9_GetLocalVar(lpvLocalVars, lpTokenBegin, lpVarContent))) {
 
 			/* si la variable est bien définie */
-			*lpNextToken='\0';
+			*lpNextToken=L'\0';
 
 			Dos9_EsCat(lpExpanded, lpPreviousToken);
 			Dos9_EsCatE(lpExpanded, lpVarContent);
@@ -58,29 +72,29 @@ void Dos9_ExpandSpecialVar(ESTR* ptrCommandLine)
 	Dos9_EsFree(lpVarContent);
 	Dos9_EsFree(lpExpanded);
 
-	DOS9_DBG("[ExpandSpecialVar] : \"%s\".\n", Dos9_EsToChar(ptrCommandLine));
+	DOS9_DBG(L"[ExpandSpecialVar] : \"%s\".\n", Dos9_EsToChar(ptrCommandLine));
 
 }
 
-void Dos9_ExpandVar(ESTR* ptrCommandLine, char cDelimiter)
+void Dos9_ExpandVar(ESTR* ptrCommandLine, wchar_t cDelimiter)
 {
 
 	ESTR* lpExpanded=Dos9_EsInit();
 	ESTR* lpVarContent=Dos9_EsInit();
 
-	char *ptrToken=Dos9_EsToChar(ptrCommandLine),
-	      *ptrNextToken,
-	      *ptrEndToken;
+	wchar_t *ptrToken=Dos9_EsToChar(ptrCommandLine),
+	        *ptrNextToken,
+	        *ptrEndToken;
 
-	char lpDelimiter[3]= {cDelimiter, 0, 0};
+	wchar_t lpDelimiter[3]= {cDelimiter, 0, 0};
 
 	/* initialisation du buffer de sortie */
-	Dos9_EsCpy(lpExpanded,"");
+	Dos9_EsCpy(lpExpanded,L"");
 
 	while ((ptrNextToken=Dos9_SearchChar(ptrToken, cDelimiter))) {
 
 		DEBUG(ptrToken);
-		*ptrNextToken='\0';
+		*ptrNextToken=L'\0';
 		ptrNextToken++; // on passe au caractère suivant
 
 		if ((*ptrNextToken==cDelimiter)) {
@@ -89,14 +103,14 @@ void Dos9_ExpandVar(ESTR* ptrCommandLine, char cDelimiter)
 
 			/* on supprime le caractère qui peut éventuellement
 			   trainer dans ce buffer */
-			lpDelimiter[1]='\0';
+			lpDelimiter[1]=L'\0';
 
 			Dos9_EsCat(lpExpanded, ptrToken);
 			Dos9_EsCat(lpExpanded, lpDelimiter);
 			ptrToken=ptrNextToken+1;
 			continue;
 
-		} else if (isdigit(*ptrNextToken) || *ptrNextToken=='~') {
+		} else if (iswdigit(*ptrNextToken) || *ptrNextToken==L'~') {
 
 			/* if the variable is one of the parameter variables,
 			   then skip, for compatibility purpose
@@ -110,7 +124,7 @@ void Dos9_ExpandVar(ESTR* ptrCommandLine, char cDelimiter)
 
 		} else if ((ptrEndToken=Dos9_StrToken(ptrNextToken, cDelimiter))) {
 
-			*ptrEndToken='\0';
+			*ptrEndToken=L'\0';
 
 			Dos9_EsCat(lpExpanded, ptrToken);
 
@@ -142,7 +156,7 @@ void Dos9_ExpandVar(ESTR* ptrCommandLine, char cDelimiter)
 	Dos9_EsCat(lpExpanded, ptrToken); // si pas de séquence détectée
 	Dos9_EsCpy(ptrCommandLine, Dos9_EsToChar(lpExpanded));
 
-	DOS9_DBG("[ExpandVar] : '%s'\n",
+	DOS9_DBG(L"[ExpandVar] : '%s'\n",
 	         Dos9_EsToChar(ptrCommandLine)
 	        );
 
@@ -157,35 +171,17 @@ void Dos9_DelayedExpand(ESTR* ptrCommandLine, char cEnableDelayedExpansion)
 
 	if (cEnableDelayedExpansion) {
 
-		Dos9_ExpandVar(ptrCommandLine, '!');
+		Dos9_ExpandVar(ptrCommandLine, L'!');
 
 	}
 }
 
-void Dos9_RemoveEscapeChar(char* lpLine)
-{
-	/* this function is designed to remove the escape characters
-	   (e.g. char '^') from the command line */
-	char  lastEsc=FALSE;
-	char* lpPosition=lpLine;
-	for (; *lpLine; lpLine++,lpPosition++) {
-		if (*lpLine=='^' && lastEsc!=TRUE) {
-			lpPosition--;
-			lastEsc=TRUE;
-			continue;
-		}
-		lastEsc=FALSE;
-		if (lpPosition != lpLine) *lpPosition=*lpLine;
-	}
-	*lpPosition='\0';
-}
-
-char* Dos9_StrToken(char* lpString, char cToken)
+char* Dos9_StrToken(wchar_t* lpString, wchar_t cToken)
 {
 	if (lpString == NULL)
 		return NULL;
 
-	for (; *lpString!='\0'; lpString++) {
+	for (; *lpString!=L'\0'; lpString++) {
 
 		if (*lpString==cToken) return lpString;
 

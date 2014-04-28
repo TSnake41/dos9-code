@@ -20,6 +20,8 @@
 #ifndef DOS9_BLOCK_H
 #define DOS9_BLOCK_H
 
+#include <wchar.h>
+
 /* Note that both following functions are inter-dependent.
    It's basically a binary recursion, ie :
 
@@ -34,15 +36,15 @@
    if lpCh does not point to a '(' character, the return value is NULL
    if not end can be found the return value is NULL
 */
-char* Dos9_GetNextBlockEnd(char* lpCh);
+wchar_t* Dos9_GetNextBlockEnd(wchar_t* lpCh);
 
 /* Get the end of a line, taking account of multiples
    blocks on a single line */
-char* Dos9_GetBlockLineEnd(char* lpCh);
+wchar_t* Dos9_GetBlockLineEnd(wchar_t* lpCh);
 
 /* get the begining of the very first next block*/
 #define Dos9_GetNextBlockBegin(lpCh) Dos9_GetNextBlockBeginEx(lpCh, 0)
-char* Dos9_GetNextBlockBeginEx(char* lpCh, int bIsBlockCmd);
+wchar_t* Dos9_GetNextBlockBeginEx(wchar_t* lpCh, int bIsBlockCmd);
 
 
 #endif // DOS9_BLOCK_H

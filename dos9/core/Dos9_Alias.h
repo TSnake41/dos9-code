@@ -22,8 +22,9 @@
 #define DOS9_ALIAS_H
 
 #include <libDos9.h>
+#include <wchar.h>
 
 /* expand an alias to its value */
-void Dos9_ExpandAlias(ESTR* lpRet, char* lpCh, char* lpExp);
+void Dos9_ExpandAlias(ESTR* lpRet, wchar_t* lpCh, wchar_t* lpExp);
 
 #endif // DOS9_ALIAS_H

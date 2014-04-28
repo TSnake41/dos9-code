@@ -41,6 +41,7 @@ void Dos9_SetConsoleColor(COLOR cColor)
     HANDLE hOutput=GetStdHandle(STD_OUTPUT_HANDLE);
     int iSize;
     const COORD cBegin={0,0};
+
     GetConsoleScreenBufferInfo(hOutput, &csbiScreenInfo);
     iSize=csbiScreenInfo.dwSize.X * csbiScreenInfo.dwSize.Y;
     FillConsoleOutputAttribute(hOutput, cColor, iSize, cBegin, (PDWORD)&iSize);
@@ -49,12 +50,14 @@ void Dos9_SetConsoleColor(COLOR cColor)
 
 void Dos9_SetConsoleTextColor(COLOR cColor) {
     HANDLE hOutput=GetStdHandle(STD_OUTPUT_HANDLE);
+
     SetConsoleTextAttribute(hOutput, cColor);
 }
 
 LIBDOS9 void Dos9_SetConsoleCursorPosition(CONSOLECOORD iCoord)
 {
     HANDLE hOutput=GetStdHandle(STD_OUTPUT_HANDLE);
+
     SetConsoleCursorPosition(hOutput, (COORD)iCoord);
 }
 
@@ -62,7 +65,9 @@ LIBDOS9 CONSOLECOORD Dos9_GetConsoleCursorPosition(void)
 {
     HANDLE hOutput=GetStdHandle(STD_OUTPUT_HANDLE);
     CONSOLE_SCREEN_BUFFER_INFO csbi;
+
     GetConsoleScreenBufferInfo(hOutput, &csbi);
+
     return csbi.dwCursorPosition;
 }
 
@@ -70,14 +75,15 @@ LIBDOS9 void Dos9_SetConsoleCursorState(int bVisible, int iSize)
 {
     HANDLE hOutput=GetStdHandle(STD_OUTPUT_HANDLE);
     CONSOLE_CURSOR_INFO cciInfo;
+
     cciInfo.bVisible=(BOOL)bVisible;
     cciInfo.dwSize=iSize;
     SetConsoleCursorInfo(hOutput, &cciInfo);
 }
 
-void Dos9_SetConsoleTitle(char* lpTitle)
+void Dos9_SetConsoleTitle(wchar_t* lpTitle)
 {
-    SetConsoleTitle(lpTitle);
+    SetConsoleTitleW(lpTitle);
 }
 
 #endif

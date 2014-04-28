@@ -20,100 +20,117 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <wchar.h>
 
 #include "Dos9_Lang.h"
 
 #include <libintl.h>
 #include <libDos9.h>
 
-const char* lpIntroduction;
+const wchar_t* lpIntroduction;
 
-const char* lpMsgEchoOn;
-const char* lpMsgEchoOff;
-const char* lpMsgPause;
+const wchar_t* lpMsgEchoOn;
+const wchar_t* lpMsgEchoOff;
+const wchar_t* lpMsgPause;
 
-const char* lpHlpMain;
+const wchar_t* lpHlpMain;
 
-const char* lpDirNoFileFound;
-const char* lpDirListTitle;
-const char* lpDirFileDirNb;
+const wchar_t* lpDirNoFileFound;
+const wchar_t* lpDirListTitle;
+const wchar_t* lpDirFileDirNb;
 
-const char* lpHlpDeprecated;
+const wchar_t* lpHlpDeprecated;
 
-const char* lpDelConfirm;
-const char* lpDelChoices;
+const wchar_t* lpDelConfirm;
+const wchar_t* lpDelChoices;
 
 
-const char* lpAskYn;
-const char* lpAskyN;
-const char* lpAskyn;
+const wchar_t* lpAskYn;
+const wchar_t* lpAskyN;
+const wchar_t* lpAskyn;
 
-const char* lpAskYna;
-const char* lpAskyNa;
-const char* lpAskynA;
-const char* lpAskyna;
+const wchar_t* lpAskYna;
+const wchar_t* lpAskyNa;
+const wchar_t* lpAskynA;
+const wchar_t* lpAskyna;
 
-const char* lpAskYes;
-const char* lpAskYesA;
+const wchar_t* lpAskYes;
+const wchar_t* lpAskYesA;
 
-const char* lpAskNo;
-const char* lpAskNoA;
+const wchar_t* lpAskNo;
+const wchar_t* lpAskNoA;
 
-const char* lpAskAll;
-const char* lpAskAllA;
+const wchar_t* lpAskAll;
+const wchar_t* lpAskAllA;
 
-const char* lpAskInvalid;
+const wchar_t* lpAskInvalid;
 
 void Dos9_LoadStrings(void)
 {
 	/* this loads strings */
-	char lpPath[FILENAME_MAX];
-	char lpEncoding[15];
+	wchar_t lpwPath[FILENAME_MAX];
+	char* lpPath;
 	char lpSharePath[FILENAME_MAX];
+	char lpSharePath[FILENAME_MAX];
+	char lpEncoding[15]="UTF-16LE"; /* this is incompatible with various
+									   operating systems, but why not use
+									   built-in functionnalities */
 
-	Dos9_GetExePath(lpPath, FILENAME_MAX);
-	Dos9_GetConsoleEncoding(lpEncoding, sizeof(lpEncoding));
+	Dos9_GetExePath(lpwPath, FILENAME_MAX);
 
-	snprintf(lpSharePath, FILENAME_MAX, "%s/share/locale", lpPath);
+	//Dos9_GetConsoleEncoding(lpEncoding, sizeof(lpEncoding));
+
+	if (lpPath=Dos9_WcsToMbs(lpwPath)) {
+
+		/* the string can be translated to mbs */
+
+		snprintf(lpSharePath, FILENAME_MAX, "%s/share/locale", lpPath);
+		free(lpPath);
+
+	} else {
+
+		strcpy(lpSharePath, "/share/locale");
+
+	}
 
 	bindtextdomain("Dos9-msg", lpSharePath);
 	bind_textdomain_codeset("Dos9-msg", lpEncoding);
 	textdomain("Dos9-msg");
 
 	/* texte des commandes ECHO et PAUSE */
-	lpMsgEchoOn=gettext("Echo command enabled");
-	lpMsgEchoOff=gettext("Echo command disabled");
-	lpMsgPause=gettext("Press any key to continue...");
+	lpMsgEchoOn=(wchar_t*)gettext("Echo command enabled");
+	lpMsgEchoOff=(wchar_t*)gettext("Echo command disabled");
+	lpMsgPause=(wchar_t*)gettext("Press any key to continue...");
 
 	/* texte de la commande DIR */
-	lpDirNoFileFound=gettext("\tNo files found\n");
-	lpDirListTitle=gettext("\nLast change\t\tSize\tAttr.\tName\n");
-	lpDirFileDirNb=gettext("\t\t\t\t\t\t%d Files\n\t\t\t\t\t\t%d Folders\n");
+	lpDirNoFileFound=(wchar_t*)gettext("\tNo files found\n");
+	lpDirListTitle=(wchar_t*)gettext("\nLast change\t\tSize\tAttr.\tName\n");
+	lpDirFileDirNb=(wchar_t*)gettext("\t\t\t\t\t\t%d Files\n\t\t\t\t\t\t%d Folders\n");
 	// TRANSLATORS : Don't remove the %s because the program needs it
 
-	lpDelConfirm=gettext("Are you sure you want to delete \"%s\" ?");
+	lpDelConfirm=(wchar_t*)gettext("Are you sure you want to delete \"%s\" ?");
 
-	lpAskYn=gettext(" (Yes/no) ");
-	lpAskyN=gettext(" (yes/No) ");
-	lpAskyn=gettext(" (yes/no) ");
+	lpAskYn=(wchar_t*)gettext(" (Yes/no) ");
+	lpAskyN=(wchar_t*)gettext(" (yes/No) ");
+	lpAskyn=(wchar_t*)gettext(" (yes/no) ");
 
-	lpAskYna=gettext(" (Yes/no/all) ");
-	lpAskyNa=gettext(" (yes/No/all) ");
-	lpAskynA=gettext(" (yes/no/All) ");
-	lpAskyna=gettext(" (yes/no/all) ");
+	lpAskYna=(wchar_t*)gettext(" (Yes/no/all) ");
+	lpAskyNa=(wchar_t*)gettext(" (yes/No/all) ");
+	lpAskynA=(wchar_t*)gettext(" (yes/no/All) ");
+	lpAskyna=(wchar_t*)gettext(" (yes/no/all) ");
 
-	lpAskYes=gettext("YES");
-	lpAskYesA=gettext("Y");
+	lpAskYes=(wchar_t*)gettext("YES");
+	lpAskYesA=(wchar_t*)gettext("Y");
 
-	lpAskNo=gettext("NO");
-	lpAskNoA=gettext("N");
+	lpAskNo=(wchar_t*)gettext("NO");
+	lpAskNoA=(wchar_t*)gettext("N");
 
-	lpAskAll=gettext("ALL");
-	lpAskAllA=gettext("A");
+	lpAskAll=(wchar_t*)gettext("ALL");
+	lpAskAllA=(wchar_t*)gettext("A");
 
-	lpAskInvalid=gettext("Please enter a correct choice (or type enter to choose default) !\n");
+	lpAskInvalid=(wchar_t*)gettext("Please enter a correct choice (or type enter to choose default) !\n");
 
-	lpHlpMain=gettext("DOS9 COMMAND\n\
+	lpHlpMain=(wchar_t*)gettext("DOS9 COMMAND\n\
 \n\
         DOS9 is a free, cross-platform command prompt used for batch scripts \n\
      and command processing.\n\
@@ -168,6 +185,5 @@ SEE ALSO\n\
 \n\
         ECHO Command (see `echo'), Command scripts (see `script'), Commands \n\
      list (see `commands') Commands list (see `commands')\n");
-	// TRANSLATORS : Don't translate this, just pick it up from the documentation
-	// or, obviously, if the translation does not exist, translate it.
+
 }

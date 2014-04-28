@@ -20,6 +20,8 @@
 #ifndef DOS9_GLOBALS_H
 #define DOS9_GLOBALS_H
 
+#include <wchar.h>
+
 extern int bAbortCommand;
 extern int bDelayedExpansion;
 extern int bUseFloats;
@@ -32,7 +34,7 @@ extern LPSTREAMSTACK lppsStreamStack;
 extern COLOR colColor;
 extern INPUT_FILE ifIn;
 
-extern char* lpInitVar[];
+extern wchar_t* lpInitVar[];
 
 extern int iInputD,
        iOutputD;

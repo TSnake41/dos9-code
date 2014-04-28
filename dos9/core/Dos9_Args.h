@@ -21,20 +21,22 @@
 #ifndef DOS9_ARGS_H
 #define DOS9_ARGS_H
 
+#include <wchar.h>
+
 #include "Dos9_Core.h"
 
 /* a structure that contains boundaries of a block */
 
 typedef struct BLOCKINFO {
-	char* lpBegin;
-	char* lpEnd;
+	wchar_t* lpBegin;
+	wchar_t* lpEnd;
 } BLOCKINFO;
 
-char* Dos9_GetNextParameterEs(char* lpLine, ESTR* lpReturn);
-char* Dos9_GetNextParameter(char* lpLine, char* lpResponseBuffer, int iLength);
-int   Dos9_GetParamArrayEs(char* lpLine, ESTR** lpArray, size_t iLenght);
-char* Dos9_GetNextBlockEs(char* lpLine, ESTR* lpReturn);
-char* Dos9_GetNextBlock(char* lpLine, BLOCKINFO* lpbkInfo);
-char* Dos9_GetEndOfLine(char* lpLine, ESTR* lpReturn);
+wchar_t* Dos9_GetNextParameterEs(wchar_t* lpLine, ESTR* lpReturn);
+wchar_t* Dos9_GetNextParameter(wchar_t* lpLine, wchar_t* lpResponseBuffer, int iLength);
+int   Dos9_GetParamArrayEs(wchar_t* lpLine, ESTR** lpArray, size_t iLenght);
+wchar_t* Dos9_GetNextBlockEs(wchar_t* lpLine, ESTR* lpReturn);
+wchar_t* Dos9_GetNextBlock(wchar_t* lpLine, BLOCKINFO* lpbkInfo);
+wchar_t* Dos9_GetEndOfLine(wchar_t* lpLine, ESTR* lpReturn);
 
 #endif // DOS9_ARGS_H

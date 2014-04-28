@@ -1,5 +1,52 @@
 #include "../LibDos9.h"
 
+LIBDOS9 char* Dos9_WcsToMbs(const wchar_t* lpIn)
+{
+	char* lpBuf;
+	size_t size;
+
+	size=wcstombs(NULL, lpIn, 0);
+		/* get the requiered length for translation */
+
+	if (!(lpBuf=malloc(size)))
+		return NULL;
+
+	if (wcstombs(lpBuf, lpIn, size)== (size_t)-1) {
+
+		/* error occured while translation */
+
+		free(lpBuf);
+		return 0;
+
+	}
+
+	return lpBuf;
+
+}
+
+LIBDOS9 wchar_t* Dos9_MbsToWcs(const char* lpIn)
+{
+	wchar_t* lpBuf;
+	size_t size;
+
+	size=mbstowcs(NULL, lpIn, 0);
+		/* get the requiered length for translation */
+
+	if (!(lpBuf=malloc(size*sizeof(wchar_t))))
+		return NULL;
+
+	if (mbstowcs(lpBuf, lpIn, size)== (size_t)-1) {
+
+		/* error occured while translation */
+
+		free(lpBuf);
+		return 0;
+
+	}
+
+	return lpBuf;
+}
+
 #ifdef WIN32
 
 #include <windows.h>

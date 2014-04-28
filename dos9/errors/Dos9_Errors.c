@@ -32,23 +32,39 @@
 #include "../core/Dos9_Core.h"
 
 #include <libintl.h>
+#include <wchar.h>
 
-
-const char* lpErrorMsg[DOS9_ERROR_MESSAGE_NUMBER];
-const char* lpQuitMessage;
+const wchar_t* lpErrorMsg[DOS9_ERROR_MESSAGE_NUMBER];
+const wchar_t* lpQuitMessage;
 
 
 
 void Dos9_LoadErrors(void)
 {
-	char lpPath[FILENAME_MAX];
+	wchar_t lpwPath[FILENAME_MAX];
+	char* lpPath;
 	char lpSharePath[FILENAME_MAX];
-	char lpEncoding[15]="ASCII";
+	char lpSharePath[FILENAME_MAX];
+	char lpEncoding[15]="UTF-16LE"; /* this is incompatible with various
+									   operating systems, but why not use
+									   built-in functionnalities */
 
-	Dos9_GetExePath(lpPath, FILENAME_MAX);
-	Dos9_GetConsoleEncoding(lpEncoding, sizeof(lpEncoding));
+	Dos9_GetExePath(lpwPath, FILENAME_MAX);
 
-	snprintf(lpSharePath, FILENAME_MAX, "%s/share/locale", lpPath);
+	//Dos9_GetConsoleEncoding(lpEncoding, sizeof(lpEncoding));
+
+	if (lpPath=Dos9_WcsToMbs(lpwPath)) {
+
+		/* the string can be translated to mbs */
+
+		snprintf(lpSharePath, FILENAME_MAX, "%s/share/locale", lpPath);
+		free(lpPath);
+
+	} else {
+
+		strcpy(lpSharePath, "/share/locale");
+
+	}
 
 	bindtextdomain("Dos9-errors", lpSharePath);
 
@@ -57,154 +73,154 @@ void Dos9_LoadErrors(void)
 	textdomain("Dos9-errors");
 
 	lpErrorMsg[DOS9_FILE_ERROR]=
-	    gettext("Error : Unable to acces to file \"%s\".\n");
+	    (wchar_t*)gettext("Error : Unable to acces to file \"%s\".\n");
 	// TRANSLATORS : Don't remove the %s because the program needs it
 
 	lpErrorMsg[DOS9_DIRECTORY_ERROR]=
-	    gettext("Error : Unable to find folder \"%s\".\n");
+	    (wchar_t*)gettext("Error : Unable to find folder \"%s\".\n");
 	// TRANSLATORS : Don't remove the %s because the program needs it
 
 	lpErrorMsg[DOS9_COMMAND_ERROR]=
-	    gettext("Error : \"%s\" is not recognized as an internal or"
+	    (wchar_t*)gettext("Error : \"%s\" is not recognized as an internal or"
 	            " external command, an operable program or a batch file.\n");
 	// TRANSLATORS : Don't remove the %s because the program needs it
 
 	lpErrorMsg[DOS9_UNEXPECTED_ELEMENT]=
-	    gettext("Error : \"%s\" was unexpected.\n");
+	    (wchar_t*)gettext("Error : \"%s\" was unexpected.\n");
 	// TRANSLATORS : Don't remove the %s because the program needs it
 
 	lpErrorMsg[DOS9_BAD_COMMAND_LINE]=
-	    gettext("Error : Invalid command line.\n");
+	    (wchar_t*)gettext("Error : Invalid command line.\n");
 
 	lpErrorMsg[DOS9_LABEL_ERROR]=
-	    gettext("Error : Unable to find label \"%s\".\n");
+	    (wchar_t*)gettext("Error : Unable to find label \"%s\".\n");
 	// TRANSLATORS : Don't remove the %s because the program needs it
 
 	lpErrorMsg[DOS9_EXTENSION_DISABLED_ERROR]=
-	    gettext("Warning : Using a Dos9 extension but the CMDLYCORRECT option is set.\n");
+	    (wchar_t*)gettext("Warning : Using a Dos9 extension but the CMDLYCORRECT option is set.\n");
 
 	lpErrorMsg[DOS9_EXPECTED_MORE]=
-	    gettext("Error : \"%s\" expected more arguments.\n");
+	    (wchar_t*)gettext("Error : \"%s\" expected more arguments.\n");
 	// TRANSLATORS : Don't remove the %s because the program needs it
 
 	lpErrorMsg[DOS9_INCOMPATIBLE_ARGS]=
-	    gettext("Error : Uncompatible arguments %s.\n");
+	    (wchar_t*)gettext("Error : Uncompatible arguments %s.\n");
 	// TRANSLATORS : Don't remove the %s because the program needs it
 
 	lpErrorMsg[DOS9_UNABLE_RENAME]=
-	    gettext("Error : Unable to rename \"%s\".\n");
+	    (wchar_t*)gettext("Error : Unable to rename \"%s\".\n");
 	// TRANSLATORS : Don't remove the %s because the program needs it
 
 	lpErrorMsg[DOS9_MATH_OUT_OF_RANGE]=
-	    gettext("Error : Overflowed maximum value.\n");
+	    (wchar_t*)gettext("Error : Overflowed maximum value.\n");
 
 	lpErrorMsg[DOS9_MATH_DIVIDE_BY_0]=
-	    gettext("Error : Divide by 0.\n");
+	    (wchar_t*)gettext("Error : Divide by 0.\n");
 
 	lpErrorMsg[DOS9_MKDIR_ERROR]=
-	    gettext("Error : Unable to create folder \"%s\".\n");
+	    (wchar_t*)gettext("Error : Unable to create folder \"%s\".\n");
 	// TRANSLATORS : Don't remove the %s because the program needs it
 
 	lpErrorMsg[DOS9_RMDIR_ERROR]=
-	    gettext("Error : Unable to delete folder \"%s\".\n");
+	    (wchar_t*)gettext("Error : Unable to delete folder \"%s\".\n");
 	// TRANSLATORS : Don't remove the %s because the program needs it
 
 	lpErrorMsg[DOS9_STREAM_MODULE_ERROR]=
-	    gettext("Error : Stream module : \"%s\".\n");
+	    (wchar_t*)gettext("Error : Stream module : \"%s\".\n");
 	// TRANSLATORS : Don't remove the %s because the program needs it
 
 	lpErrorMsg[DOS9_SPECIAL_VAR_NON_ASCII]=
-	    gettext("Error : \"%c\" is an invalid character for special variables. "
+	    (wchar_t*)gettext("Error : \"%c\" is an invalid character for special variables. "
 	            "Special variables require their name to be strict ascii "
 	            "characters, exluding controls characters and space "
 	            "(0x00 - 0x30).\n");
 	// TRANSLATORS : Don't remove the %s because the program needs it
 
 	lpErrorMsg[DOS9_ARGUMENT_NOT_BLOCK]=
-	    gettext("Error : \"%s\" is not a valid block (should at least be "
+	    (wchar_t*)gettext("Error : \"%s\" is not a valid block (should at least be "
 	            "enclosed within parenthesis).\n");
 
 	lpErrorMsg[DOS9_FOR_BAD_TOKEN_SPECIFIER]=
-	    gettext("Error : \"%s\" is not a valid token specifier.\n");
+	    (wchar_t*)gettext("Error : \"%s\" is not a valid token specifier.\n");
 
 	lpErrorMsg[DOS9_FOR_TOKEN_OVERFLOW]=
-	    gettext("Error : Attempted to specify more than "
+	    (wchar_t*)gettext("Error : Attempted to specify more than "
 	            "TOKEN_NB_MAX (%d) different tokens\n.");
 
 	lpErrorMsg[DOS9_FOR_USEBACKQ_VIOLATION]=
-	    gettext("Error : \"%s\" violates the ``Usebackq'' syntax.\n");
+	    (wchar_t*)gettext("Error : \"%s\" violates the ``Usebackq'' syntax.\n");
 
 	lpErrorMsg[DOS9_FAILED_ALLOCATION]=
-	    gettext("Error : Unable to allocate memory (in %s).\n");
+	    (wchar_t*)gettext("Error : Unable to allocate memory (in %s).\n");
 
 	lpErrorMsg[DOS9_CREATE_PIPE]=
-	    gettext("Error : Can't create pipe (in %s).\n");
+	    (wchar_t*)gettext("Error : Can't create pipe (in %s).\n");
 
 	lpErrorMsg[DOS9_FOR_LAUNCH_ERROR]=
-	    gettext("Error : unable to run a subprocess of Dos9 to process "
+	    (wchar_t*)gettext("Error : unable to run a subprocess of Dos9 to process "
 	            "the given input (\"%s\").\n");
 
 	lpErrorMsg[DOS9_FOR_BAD_INPUT_SPECIFIER]=
-	    gettext("Error : Invalid token specifier. \"%s\" breaks input "
+	    (wchar_t*)gettext("Error : Invalid token specifier. \"%s\" breaks input "
 	            "specifying rules.\n");
 
 	lpErrorMsg[DOS9_FOR_TRY_REASSIGN_VAR]=
-	    gettext("Error : FOR loop is trying to reassign already used %%%%%c "
+	    (wchar_t*)gettext("Error : FOR loop is trying to reassign already used %%%%%c "
 	            "variable.\n");
 
 	lpErrorMsg[DOS9_INVALID_EXPRESSION]=
-	    gettext("Error : \"%s\" is not a valid mathematical expression.\n");
+	    (wchar_t*)gettext("Error : \"%s\" is not a valid mathematical expression.\n");
 
 	lpErrorMsg[DOS9_INVALID_TOP_BLOCK]=
-	    gettext("Error : \"%s\" is not a valid top-level block.\n");
+	    (wchar_t*)gettext("Error : \"%s\" is not a valid top-level block.\n");
 
 	lpErrorMsg[DOS9_UNABLE_DUPLICATE_FD]=
-	    gettext("Error : Unable to duplicate file descriptor (%d).\n");
+	    (wchar_t*)gettext("Error : Unable to duplicate file descriptor (%d).\n");
 
 	lpErrorMsg[DOS9_UNABLE_CREATE_PIPE]=
-	    gettext("Error : Unable to create pipe at function (%s).\n");
+	    (wchar_t*)gettext("Error : Unable to create pipe at function (%s).\n");
 
 	lpErrorMsg[DOS9_UNABLE_SET_ENVIRONMENT]=
-	    gettext("Error : Unable to set environment string (%s).\n");
+	    (wchar_t*)gettext("Error : Unable to set environment string (%s).\n");
 
 	lpErrorMsg[DOS9_INVALID_REDIRECTION]=
-	    gettext("Error : \"%s\" is an invalid stream redirection.\n");
+	    (wchar_t*)gettext("Error : \"%s\" is an invalid stream redirection.\n");
 
 	lpErrorMsg[DOS9_ALREADY_REDIRECTED]=
-	    gettext("Error : Redirection for \"%s\" was already specified.\n");
+	    (wchar_t*)gettext("Error : Redirection for \"%s\" was already specified.\n");
 
 	lpErrorMsg[DOS9_MALFORMED_BLOCKS]=
-	    gettext("Error : Encountered malformed blocks (\"%s\").\n");
+	    (wchar_t*)gettext("Error : Encountered malformed blocks (\"%s\").\n");
 
 	lpErrorMsg[DOS9_NONCLOSED_BLOCKS]=
-	    gettext("Error : Blocks left unclosed at end-of-file.\n");
+	    (wchar_t*)gettext("Error : Blocks left unclosed at end-of-file.\n");
 
 	lpErrorMsg[DOS9_UNABLE_ADD_COMMAND]=
-	    gettext("Error : Unable to add command \"%s\".\n");
+	    (wchar_t*)gettext("Error : Unable to add command \"%s\".\n");
 
 	lpErrorMsg[DOS9_UNABLE_REMAP_COMMANDS]=
-	    gettext("Error : Unable to remap commands (in function %s).\n");
+	    (wchar_t*)gettext("Error : Unable to remap commands (in function %s).\n");
 
 	lpErrorMsg[DOS9_TRY_REDEFINE_COMMAND]=
-		gettext("Error : Trying to redefine already used \"%s\" command.\n");
+		(wchar_t*)gettext("Error : Trying to redefine already used \"%s\" command.\n");
 
 	lpErrorMsg[DOS9_UNABLE_REPLACE_COMMAND]=
-		gettext("Error : Unable to redefine \"%s\" command.\n");
+		(wchar_t*)gettext("Error : Unable to redefine \"%s\" command.\n");
 
 	lpQuitMessage=
-	    gettext("\nAborting current command, press any key to end Dos9.\n");
+	    (wchar_t*)gettext("\nAborting current command, press any key to end Dos9.\n");
 
 }
 
 void Dos9_ShowErrorMessage(unsigned int iErrorNumber,
-                           const char* lpComplement,
+                           const wchar_t* lpComplement,
                            int iExitCode)
 {
 
 	Dos9_SetConsoleTextColor(DOS9_BACKGROUND_DEFAULT | DOS9_FOREGROUND_IRED);
 
 	if ((iErrorNumber & ~DOS9_PRINT_C_ERROR) < sizeof(lpErrorMsg))
-		fprintf(stderr,
+		fwprintf(stderr,
 		        lpErrorMsg[iErrorNumber & ~DOS9_PRINT_C_ERROR],
 		        lpComplement
 		       );

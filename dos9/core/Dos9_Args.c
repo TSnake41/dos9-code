@@ -19,6 +19,7 @@
  */
 
 #include <string.h>
+#include <wchar.h>
 #include <libDos9.h>
 
 #include "Dos9_Core.h"
@@ -26,7 +27,7 @@
 //#define DOS9_DBG_MODE
 #include "Dos9_Debug.h"
 
-char* Dos9_GetNextParameter(char* lpLine, char* lpResponseBuffer, int iLength)
+wchar_t* Dos9_GetNextParameter(wchar_t* lpLine, wchar_t* lpResponseBuffer, int iLength)
 /* determines wheter a paramater follows the position lpLinLIBDOS9LIBDOS9LIBDOS9LIBDOS9e.
  *
  * lpLine : A pointer to where to seek a parameter
@@ -40,8 +41,8 @@ char* Dos9_GetNextParameter(char* lpLine, char* lpResponseBuffer, int iLength)
 	ESTR* lpParameter=Dos9_EsInit();
 
 	lpLine=Dos9_GetNextParameterEs(lpLine, lpParameter);
-	strncpy(lpResponseBuffer, Dos9_EsToChar(lpParameter), iLength);
-	lpResponseBuffer[iLength-1]='\0';
+	wcsncpy(lpResponseBuffer, Dos9_EsToChar(lpParameter), iLength);
+	lpResponseBuffer[iLength-1]=L'\0';
 
 	Dos9_EsFree(lpParameter);
 	return lpLine;
@@ -51,15 +52,15 @@ char* Dos9_GetNextParameter(char* lpLine, char* lpResponseBuffer, int iLength)
    note that the lpbkInfo->lpEnd may be NULL
    its means that the end of the block is the full
    line */
-char* Dos9_GetNextBlock(char* lpLine, BLOCKINFO* lpbkInfo)
+wchar_t* Dos9_GetNextBlock(wchar_t* lpLine, BLOCKINFO* lpbkInfo)
 {
-	char* lpBlockEnd;
+	wchar_t* lpBlockEnd;
 
 	lpLine=Dos9_SkipBlanks(lpLine);
 
 	lpBlockEnd=Dos9_GetNextBlockEnd(lpLine);
 
-	if (*lpLine=='(')
+	if (*lpLine==L'(')
 		lpLine++;
 
 	if (lpBlockEnd == NULL) {
@@ -67,8 +68,8 @@ char* Dos9_GetNextBlock(char* lpLine, BLOCKINFO* lpbkInfo)
 		lpBlockEnd=lpLine;
 
 		/* go to the end of line */
-		while (*lpBlockEnd!='\n'
-		       && *lpBlockEnd!='\0' )
+		while (*lpBlockEnd!=L'\n'
+		       && *lpBlockEnd!=L'\0' )
 			lpBlockEnd++;
 
 	}
@@ -81,9 +82,9 @@ char* Dos9_GetNextBlock(char* lpLine, BLOCKINFO* lpbkInfo)
 
 }
 
-char* Dos9_GetNextBlockEs(char* lpLine, ESTR* lpReturn)
+wchar_t* Dos9_GetNextBlockEs(wchar_t* lpLine, ESTR* lpReturn)
 {
-	char* lpNext;
+	wchar_t* lpNext;
 	BLOCKINFO bkInfo;
 
 	size_t iNbBytes;
@@ -103,25 +104,25 @@ char* Dos9_GetNextBlockEs(char* lpLine, ESTR* lpReturn)
 
 }
 
-char* Dos9_GetNextParameterEs(char* lpLine, ESTR* lpReturn)
+wchar_t* Dos9_GetNextParameterEs(wchar_t* lpLine, ESTR* lpReturn)
 {
-	char cChar=' ';
+	wchar_t cChar=' ';
 
 	size_t iSize;
 
-	char *lpBegin,
-	     *lpEnd=NULL;
+	wchar_t *lpBegin,
+	        *lpEnd=NULL;
 
 	lpLine=Dos9_SkipBlanks(lpLine);
 
-	if (*lpLine=='"') {
+	if (*lpLine==L'"') {
 
-		cChar='"';
+		cChar=L'"';
 		lpLine++;
 
-	} else if (*lpLine=='\'') {
+	} else if (*lpLine==L'\'') {
 
-		cChar='\'';
+		cChar=L'\'';
 		lpLine++;
 
 	}
@@ -132,7 +133,7 @@ char* Dos9_GetNextParameterEs(char* lpLine, ESTR* lpReturn)
 
 	while ((lpEnd=Dos9_SearchChar(lpLine, cChar))) {
 
-		if (cChar==' ') {
+		if (cChar==L' ') {
 
 			lpLine=lpEnd;
 			break;
@@ -141,9 +142,9 @@ char* Dos9_GetNextParameterEs(char* lpLine, ESTR* lpReturn)
 
 		lpLine=lpEnd+1;
 
-		if (*lpLine=='\t'
-		    || *lpLine==' '
-		    || *lpLine=='\0')
+		if (*lpLine==L'\t'
+		    || *lpLine==L' '
+		    || *lpLine==L'\0')
 			break;
 
 	}
@@ -171,7 +172,7 @@ char* Dos9_GetNextParameterEs(char* lpLine, ESTR* lpReturn)
 	return lpLine;
 }
 
-int   Dos9_GetParamArrayEs(char* lpLine, ESTR** lpArray, size_t iLenght)
+int   Dos9_GetParamArrayEs(wchar_t* lpLine, ESTR** lpArray, size_t iLenght)
 /*
     gets command-line argument in an array of extended string
 */
@@ -179,22 +180,22 @@ int   Dos9_GetParamArrayEs(char* lpLine, ESTR** lpArray, size_t iLenght)
 	size_t iIndex=0;
 	ESTR* lpParam=Dos9_EsInit();
 	ESTR* lpTemp=Dos9_EsInit();
-	char* lpNext;
+	wchar_t* lpNext;
 
 	while ((iIndex < iLenght) && (lpNext = Dos9_GetNextParameterEs(lpLine, lpParam))) {
 
-		while (*lpLine=='\t' || *lpLine==' ') lpLine++;
+		while (*lpLine==L'\t' || *lpLine==L' ') lpLine++;
 
-		if (*lpLine == '"') {
+		if (*lpLine == L'"') {
 
 			/* if the first character are '"', then
 			   report it back in the command arguments,
 			   since some microsoft commands would not
 			   work without these */
 
-			Dos9_EsCpy(lpTemp, "\"");
+			Dos9_EsCpy(lpTemp, L"\"");
 			Dos9_EsCatE(lpTemp, lpParam);
-			Dos9_EsCat(lpTemp, "\"");
+			Dos9_EsCat(lpTemp, L"\"");
 
 			Dos9_EsCpyE(lpParam, lpTemp);
 
@@ -227,7 +228,7 @@ int   Dos9_GetParamArrayEs(char* lpLine, ESTR** lpArray, size_t iLenght)
 	return 0;
 }
 
-LIBDOS9 char* Dos9_GetEndOfLine(char* lpLine, ESTR* lpReturn)
+LIBDOS9 wchar_t* Dos9_GetEndOfLine(wchar_t* lpLine, ESTR* lpReturn)
 /* this returns fully expanded line from the lpLine Buffer */
 {
 

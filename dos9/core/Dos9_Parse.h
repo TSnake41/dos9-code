@@ -21,6 +21,8 @@
 #ifndef DOS9_PARSE_H
 #define DOS9_PARSE_H
 
+#include <wchar.h>
+
 #include <libDos9.h>
 #include "Dos9_Core.h"
 
@@ -39,8 +41,8 @@ struct PARSED_STREAM {
 struct PARSED_STREAM_START {
 	struct PARSED_STREAM* lppsStream;
 	char cOutputMode;
-	char* lpOutputFile;
-	char* lpInputFile;
+	wchar_t* lpOutputFile;
+	wchar_t* lpInputFile;
 };
 
 typedef struct PARSED_STREAM PARSED_STREAM,*LPPARSED_STREAM;

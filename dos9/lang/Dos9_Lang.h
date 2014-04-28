@@ -21,42 +21,42 @@
 #ifndef DOS9_LANG_INCLUDED_H
 #define DOS9_LANG_INCLUDED_H
 
+#include <wchar.h>
+
+extern const wchar_t* lpMsgEchoOn;
+extern const wchar_t* lpMsgEchoOff;
+extern const wchar_t* lpMsgPause;
+
+extern const wchar_t* lpDirNoFileFound;
+extern const wchar_t* lpDirListTitle;
+extern const wchar_t* lpDirFileDirNb;
 
 
-extern const char* lpMsgEchoOn;
-extern const char* lpMsgEchoOff;
-extern const char* lpMsgPause;
+extern const wchar_t* lpHlpMain;
+extern const wchar_t* lpHlpDeprecated;
 
-extern const char* lpDirNoFileFound;
-extern const char* lpDirListTitle;
-extern const char* lpDirFileDirNb;
+extern const wchar_t* lpDelConfirm;
+extern const wchar_t* lpDelChoices;
 
+extern const wchar_t* lpAskYn;
+extern const wchar_t* lpAskyN;
+extern const wchar_t* lpAskyn;
 
-extern const char* lpHlpMain;
-extern const char* lpHlpDeprecated;
+extern const wchar_t* lpAskYna;
+extern const wchar_t* lpAskyNa;
+extern const wchar_t* lpAskynA;
+extern const wchar_t* lpAskyna;
 
-extern const char* lpDelConfirm;
-extern const char* lpDelChoices;
+extern const wchar_t* lpAskYes;
+extern const wchar_t* lpAskYesA;
 
-extern const char* lpAskYn;
-extern const char* lpAskyN;
-extern const char* lpAskyn;
+extern const wchar_t* lpAskNo;
+extern const wchar_t* lpAskNoA;
 
-extern const char* lpAskYna;
-extern const char* lpAskyNa;
-extern const char* lpAskynA;
-extern const char* lpAskyna;
+extern const wchar_t* lpAskAll;
+extern const wchar_t* lpAskAllA;
 
-extern const char* lpAskYes;
-extern const char* lpAskYesA;
-
-extern const char* lpAskNo;
-extern const char* lpAskNoA;
-
-extern const char* lpAskAll;
-extern const char* lpAskAllA;
-
-extern const char* lpAskInvalid;
+extern const wchar_t* lpAskInvalid;
 
 
 void Dos9_LoadStrings(void); /* a function that loads differents

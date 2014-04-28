@@ -8,7 +8,6 @@
 # Please report bugs, and mistakes at : <darkbatcher at dos9 dot org>
 #
 
-INSTALL_TARGET=@libdir@/libDos9.a
 TARGET=../lib/libDos9.a
 
 INCLUDE_FILE=../include/libDos9.h

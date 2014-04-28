@@ -17,6 +17,8 @@
  *   along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include <wchar.h>
+
 #include "libDos9.h"
 #include "Dos9_Core.h"
 
@@ -40,19 +42,19 @@ INPUT_FILE ifIn;
 void(*pErrorHandler)(void)=NULL;
 
 #ifdef WIN32
-#define environ _environ
+#define environ _wenviron
 #else
 extern char** environ;
 #endif
 
-char* lpInitVar[]= {
+wchar_t* lpInitVar[]= {
 	"DOS9_VERSION=" DOS9_VERSION,
 #ifdef WIN32
-	"DOS9_OS=WINDOWS",
+	L"DOS9_OS=WINDOWS",
 #elif defined _POSIX_C_SOURCE
-	"DOS9_OS=*NIX",
+	L"DOS9_OS=*NIX",
 #else
-	"DOS9_OS=UNKNOWN"
+	L"DOS9_OS=UNKNOWN"
 #endif
 	NULL,
 	NULL

@@ -1,4 +1,4 @@
-/*
+
 /*
  *
  *   Dos9 - A Free, Cross-platform command prompt - The Dos9 project
@@ -26,7 +26,8 @@
 #include <time.h>
 #include <locale.h>
 #include <signal.h>
-
+#include <wchar.h>
+#include <wctype.h>
 
 #if defined WIN32
 #include <conio.h>
@@ -59,51 +60,50 @@ void Dos9_SigHandler(int c)
 }
 
 
-int main(int argc, char *argv[])
+int wmain(int argc, wchar_t *argv[])
 {
 	/*  a function which initializes Dos9's engine,
 	    parses the command line argumments,
 	    And display starting message
 	*/
 
-	char *lpFileName="",
+	wchar_t *lpFileName=L"",
 	      lpFileAbs[FILENAME_MAX],
 	      lpTmp[FILENAME_MAX],
-	      lpTitle[FILENAME_MAX+10]="Dos9 [" DOS9_VERSION "] - ";
+	      lpTitle[FILENAME_MAX+10]=L"Dos9 [" DOS9_VERSION L"] - ",
+	      i,
+	      j,
+	      c=L'0';
 
-
-	int i,
-	    j,
-	    c='0',
-	    bQuiet=FALSE,
+	int bQuiet=FALSE,
 	    bGetSwitch=TRUE;
 
-	DOS9_DBG("Initializing signal handler...\n");
+	DOS9_DBG(L"Initializing signal handler...\n");
 
 	signal(SIGINT, Dos9_SigHandler);
 
-	DOS9_DBG("Initializing libDos9 ...\n");
+	DOS9_DBG(L"Initializing libDos9 ...\n");
 
 	if (Dos9_LibInit() == -1) {
 
-		puts("Error : Unable to load LibDos9. Exiting ...");
+		fputws(stderr, L"Error : Unable to load LibDos9. Exiting ...");
 		exit(-1);
 	}
 
-	DOS9_DBG("Setting UNIX newlines ...\n");
+	DOS9_DBG(L"Setting UNIX newlines ...\n");
 
 	/* Set new line Mode to UNIX */
 	Dos9_SetNewLineMode(DOS9_NEWLINE_UNIX);
 
-	DOS9_DBG("Allocating local variable block ... \n");
+	DOS9_DBG(L"Allocating local variable block ... \n");
 
 	lpvLocalVars=Dos9_GetLocalBlock();
 
-	DOS9_DBG("Initializing console ...\n");
+	DOS9_DBG(L"Initializing console ...\n");
 
 	Dos9_InitConsole();
 
-	DOS9_DBG("Setting locale ...\n");
+	DOS9_DBG(L"Setting locale ...\n");
 
 #ifdef WIN32
 
@@ -115,14 +115,14 @@ int main(int argc, char *argv[])
 
 #endif // WINDOWS
 
-	DOS9_DBG("Loading GETTEXT messages... \n");
+	DOS9_DBG(L"Loading GETTEXT messages... \n");
 
 	/* Load Messages (including errors) */
 	Dos9_LoadStrings();
 	Dos9_LoadErrors();
 	Dos9_LoadInternalHelp();
 
-	DOS9_DBG("Loading current directory...\n");
+	DOS9_DBG(L"Loading current directory...\n");
 
 	Dos9_UpdateCurrentDir();
 
@@ -132,74 +132,74 @@ int main(int argc, char *argv[])
 
 	if (!argv[0])
 		Dos9_ShowErrorMessage(DOS9_BAD_COMMAND_LINE,
-		                      "Dos9",
+		                      L"Dos9",
 		                      -1
 		                     );
 
-	DOS9_DBG("Getting command line arguments ... \n");
+	DOS9_DBG(L"Getting command line arguments ... \n");
 
 	/* get command line arguments */
 	for (i=1; argv[i]; i++) {
 
-		DOS9_DBG("* Got \"%s\" as argument...\n", argv[i]);
+		DOS9_DBG(L"* Got \"%s\" as argument...\n", argv[i]);
 
-		if (*argv[i]=='/' && bGetSwitch) {
+		if (*argv[i]==L'/' && bGetSwitch) {
 			argv[i]++;
-			switch(toupper(*argv[i])) {
+			switch(towupper(*argv[i])) {
 
-				case 'V':
+				case L'V':
 					/* enables delayed expansion */
 					bDelayedExpansion=TRUE;
 					break;
 
-				case 'F':
+				case L'F':
 					/* enables floats */
 					bUseFloats=TRUE;
 					break;
 
-				case 'E':
+				case L'E':
 					bEchoOn=FALSE;
 					break;
 
-				case 'C':
+				case L'C':
 					/* enable cmd-compatible mode */
 					bCmdlyCorrect=TRUE;
 					break;
 
-				case 'Q':
+				case L'Q':
 					bQuiet=TRUE; // run silently
 					break;
 
-				case 'I':
+				case L'I':
 					if (!argv[++i]) {
 
-						Dos9_ShowErrorMessage(DOS9_EXPECTED_MORE, "Dos9", -1);
+						Dos9_ShowErrorMessage(DOS9_EXPECTED_MORE, L"Dos9", -1);
 
 					}
 
 					iInputD=atoi(argv[i]); // select input descriptor
 					break;
 
-				case 'O':
+				case L'O':
 					if (!argv[++i]) {
 
-						Dos9_ShowErrorMessage(DOS9_EXPECTED_MORE, "Dos9", -1);
+						Dos9_ShowErrorMessage(DOS9_EXPECTED_MORE, L"Dos9", -1);
 
 					}
 
 					iOutputD=atoi(argv[i]); // select input descriptor
 					break;
 
-				case '?':
-					puts("DOS9 [" DOS9_VERSION "] - Build " DOS9_BUILDDATE "\n"
-					     "Copyright (c) 2010-" DOS9_BUILDYEAR " " DOS9_AUTHORS "\n\n"
-					     "This is free software, you can modify and/or redistribute it under "
-					     "the terms of the GNU Genaral Public License.\n");
+				case L'?':
+					puts(L"DOS9 [" DOS9_VERSION L"] - Build " DOS9_BUILDDATE L"\n"
+					     L"Copyright (c) 2010-" DOS9_BUILDYEAR L" " DOS9_AUTHORS L"\n\n"
+					     L"This is free software, you can modify and/or redistribute it under "
+					     L"the terms of the GNU Genaral Public License.\n");
 
 					puts(lpHlpMain);
 					return 0;
 
-				case '/' :
+				case L'/' :
 					/* there is no more switch on the command line.
 					   '' */
 					bGetSwitch=FALSE;
@@ -212,10 +212,10 @@ int main(int argc, char *argv[])
 
 		} else {
 
-			if (*lpFileName!='\0') {
+			if (*lpFileName!=L'\0') {
 
 				/* set parameters for the file currently runned */
-				for (j=i ,  c='1'; argv[j] && c<='9'; i++, c++ , j++ ) {
+				for (j=i ,  c=L'1'; argv[j] && c<=L'9'; i++, c++ , j++ ) {
 
 					Dos9_SetLocalVar(lpvLocalVars, c, argv[j]);
 
@@ -225,15 +225,15 @@ int main(int argc, char *argv[])
 			}
 
 			lpFileName=argv[i];
-			Dos9_SetLocalVar(lpvLocalVars, '0', lpFileName);
+			Dos9_SetLocalVar(lpvLocalVars, L'0', lpFileName);
 			c='1';
 		}
 
 	}
 
 	/* empty remaining special vars */
-	for (; c<='9'; c++)
-		Dos9_SetLocalVar(lpvLocalVars, c , "");
+	for (; c<=L'9'; c++)
+		Dos9_SetLocalVar(lpvLocalVars, c , L"");
 
 	/* initialisation du système de génération aléatoire */
 
@@ -243,22 +243,22 @@ int main(int argc, char *argv[])
 	/* messages affichés */
 
 
-	DOS9_DBG("Setting introduction and DOS9_IS_SCRIPT ...\n");
+	DOS9_DBG(L"Setting introduction and DOS9_IS_SCRIPT ...\n");
 
 	if (*lpFileName=='\0') {
 
 		if (!bQuiet)
 			Dos9_PrintIntroduction();
 
-		strcat(lpTitle, "Command prompt");
-		Dos9_PutEnv("DOS9_IS_SCRIPT=false");
+		strcat(lpTitle, L"Command prompt");
+		Dos9_PutEnv(L"DOS9_IS_SCRIPT=false");
 
 	} else {
 
-		strncat(lpTitle, lpFileName, sizeof(lpTitle)-sizeof("Dos9 [" DOS9_VERSION "] - "));
-		Dos9_PutEnv("DOS9_IS_SCRIPT=true");
+		strncat(lpTitle, lpFileName, (sizeof(lpTitle)-sizeof("Dos9 [" DOS9_VERSION "] - "))/sizeof(wchar_t));
+		Dos9_PutEnv(L"DOS9_IS_SCRIPT=true");
 
-		DOS9_DBG("[dos9] Runing \"%s\"\n", lpFileName);
+		DOS9_DBG(L"[dos9] Runing \"%s\"\n", lpFileName);
 
 	}
 
@@ -269,27 +269,27 @@ int main(int argc, char *argv[])
 
 	}
 
-	DOS9_DBG("Getting current executable name ...\n");
+	DOS9_DBG(L"Getting current executable name ...\n");
 
-	strcpy(lpTitle, "DOS9_PATH=");
+	wcscpy(lpTitle, L"DOS9_PATH=");
 
 	Dos9_GetExePath(lpTitle+10, FILENAME_MAX);
 
-	DOS9_DBG("\tGot \"%s\" as name ...\n", lpTitle+10);
+	DOS9_DBG(L"\tGot \"%s\" as name ...\n", lpTitle+10);
 
 	lpInitVar[2]=lpTitle;
 
-	DOS9_DBG("Initializing variables ...\n");
+	DOS9_DBG(L"Initializing variables ...\n");
 
 	Dos9_InitVar(lpInitVar);
 
-	putenv("ERRORLEVEL=0");
+	Dos9_PutEnv(L"ERRORLEVEL=0");
 
-	DOS9_DBG("Mapping commands ... \n");
+	DOS9_DBG(L"Mapping commands ... \n");
 
 	lpclCommands=Dos9_MapCommandInfo(lpCmdInfo, sizeof(lpCmdInfo)/sizeof(COMMANDINFO));
 
-	DOS9_DBG("Initializing streams ... \n");
+	DOS9_DBG(L"Initializing streams ... \n");
 
 	lppsStreamStack=Dos9_InitStreamStack();
 
@@ -312,34 +312,36 @@ int main(int argc, char *argv[])
 
 	/* running auto batch initialisation */
 
-	strcat(lpTitle, "/Dos9_Auto.bat");
 
-	strcpy(ifIn.lpFileName, lpTitle+10);
+	wcscpy(ifIn.lpFileName, lpTitle+10);
+
+	wcscat(ifIn.lpFileName, L"/Dos9_Auto.bat");
 	ifIn.iPos=0;
 	ifIn.bEof=FALSE;
 
-	DOS9_DBG("Running file \"%s\"\n", ifIn.lpFileName);
+	DOS9_DBG(L"Running file \"%s\"\n", ifIn.lpFileName);
 
 	Dos9_RunBatch(&ifIn);
 
-	DOS9_DBG("\tRan\n");
+	DOS9_DBG(L"\tRan\n");
 
 	if (*lpFileName!='\0') {
 
 		/* generates real path if the path is uncomplete */
 
-		if (Dos9_GetFilePath(lpFileAbs, lpFileName, sizeof(lpFileAbs))==-1)
+		if (Dos9_GetFilePath(lpFileAbs, lpFileName, sizeof(lpFileAbs)/sizeof(wchar_t))==-1)
 			Dos9_ShowErrorMessage(DOS9_FILE_ERROR, lpFileName, -1);
 
 		if (*lpFileAbs) {
-			if (strncmp(lpFileAbs+1, ":\\", 2)
-			    && strncmp(lpFileAbs+1, ":/", 2)
+			if (wcsncmp(lpFileAbs+1, L":\\", 2)
+			    && wcsncmp(lpFileAbs+1, L":/", 2)
 			    && *lpFileAbs!='/'
 			   ) {
 				/* if the file path is relative */
 
-				snprintf(lpTmp, sizeof(lpFileAbs), "%s/%s", Dos9_GetCurrentDir(), lpFileAbs);
-				strcpy(lpFileAbs, lpTmp);
+				snwprintf(lpTmp, sizeof(lpFileAbs)/sizeof(wchar_t), L"%s/%s",
+							Dos9_GetCurrentDir(), lpFileAbs);
+				wcscpy(lpFileAbs, lpTmp);
 
 			}
 		}
@@ -349,15 +351,15 @@ int main(int argc, char *argv[])
 
 
 	/* run the batch */
-	strcpy(ifIn.lpFileName, lpFileName);
+	wcscpy(ifIn.lpFileName, lpFileName);
 	ifIn.iPos=0;
 	ifIn.bEof=FALSE;
 
-	DOS9_DBG("Running file \"%s\" ...\n", ifIn.lpFileName);
+	DOS9_DBG(L"Running file \"%s\" ...\n", ifIn.lpFileName);
 
 	Dos9_RunBatch(&ifIn);
 
-	DOS9_DBG("\t Ran\nExiting...\n");
+	DOS9_DBG(L"\t Ran\nExiting...\n");
 
 
 	Dos9_Exit();

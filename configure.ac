@@ -21,24 +21,23 @@ AS_IF([test "x$enable_console" = xno],
       [test "x$enable_console" != xno],
       [AC_SUBST([CONSOLE], [])])
 
-AC_CHECK_LIB([pthread],
-             [pthread_create],
-	     [],
-             [])
-AC_CHECK_LIB([intl],
-             [gettext],
-             [],
-             [])
+dnl These checks are used to fail if the header are not provided.
 
-AC_CHECK_LIB([iconv],
-             [iconv],
-             [],
-             [])
+AC_CHECK_HEADERS([libintl.h iconv.h math.h],
+				 [],
+				 [AC_MSG_ERROR(
+					"Error ! The header is required in order to build Dos9")
+				 ])
+	  
 	
-AC_CHECK_LIB([m], 
-             [cos],
-             [],
-             [AC_MSG_ERROR("Dos9 requires math.h to be installed")])
+dnl These checks are used to determine wether we sould link to various libraries
+dnl that are not always shipped as separate libraries but may be included in the
+dnl c lib.
+
+AC_CHECK_LIB([pthread],[pthread_create],[],[])
+AC_CHECK_LIB([intl],[gettext],[],[])
+AC_CHECK_LIB([iconv],[iconv],[],[])
+AC_CHECK_LIB([m],[cos],[],[])
 
 AC_CONFIG_FILES([Makefile 
                 libDos9/Makefile

@@ -21,6 +21,8 @@
 #ifndef DOS9_FILEPATH_H
 #define DOS9_FILEPATH_H
 
+#include <wchar.h>
+
 #ifdef _POSIX_C_SOURCE
 
 #define DOS9_PATH_DELIMITER ':'
@@ -31,9 +33,9 @@
 
 #endif
 
-int     Dos9_GetFilePath(char* lpFullPath, const char* lpPartial, size_t iBufSize);
-char*   Dos9_GetPathNextPart(char* lpPath, ESTR* lpReturn);
-int     Dos9_MakePath(ESTR* lpReturn, int nOps, ...);
-char*   Dos9_GetLastChar(ESTR* lpReturn);
+int			Dos9_GetFilePath(wchar_t* lpFullPath, const wchar_t* lpPartial, size_t iBufSize);
+wchar_t*	Dos9_GetPathNextPart(wchar_t* lpPath, ESTR* lpReturn);
+int			Dos9_MakePath(ESTR* lpReturn, int nOps, ...);
+wchar_t*	Dos9_GetLastChar(ESTR* lpReturn);
 
 #endif // DOS9_FILEPATH_H

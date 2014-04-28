@@ -21,15 +21,16 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <libDos9.h>
+#include <wchar.h>
 
 #include "Dos9_Core.h"
 
-void Dos9_ExpandAlias(ESTR* lpRet, char* lpCh, char* lpExp)
+void Dos9_ExpandAlias(ESTR* lpRet, wchar_t* lpCh, wchar_t* lpExp)
 {
     ESTR* lpEsRet=Dos9_EsInit();
 
     Dos9_EsCpy(lpEsRet, lpExp);
-    Dos9_EsCat(lpEsRet, " ");
+    Dos9_EsCat(lpEsRet, L" ");
     Dos9_EsCat(lpEsRet, lpCh);
 
     Dos9_EsCpyE(lpRet, lpEsRet);
