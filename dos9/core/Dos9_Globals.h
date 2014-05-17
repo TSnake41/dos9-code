@@ -22,6 +22,11 @@
 
 #include <wchar.h>
 
+#ifdef WIN32
+#undef environ
+#define environ _wenviron
+#endif
+
 extern int bAbortCommand;
 extern int bDelayedExpansion;
 extern int bUseFloats;

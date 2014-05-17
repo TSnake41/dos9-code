@@ -5,8 +5,6 @@
 #define DOS9_DELETE_READONLY 0x02
 #define DOS9_DONT_ASK_GENERIC 0x04
 
-char* Dos9_StrToken(char* lpString, char cToken);
-
 int Dos9_Dir(char* lpLine);
 int Dos9_CmdDel(char* lpLine);
 int Dos9_CmdMove(char* lpLine);

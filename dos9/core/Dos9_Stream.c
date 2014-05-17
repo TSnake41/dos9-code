@@ -22,6 +22,8 @@
 #include <string.h>
 #include <errno.h>
 
+#include <wchar.h>
+
 #include <unistd.h>
 #include <sys/types.h>
 
@@ -33,11 +35,13 @@
 //#define DOS9_DBG_MODE
 #include "Dos9_Debug.h"
 
+#define L(x) L##x
+
 void Dos9_DumpStreamStack(LPSTREAMSTACK lppsStack)
 {
 	STREAMLVL* lpLvl;
 
-	fprintf(stderr, "** Dumping Stream stack **\n");
+	fwprintf(stderr, L"** Dumping Stream stack **\n");
 
 	while (lppsStack) {
 
@@ -45,28 +49,29 @@ void Dos9_DumpStreamStack(LPSTREAMSTACK lppsStack)
 
 		if (lpLvl) {
 
-			fprintf(stderr, "\tElement :\n"
-			        "\t\t- iPopLock = %d\n"
-			        "\t\t- iPipeIndicator = %d\n"
-			        "\t\t- iFreeDescriptors = {%d,%d,%d}\n"
-			        "\t\t- iStandardDescriptors = {%d,%d,%d}\n"
-			        "\n",
-			        lpLvl->iPopLock,
-			        lpLvl->iPipeIndicator,
-			        lpLvl->iFreeDescriptors[0],
-			        lpLvl->iFreeDescriptors[1],
-			        lpLvl->iFreeDescriptors[2],
-			        lpLvl->iStandardDescriptors[0],
-			        lpLvl->iStandardDescriptors[1],
-			        lpLvl->iStandardDescriptors[2]
-			       );
+			fwprintf(stderr, L"\tElement :\n"
+			         L"\t\t- iPopLock = %d\n"
+			         L"\t\t- iPipeIndicator = %d\n"
+			         L"\t\t- iFreeDescriptors = {%d,%d,%d}\n"
+			         L"\t\t- iStandardDescriptors = {%d,%d,%d}\n"
+			         L"\n",
+			         lpLvl->iPopLock,
+			         lpLvl->iPipeIndicator,
+			         lpLvl->iFreeDescriptors[0],
+			         lpLvl->iFreeDescriptors[1],
+			         lpLvl->iFreeDescriptors[2],
+			         lpLvl->iStandardDescriptors[0],
+			         lpLvl->iStandardDescriptors[1],
+			         lpLvl->iStandardDescriptors[2]
+			        );
 
 		}
 
 		lppsStack=lppsStack->lpcsPrevious;
+
 	}
 
-	fprintf(stderr, "** End **\n\n");
+	fwprintf(stderr, L"** End **\n\n");
 
 }
 
@@ -74,14 +79,18 @@ LPSTREAMSTACK Dos9_InitStreamStack(void)
 {
 	LPSTREAMSTACK lpssStream=NULL;
 	LPSTREAMLVL lpStream;
+
 	if ((lpStream=Dos9_AllocStreamLvl())) {
+
 		Dos9_GetDescriptors(lpStream->iStandardDescriptors);
 		/* when the stream stack is instancied we can assume that outpout
 		and input descriptors are standard inputs and output */
 
 		lpStream->iPopLock=TRUE;
 	}
+
 	lpssStream=Dos9_PushStack(lpssStream, lpStream);
+
 	return lpssStream;
 }
 
@@ -140,7 +149,7 @@ int Dos9_OpenOutputD(LPSTREAMSTACK lpssStreamStack, int iNewDescriptor, int iDes
 	return 0;
 }
 
-int Dos9_OpenOutput(LPSTREAMSTACK lpssStreamStack, char* lpName, int iDescriptor, int iMode)
+int Dos9_OpenOutput(LPSTREAMSTACK lpssStreamStack, wchar_t* lpName, int iDescriptor, int iMode)
 {
 	LPSTREAMLVL lpStream;
 	int  *iStd, /* the descriptor listing current standard descriptors */
@@ -177,21 +186,27 @@ int Dos9_OpenOutput(LPSTREAMSTACK lpssStreamStack, char* lpName, int iDescriptor
 		iMode=O_RDONLY;
 	}
 
-	DEBUG("File is about to be loaded");
-	if ((iStd[iDescriptor]=open(lpName, iMode, S_IREAD | S_IWRITE))!= -1) {
 
-		DEBUG("File loaded !");
+	if ((iStd[iDescriptor]=wopen(lpName, iMode, S_IREAD | S_IWRITE))!= -1) {
+
 		Dos9_FlushDescriptor(iStd[iDescriptor], iDescriptor);
 		iFreeStd[iDescriptor]=iStd[iDescriptor];
 
 		if (iRedirectBoth) {
+
 			iStd[DOS9_STDERR]=iStd[DOS9_STDOUT];
 			Dos9_FlushDescriptor(iStd[DOS9_STDOUT], DOS9_STDERR);
+
 		}
 
 		return 0;
+	} else {
+
+		/* handle the error */
+
+
 	}
-	DEBUG("Error: Cant load file !");
+
 	return -1;
 }
 
@@ -202,7 +217,7 @@ int Dos9_OpenPipe(LPSTREAMSTACK lpssStreamStack)
 
 	if (_Dos9_Pipe(iPipeDescriptors, 0x8000, O_TEXT) == -1)
 		Dos9_ShowErrorMessage(DOS9_UNABLE_CREATE_PIPE | DOS9_PRINT_C_ERROR,
-		                      __FILE__ "/Dos9_OpenPipe()",
+		                      L(__FILE__) L"/Dos9_OpenPipe()",
 		                      TRUE);
 
 	Dos9_GetStack(lppsStreamStack, (void**)&lpLvl);
@@ -211,6 +226,7 @@ int Dos9_OpenPipe(LPSTREAMSTACK lpssStreamStack)
 	}
 
 	Dos9_GetStack(lppsStreamStack, (void**)&lpLvl);
+
 	if (lpLvl) {
 
 		iOldInputDescriptor=lpLvl->iStandardDescriptors[DOS9_STDIN];
@@ -234,8 +250,8 @@ int Dos9_OpenPipe(LPSTREAMSTACK lpssStreamStack)
 		return 0;
 	}
 
+	Dos9_ShowErrorMessage(DOS9_STREAM_MODULE_ERROR, wcserror(errno), TRUE);
 
-	Dos9_ShowErrorMessage(DOS9_STREAM_MODULE_ERROR, strerror(errno), TRUE);
 	return -1;
 }
 
@@ -247,8 +263,6 @@ LPSTREAMSTACK Dos9_Pipe(LPSTREAMSTACK lppsStreamStack)
 	Dos9_GetStack(lppsStreamStack, (void**)&lpLvl);
 	/* get current level content */
 
-	DEBUG("In Pipe callback function");
-	DEBUG_(lpLvl->iPipeIndicator);
 	if (lpLvl->iPipeIndicator) {
 
 		if (lpLvl->iFreeDescriptors[DOS9_STDIN]) {
@@ -279,14 +293,12 @@ LPSTREAMSTACK Dos9_PopStreamStack(LPSTREAMSTACK lppsStack)
 	LPSTREAMLVL lpStream;
 
 	Dos9_GetStack(lppsStack, (void**)&lpStream);
-	DEBUG("Ending a redirection lvl");
 
 	if (lpStream) {
 
-		if (lpStream->iPopLock==TRUE) {
-			DEBUG("## ERROR [:] STREAM LEVEL LOCKED ##");
+		if (lpStream->iPopLock==TRUE)
 			return lppsStack;
-		}
+
 
 #ifdef WIN32
 
@@ -301,16 +313,8 @@ LPSTREAMSTACK Dos9_PopStreamStack(LPSTREAMSTACK lppsStack)
 	lppsStack=Dos9_PopStack(lppsStack, NULL);
 	Dos9_GetStack(lppsStack, (void**)&lpStream);
 
-	if (lpStream) {
-
-		DEBUG("Flushing low-level descriptors");
+	if (lpStream)
 		Dos9_FlushDescriptors(lpStream->iStandardDescriptors);
-
-	} else {
-
-		DEBUG("REACHED BOTTOM OF STACK");
-
-	}
 
 #ifdef WIN32
 
@@ -327,10 +331,7 @@ LPSTREAMSTACK Dos9_PushStreamStack(LPSTREAMSTACK lppsStack)
 	LPSTREAMLVL lpLastStream;
 	int i;
 
-	DEBUG("Push a redirection level");
 	Dos9_GetStack(lppsStack, (void**)&lpStream);
-	//Dos9_FlushStd();
-
 
 	lpLastStream=lpStream;
 	lpStream=Dos9_AllocStreamLvl();
@@ -357,7 +358,7 @@ int Dos9_GetDescriptors(int* Array)
 		if (Array[i]==-1) {
 
 			Dos9_ShowErrorMessage(DOS9_UNABLE_DUPLICATE_FD | DOS9_PRINT_C_ERROR
-			                      , (const char*)i, TRUE);
+			                      , (const wchar_t*)i, TRUE);
 
 		}
 
@@ -371,12 +372,12 @@ void Dos9_FlushDescriptors(int* Array)
 	for (i=0; i<3; i++) {
 		if (Array[i]) {
 
-			DOS9_DBG("[Dos9_FlushDescriptors] Flushing #%d on #%d\n", Array[i], i);
+			DOS9_DBG(L"[Dos9_FlushDescriptors] Flushing #%d on #%d\n", Array[i], i);
 
 			if (dup2(Array[i], i)==-1) {
 
 				Dos9_ShowErrorMessage(DOS9_UNABLE_DUPLICATE_FD | DOS9_PRINT_C_ERROR
-				                      , (const char*)i, TRUE);
+				                      , (const wchar_t*)i, TRUE);
 
 			}
 		}
@@ -407,7 +408,7 @@ void Dos9_FlushDescriptor(int iDescriptor, unsigned int iStd)
 		/* if that fail, the only way to possibly recover from
 		   it is exiting */
 		Dos9_ShowErrorMessage(DOS9_UNABLE_DUPLICATE_FD | DOS9_PRINT_C_ERROR
-		                      , (const char*)iStd, TRUE);
+		                      , (const wchar_t*)iStd, TRUE);
 
 	}
 	return ;

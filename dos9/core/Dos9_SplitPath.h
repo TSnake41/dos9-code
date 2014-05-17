@@ -29,6 +29,8 @@
 
 #endif
 
-void Dos9_SplitPath(char* lpPath, char* lpDisk, char* lpDir, char* lpName, char* lpExt);
+#include <wchar.h>
+
+void Dos9_SplitPath(wchar_t* lpPath, wchar_t* lpDisk, wchar_t* lpDir, wchar_t* lpName, wchar_t* lpExt);
 
 #endif // DOS9_SPLITPATH_H

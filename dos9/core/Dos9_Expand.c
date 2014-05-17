@@ -176,7 +176,7 @@ void Dos9_DelayedExpand(ESTR* ptrCommandLine, char cEnableDelayedExpansion)
 	}
 }
 
-char* Dos9_StrToken(wchar_t* lpString, wchar_t cToken)
+wchar_t* Dos9_StrToken(wchar_t* lpString, wchar_t cToken)
 {
 	if (lpString == NULL)
 		return NULL;

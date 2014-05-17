@@ -22,7 +22,8 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#include <ctype.h>
+#include <wctype.h>
+#include <wchar.h>
 
 #include "libDos9.h"
 
@@ -30,11 +31,11 @@
 
 #ifndef WIN32
 
-int Dos9_PutEnv(char* lpEnv);
+int Dos9_PutEnv(wchar_t* lpEnv);
 
 #else
 
-#define Dos9_PutEnv(a) putenv(a)
+#define Dos9_PutEnv(a) wputenv(a)
 
 #endif
 
@@ -53,14 +54,14 @@ int Dos9_PutEnv(char* lpEnv);
 #define Dos9_FreeLocalBlock(lpBlock) free(lpBlock)
 
 
-typedef char* LOCAL_VAR_BLOCK;
+typedef wchar_t* LOCAL_VAR_BLOCK;
 
-int              Dos9_InitVar(char* lpArray[]);
+int              Dos9_InitVar(wchar_t* lpArray[]);
 
-int              Dos9_SetLocalVar(LOCAL_VAR_BLOCK* lpvBlock, char cVarName, char* cVarContent);
+int              Dos9_SetLocalVar(LOCAL_VAR_BLOCK* lpvBlock, wchar_t cVarName, wchar_t* cVarContent);
 
-char*            Dos9_GetLocalVar(LOCAL_VAR_BLOCK* lpvBlock, char* lpName, ESTR* lpRecieve);
-int              Dos9_GetVar(char* lpName, ESTR* lpRecieve);
-char*            Dos9_GetLocalVarPointer(LOCAL_VAR_BLOCK* lpvBlock, char cVarName);
+wchar_t*         Dos9_GetLocalVar(LOCAL_VAR_BLOCK* lpvBlock, wchar_t* lpName, ESTR* lpRecieve);
+int              Dos9_GetVar(wchar_t* lpName, ESTR* lpRecieve);
+wchar_t*         Dos9_GetLocalVarPointer(LOCAL_VAR_BLOCK* lpvBlock, wchar_t cVarName);
 
 #endif

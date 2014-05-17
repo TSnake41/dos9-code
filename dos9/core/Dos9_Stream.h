@@ -30,6 +30,8 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 
+#include <wchar.h>
+
 #include <libDos9.h>
 
 #ifdef WIN32
@@ -111,7 +113,7 @@ void              Dos9_FreeStreamStack(LPSTREAMSTACK lpssStream);
     \param iMode : The redirection mode (used only for output redirection). Can be either STREAM_MODE_ADD or STREAM_MODE_TRUNCATE
     \return Returns 0 if the function has succeded, -1 otherwise.
 */
-int               Dos9_OpenOutput(LPSTREAMSTACK lpssStreamStack, char* lpName, int iDescriptor, int iMode);
+int               Dos9_OpenOutput(LPSTREAMSTACK lpssStreamStack, wchar_t* lpName, int iDescriptor, int iMode);
 
 int Dos9_OpenOutputD(LPSTREAMSTACK lpssStreamStack, int iNewDescriptor, int iDescriptor);
 

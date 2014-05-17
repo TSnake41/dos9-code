@@ -21,12 +21,14 @@
 #ifndef DOS9_CORE_RUN_H
 #define DOS9_CORE_RUN_H
 
+#include <wchar.h>
+
 #ifdef WIN32
 #include <process.h>
-#define DOS9_SPAWN_CAST const char* const*
+#define DOS9_SPAWN_CAST const wchar_t* const*
 #else
 #include <spawn.h>
-#define DOS9_SPAWN_CAST char* const*
+#define DOS9_SPAWN_CAST wchar_t* const*
 #define spawnvp(a,b,c) posix_spawnp(NULL, b, NULL, NULL, c, environ)
 #endif
 
@@ -47,7 +49,7 @@ int Dos9_RunCommand(ESTR* lpCommand); // the fucbtions that run every command
 int Dos9_RunLine(ESTR* lpLine);
 int Dos9_RunBlock(BLOCKINFO* lpbkInfo); // the function that run blocks
 int Dos9_RunBatch(INPUT_FILE* pIn); // the function that runs the batch
-int Dos9_RunExternalCommand(char* lpCommandLine);
-int Dos9_RunExternalFile(char* lpFileName, char** lpArguments);
+int Dos9_RunExternalCommand(wchar_t* lpCommandLine);
+int Dos9_RunExternalFile(wchar_t* lpFileName, wchar_t** lpArguments);
 
 #endif

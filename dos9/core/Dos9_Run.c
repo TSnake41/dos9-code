@@ -21,7 +21,10 @@
 #include <sys/types.h>
 #include <string.h>
 #include <errno.h>
+#include <wchar.h>
 #include <assert.h>
+
+#define L(x) L##x
 
 #ifdef _POSIX_C_SOURCE
 #include <sys/wait.h>
@@ -42,16 +45,16 @@ int Dos9_RunBatch(INPUT_FILE* pIn)
 
 	INPUT_FILE pIndIn;
 
-	char* const lpCurrentDir=Dos9_GetCurrentDir();
+	wchar_t* const lpCurrentDir=Dos9_GetCurrentDir();
 
-	char *lpCh,
-	     *lpTmp;
+	wchar_t *lpCh,
+	     	*lpTmp;
 
 	int res;
 
 	while (!(pIn->bEof)) {
 
-		DOS9_DBG("[*] %d : Parsing new line\n", __LINE__);
+		DOS9_DBG(L"[*] %d : Parsing new line\n", L(__LINE__));
 
 
 		if (*(pIn->lpFileName)=='\0'
@@ -60,11 +63,11 @@ int Dos9_RunBatch(INPUT_FILE* pIn)
 			/* this is a direct input */
 
 			Dos9_SetConsoleTextColor(DOS9_FOREGROUND_IGREEN | DOS9_GET_BACKGROUND(colColor));
-			printf("\nDOS9 ");
+			wprintf(L"\nDOS9 ");
 
 			Dos9_SetConsoleTextColor(colColor);
 
-			printf("%s>", lpCurrentDir);
+			wprintf(L"%s>", lpCurrentDir);
 
 		}
 
@@ -74,20 +77,20 @@ int Dos9_RunBatch(INPUT_FILE* pIn)
 
 		lpCh=Dos9_EsToChar(lpLine);
 
-		while (*lpCh==' '
-		       || *lpCh=='\t'
-		       || *lpCh==';')
+		while (*lpCh==L' '
+		       || *lpCh==L'\t'
+		       || *lpCh==L';')
 			lpCh++;
 
-		if (*(pIn->lpFileName)!='\0'
+		if (*(pIn->lpFileName)!=L'\0'
 		    && bEchoOn
-		    && *lpCh!='@') {
+		    && *lpCh!=L'@') {
 
 			Dos9_SetConsoleTextColor(DOS9_FOREGROUND_IGREEN | DOS9_GET_BACKGROUND(colColor));
-			printf("\nDOS9 ");
+			wprintf(L"\nDOS9 ");
 			Dos9_SetConsoleTextColor(colColor);
 
-			printf("%s>%s", lpCurrentDir, Dos9_EsToChar(lpLine));
+			wprintf(L"%s>%s", lpCurrentDir, Dos9_EsToChar(lpLine));
 
 		}
 
@@ -100,11 +103,11 @@ int Dos9_RunBatch(INPUT_FILE* pIn)
 		if (bAbortCommand == -1)
 			break;
 
-		DOS9_DBG("\t[*] Line run.\n");
+		DOS9_DBG(L"\t[*] Line run.\n");
 
 	}
 
-	DOS9_DBG("*** Input ends here  ***\n");
+	DOS9_DBG(L"*** Input ends here  ***\n");
 
 	return 0;
 
@@ -156,12 +159,12 @@ int Dos9_ExecOperators(PARSED_STREAM* lppsStream)
 int Dos9_ExecOutput(PARSED_STREAM_START* lppssStart)
 {
 
-	DOS9_DBG("lppssStart->lpInputFile=%s\n"
-	         "          ->lpOutputFile=%s\n"
-	         "          ->cOutputMode=%d\n"
-	         "lppssStart->cOutputMode & ~PARSED_STREAM_START_MODE_TRUNCATE=%d\n"
-	         "lppssStart->cOutputMode & PARSED_STREAM_START_MODE_TRUNCATE=%d\n"
-	         "STDOUT_FILENO=%d\n",
+	DOS9_DBG(L"lppssStart->lpInputFile=%s\n"
+	         L"          ->lpOutputFile=%s\n"
+	         L"          ->cOutputMode=%d\n"
+	         L"lppssStart->cOutputMode & ~PARSED_STREAM_START_MODE_TRUNCATE=%d\n"
+	         L"lppssStart->cOutputMode & PARSED_STREAM_START_MODE_TRUNCATE=%d\n"
+	         L"STDOUT_FILENO=%d\n",
 	         lppssStart->lpInputFile,
 	         lppssStart->lpOutputFile,
 	         lppssStart->cOutputMode,
@@ -217,13 +220,13 @@ int Dos9_RunLine(ESTR* lpLine)
 	lppssStreamStart=Dos9_ParseLine(lpLine);
 
 	if (!lppssStreamStart) {
-		DOS9_DBG("!!! Can't parse line : \"%s\".\n", strerror(errno));
+		DOS9_DBG(L"!!! Can't parse line : \"%s\".\n", strerror(errno));
 		return -1;
 	}
 
 	Dos9_ExecOutput(lppssStreamStart);
 
-	DOS9_DBG("\t[*] Global streams set.\n");
+	DOS9_DBG(L"\t[*] Global streams set.\n");
 
 	lppsStream=lppssStreamStart->lppsStream;
 
@@ -243,9 +246,9 @@ int Dos9_RunLine(ESTR* lpLine)
 
 	Dos9_FreeLine(lppssStreamStart);
 
-	DOS9_DBG("\t[*] Line run.\n");
+	DOS9_DBG(L"\t[*] Line run.\n");
 
-	DOS9_DBG("*** Input ends here  ***\n");
+	DOS9_DBG(L"*** Input ends here  ***\n");
 
 	return 0;
 }
@@ -253,10 +256,10 @@ int Dos9_RunLine(ESTR* lpLine)
 int Dos9_RunCommand(ESTR* lpCommand)
 {
 
-	int (*lpProc)(char*);
-	char lpErrorlevel[]="ERRORLEVEL=-3000000000";
+	int (*lpProc)(wchar_t*);
+	wchar_t lpErrorlevel[]=L"ERRORLEVEL=-3000000000";
 	static int lastErrorLevel=0;
-	char *lpCmdLine;
+	wchar_t *lpCmdLine;
 	int iFlag;
 
 RestartSearch:
@@ -265,7 +268,7 @@ RestartSearch:
 
 	lpCmdLine=Dos9_SkipAllBlanks(lpCmdLine);
 
-	fprintf(stderr, "*** Running  line '%s'\n", lpCmdLine);
+	fwprintf(stderr, L"*** Running  line '%s'\n", lpCmdLine);
 
 	switch((iFlag=Dos9_GetCommandProc(lpCmdLine, lpclCommands, (void**)&lpProc))) {
 
@@ -289,7 +292,7 @@ BackTrackExternalCommand:
 
 			Dos9_ExpandAlias(lpCommand,
 			                 lpCmdLine + (iFlag & ~DOS9_ALIAS_FLAG),
-			                 (char*)lpProc
+			                 (wchar_t*)lpProc
 			                );
 
 			goto RestartSearch;
@@ -302,7 +305,7 @@ BackTrackExternalCommand:
 
 	if (iErrorLevel!=lastErrorLevel) {
 
-		snprintf(lpErrorlevel+11, sizeof(lpErrorlevel)-11, "%d", iErrorLevel);
+		swnprintf(lpErrorlevel+11, sizeof(lpErrorlevel)/sizeof(wchar_t)-11, L"%d", iErrorLevel);
 		Dos9_PutEnv(lpErrorlevel);
 		lastErrorLevel=iErrorLevel;
 	}
@@ -316,7 +319,7 @@ int Dos9_RunBlock(BLOCKINFO* lpbkInfo)
 
 	ESTR *lpEsLine=Dos9_EsInit();
 
-	char *lpToken = lpbkInfo->lpBegin,
+	wchar_t *lpToken = lpbkInfo->lpBegin,
 	      *lpEnd = lpbkInfo->lpEnd,
 	       *lpBlockBegin,
 	       *lpBlockEnd,
@@ -331,8 +334,8 @@ int Dos9_RunBlock(BLOCKINFO* lpbkInfo)
 	iOldState=Dos9_GetStreamStackLockState(lppsStreamStack);
 	Dos9_SetStreamStackLockState(lppsStreamStack, TRUE);
 
-	DOS9_DBG("Block_b=\"%s\"\n"
-	         "Block_e=\"%s\"\n",
+	DOS9_DBG(L"Block_b=\"%s\"\n"
+	         L"Block_e=\"%s\"\n",
 	         lpToken,
 	         lpEnd
 	        );
@@ -358,7 +361,7 @@ int Dos9_RunBlock(BLOCKINFO* lpbkInfo)
 		}
 
 		/* search the end of the line */
-		if (!(lpBlockEnd=Dos9_SearchChar(lpBlockBegin, '\n'))) {
+		if (!(lpBlockEnd=Dos9_SearchChar(lpBlockBegin, L'\n'))) {
 
 			lpBlockEnd=lpEnd;
 
@@ -408,14 +411,14 @@ int Dos9_RunBlock(BLOCKINFO* lpbkInfo)
 	return 0;
 }
 
-int Dos9_RunExternalCommand(char* lpCommandLine)
+int Dos9_RunExternalCommand(wchar_t* lpCommandLine)
 {
 
-	char *lpArguments[FILENAME_MAX],
-	     lpFileName[FILENAME_MAX],
-	     lpExt[_MAX_EXT],
-	     lpTmp[FILENAME_MAX],
-	     lpExePath[FILENAME_MAX];
+	wchar_t *lpArguments[FILENAME_MAX],
+	     	lpFileName[FILENAME_MAX],
+	     	lpExt[_MAX_EXT],
+	     	lpTmp[FILENAME_MAX],
+	     	lpExePath[FILENAME_MAX];
 
 	ESTR* lpEstr[FILENAME_MAX];
 
@@ -427,7 +430,7 @@ int Dos9_RunExternalCommand(char* lpCommandLine)
 	if (!lpEstr[0])
 		return 0;
 
-	Dos9_EsReplace(lpEstr[0], "\"", "");
+	Dos9_EsReplace(lpEstr[0], L"\"", L"");
 
 	for (; lpEstr[i] && (i < FILENAME_MAX); i++) {
 		lpArguments[i]=Dos9_EsToChar(lpEstr[i]);
@@ -449,12 +452,12 @@ int Dos9_RunExternalCommand(char* lpCommandLine)
 	/* check if "command" is a batch file */
 	Dos9_SplitPath(lpFileName, NULL, NULL, NULL, lpExt);
 
-	if (!stricmp(".bat", lpExt)
-	    || !stricmp(".cmd", lpExt)) {
+	if (!wcscasecmp(L".bat", lpExt)
+	    || !wcscasecmp(L".cmd", lpExt)) {
 
 		/* these are batch */
 
-		strncpy(lpTmp, lpFileName, sizeof(lpFileName));
+		wcsncpy(lpTmp, lpFileName, sizeof(lpFileName)/sizeof(wchar_t));
 
 		if (!(i < FILENAME_MAX-2)) {
 
@@ -469,18 +472,18 @@ int Dos9_RunExternalCommand(char* lpCommandLine)
 		lpArguments[i+2]=NULL;
 
 		lpArguments[2]=lpTmp;
-		lpArguments[1]="//"; /* use this switch to prevent
+		lpArguments[1]=L"//"; /* use this switch to prevent
                                 other switches from being executed */
 
-		Dos9_GetExePath(lpExePath, sizeof(lpExePath));
+		Dos9_GetExePath(lpExePath, sizeof(lpExePath)/sizeof(lpExePath));
 
 #ifdef WIN32
 
-		snprintf(lpFileName, sizeof(lpFileName) ,"%s/dos9.exe", lpExePath);
+		swnprintf(lpFileName, sizeof(lpFileName) ,L"%s/dos9.exe", lpExePath);
 
 #else
 
-		snprintf(lpFileName, sizeof(lpFileName) ,"%s/dos9", lpExePath);
+		swnprintf(lpFileName, sizeof(lpFileName)/sizeof(lpFileName) ,L"%s/dos9", lpExePath);
 
 #endif // WIN32
 
@@ -506,14 +509,14 @@ error:
 
 #ifdef WIN32
 
-int Dos9_RunExternalFile(char* lpFileName, char** lpArguments)
+int Dos9_RunExternalFile(wchar_t* lpFileName, wchar_t** lpArguments)
 {
 	int res;
 
 	errno=0;
 
 	/* in windows the result is directly returned */
-	res=spawnv(_P_WAIT, lpFileName, (char * const*)lpArguments);
+	res=spawnv(_P_WAIT, lpFileName, (wchar_t * const*)lpArguments);
 
 	if (errno==ENOENT) {
 
@@ -533,7 +536,7 @@ int Dos9_RunExternalFile(char* lpFileName, char** lpArguments)
 
 #elif defined _POSIX_C_SOURCE
 
-int Dos9_RunExternalFile(char* lpFileName, char** lpArguments)
+int Dos9_RunExternalFile(wchar_t* lpFileName, wchar_t** lpArguments)
 {
 	pid_t iPid;
 

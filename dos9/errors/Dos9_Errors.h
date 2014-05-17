@@ -20,7 +20,7 @@
 #ifndef DOS9_MESSAGES_H
 #define DOS9_MESSAGES_H
 
-
+#include <wchar.h>
 
 #ifdef DOS9_DEBUG_MODE
 
@@ -36,7 +36,7 @@
 
 #endif
 
-void Dos9_ShowErrorMessage(unsigned int iErrorNumber, const char* lpComplement, int iExitCode);
+void Dos9_ShowErrorMessage(unsigned int iErrorNumber, wchar_t* lpComplement, int iExitCode);
 void Dos9_LoadErrors(void);
 
 #define DOS9_FILE_ERROR                      0
@@ -82,7 +82,7 @@ void Dos9_LoadErrors(void);
 
 #define DOS9_PRINT_C_ERROR 0x80
 
-extern const char* lpErrorMsg[DOS9_ERROR_MESSAGE_NUMBER];
-extern const char* lpQuitMessage;
+extern const wchar_t* lpErrorMsg[DOS9_ERROR_MESSAGE_NUMBER];
+extern const wchar_t* lpQuitMessage;
 
 #endif

@@ -41,9 +41,7 @@ INPUT_FILE ifIn;
 
 void(*pErrorHandler)(void)=NULL;
 
-#ifdef WIN32
-#define environ _wenviron
-#else
+#ifndef WIN32
 extern char** environ;
 #endif
 

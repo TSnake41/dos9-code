@@ -1,31 +1,52 @@
+/*
+ *
+ *   Dos9 - A Free, Cross-platform command prompt - The Dos9 project
+ *   Copyright (C) 2010-2014 DarkBatcher
+ *
+ *   This program is free software: you can redistribute it and/or modify
+ *   it under the terms of the GNU General Public License as published by
+ *   the Free Software Foundation, either version 3 of the License, or
+ *   (at your option) any later version.
+ *
+ *   This program is distributed in the hope that it will be useful,
+ *   but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *   GNU General Public License for more details.
+ *
+ *   You should have received a copy of the GNU General Public License
+ *   along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
 #include <string.h>
+#include <wchar.h>
+
 #include "Dos9_Core.h"
 
 //#define DOS9_DBG_MODE
 #include "Dos9_Debug.h"
 
-void Dos9_SplitPath(char* lpPath,
-                    char* lpDisk, char* lpDir, char* lpName, char* lpExt)
+void Dos9_SplitPath(wchar_t* lpPath,
+                    wchar_t* lpDisk, wchar_t* lpDir, wchar_t* lpName, wchar_t* lpExt)
 {
 
-	char* lpNextToken, *lpToken=lpPath;
-	char cSaveChar;
+	wchar_t* lpNextToken, *lpToken=lpPath;
+	wchar_t cSaveChar;
 
 	if (*lpToken) {
 
-		if (!strncmp(lpToken+1, ":\\", 2)) {
+		if (!wcsncmp(lpToken+1, L":\\", 2)) {
 
-			DOS9_DBG("Found disk_name=\"%c\"\n", *lpToken);
+			DOS9_DBG(L"Found disk_name=\"%c\"\n", *lpToken);
 
 			if (lpDisk)
-				snprintf(lpDisk, _MAX_DRIVE, "%c:\\", *lpToken);
+				swnprintf(lpDisk, _MAX_DRIVE, L"%c:\\", *lpToken);
 
 			lpToken+=3;
 
 		} else {
 
 			if (lpDisk)
-				*lpDisk='\0';
+				*lpDisk=L'\0';
 
 		}
 
@@ -33,20 +54,20 @@ void Dos9_SplitPath(char* lpPath,
 	} else {
 
 		if (lpDisk)
-			*lpDisk='\0';
+			*lpDisk=L'\0';
 
 	}
 
-	if ((lpNextToken = Dos9_SearchLastToken(lpToken, "\\/"))) {
+	if ((lpNextToken = Dos9_SearchLastToken(lpToken, L"\\/"))) {
 
 		lpNextToken++;
 		cSaveChar=*lpNextToken;
-		*lpNextToken='\0';
+		*lpNextToken=L'\0';
 
-		DOS9_DBG("found path=\"%s\"\n", lpToken);
+		DOS9_DBG(L"found path=\"%s\"\n", lpToken);
 
 		if (lpDir)
-			strncpy(lpDir, lpToken, _MAX_DIR);
+			wcsncpy(lpDir, lpToken, _MAX_DIR);
 
 		*lpNextToken=cSaveChar;
 		lpToken=lpNextToken;
@@ -54,38 +75,37 @@ void Dos9_SplitPath(char* lpPath,
 	} else {
 
 		if (lpDir)
-			*lpDir=='\0';
+			*lpDir=L'\0';
 
 	}
 
-	if ((lpNextToken = Dos9_SearchLastChar(lpToken, '.'))) {
+	if ((lpNextToken = Dos9_SearchLastChar(lpToken, L'.'))) {
 
 		cSaveChar=*lpNextToken;
-		*lpNextToken='\0';
+		*lpNextToken=L'\0';
 
-		DOS9_DBG("found name=\"%s\"\n", lpToken);
+		DOS9_DBG(L"found name=\"%s\"\n", lpToken);
 
 
 		if (lpName)
-			strncpy(lpName, lpToken, _MAX_FNAME);
+			wcsncpy(lpName, lpToken, _MAX_FNAME);
 
 		*lpNextToken=cSaveChar;
 		lpToken=lpNextToken+1;
 
-		DOS9_DBG("found ext=\"%s\"\n", lpToken);
+		DOS9_DBG(L"found ext=\"%s\"\n", lpToken);
 
 		if (lpExt)
-			snprintf(lpExt, _MAX_EXT, ".%s", lpToken);
+			swnprintf(lpExt, _MAX_EXT, L".%s", lpToken);
 
 	} else {
 
 		if (lpName)
-			strncpy(lpName, lpToken, _MAX_FNAME);
+			wcsncpy(lpName, lpToken, _MAX_FNAME);
 
 		if (lpExt)
-			*lpExt='\0';
+			*lpExt=L'\0';
 
 	}
-
 
 }

@@ -21,6 +21,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <wchar.h>
 
 #include <libDos9.h>
 
@@ -36,15 +37,15 @@ int Dos9_GetLine(ESTR* lpesLine, INPUT_FILE* pIn)
 	FILE* pFile;
 	ESTR* lpesTmp=Dos9_EsInit();
 
-	char bCorrectBlocks=FALSE;
-	char* lpCh;
+	wchar_t bCorrectBlocks=FALSE;
+	wchar_t* lpCh;
 	int   res;
 
-	if (*(pIn->lpFileName) == '\0') {
+	if (*(pIn->lpFileName) == L'\0') {
 
 		pFile=stdin;
 
-	} else if (!(pFile=fopen(pIn->lpFileName, "r"))) {
+	} else if (!(pFile=wfopen(pIn->lpFileName, L"r"))) {
 
 		Dos9_ShowErrorMessage(DOS9_FILE_ERROR | DOS9_PRINT_C_ERROR,
 		                      pIn->lpFileName,
@@ -57,14 +58,14 @@ int Dos9_GetLine(ESTR* lpesLine, INPUT_FILE* pIn)
 
 	}
 
-	*(Dos9_EsToChar(lpesLine))='\0';
+	*(Dos9_EsToChar(lpesLine))=L'\0';
 
 	while (!(res=Dos9_EsGet(lpesTmp, pFile))) {
 
 		lpCh=Dos9_SkipAllBlanks(Dos9_EsToChar(lpesTmp));
 
 		/* split comments label and void lines from input */
-		if (*lpCh!=':' && *lpCh!='\n')
+		if (*lpCh!=':' && *lpCh!=L'\n')
 			Dos9_EsCatE(lpesLine, lpesTmp);
 
 		if (Dos9_CheckBlocks(lpesLine) == TRUE) {
@@ -75,15 +76,15 @@ int Dos9_GetLine(ESTR* lpesLine, INPUT_FILE* pIn)
 		}
 	}
 
-	DOS9_DBG("-------------------[READ]--------------------------\n"
-	         "%s\n"
-	         "---------------------------------------------------\n",
+	DOS9_DBG(L"-------------------[READ]--------------------------\n"
+	         L"%s\n"
+	         L"---------------------------------------------------\n",
 	         Dos9_EsToChar(lpesLine)
 	        );
 
 	//getch();
 
-	if (*(pIn->lpFileName)!='\0') {
+	if (*(pIn->lpFileName)!=L'\0') {
 
 		pIn->bEof=res;
 
@@ -123,20 +124,20 @@ error:
 
 int Dos9_CheckBlocks(ESTR* lpesLine)
 {
-	char *lpBlock,
-	     *lpCh=Dos9_EsToChar(lpesLine);
+	wchar_t *lpBlock,
+			*lpCh=Dos9_EsToChar(lpesLine);
 
 	if (!*lpCh)
 		return TRUE;
 
-	DOS9_DBG("--------------------------------------------------------------\n");
+	DOS9_DBG(L"--------------------------------------------------------------\n");
 
 	if (!(lpBlock=Dos9_GetNextBlockBegin(lpCh))) {
 
 		/* There's no block, thus all is fine */
 
-		if (strchr(lpCh, '\n')
-		    && !Dos9_SearchChar(lpCh, '\n'))
+		if (wcschr(lpCh, L'\n')
+		    && !Dos9_SearchChar(lpCh, L'\n'))
 			return FALSE;
 
 		return TRUE;
@@ -154,17 +155,17 @@ int Dos9_CheckBlocks(ESTR* lpesLine)
 
 	}
 
-	if (strchr(lpCh, '\n')
-	    && !Dos9_SearchChar(lpCh, '\n'))
+	if (wcschr(lpCh, L'\n')
+	    && !Dos9_SearchChar(lpCh, L'\n'))
 		return FALSE;
 
 	return TRUE;
 
 }
 
-void Dos9_RmTrailingNl(char* lpLine)
+void Dos9_RmTrailingNl(wchar_t* lpLine)
 {
-	char cLastChar=0;
+	wchar_t cLastChar=0;
 
 	while (*lpLine) {
 

@@ -158,6 +158,8 @@ evaluator_evaluate2(void *evaluator, double(*function)(const char*))
 		record =
 		    symbol_table_lookup(((Evaluator *) evaluator)->
 					symbol_table, names[i]);
+	/* if the symbol is a variable just call the callback function */
+
 		if (record && record->type == 'v')
 			record->data.value = function(names[i]);
 	}

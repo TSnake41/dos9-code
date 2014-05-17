@@ -86,8 +86,9 @@ int wmain(int argc, wchar_t *argv[])
 
 	if (Dos9_LibInit() == -1) {
 
-		fputws(stderr, L"Error : Unable to load LibDos9. Exiting ...");
+		fputws(L"Error : Unable to load LibDos9. Exiting ...", stderr);
 		exit(-1);
+
 	}
 
 	DOS9_DBG(L"Setting UNIX newlines ...\n");
@@ -133,7 +134,7 @@ int wmain(int argc, wchar_t *argv[])
 	if (!argv[0])
 		Dos9_ShowErrorMessage(DOS9_BAD_COMMAND_LINE,
 		                      L"Dos9",
-		                      -1
+							-1
 		                     );
 
 	DOS9_DBG(L"Getting command line arguments ... \n");
@@ -177,7 +178,7 @@ int wmain(int argc, wchar_t *argv[])
 
 					}
 
-					iInputD=atoi(argv[i]); // select input descriptor
+					iInputD=wtoi(argv[i]); // select input descriptor
 					break;
 
 				case L'O':
@@ -187,16 +188,16 @@ int wmain(int argc, wchar_t *argv[])
 
 					}
 
-					iOutputD=atoi(argv[i]); // select input descriptor
+					iOutputD=wtoi(argv[i]); // select input descriptor
 					break;
 
 				case L'?':
-					puts(L"DOS9 [" DOS9_VERSION L"] - Build " DOS9_BUILDDATE L"\n"
+					putws(L"DOS9 [" DOS9_VERSION L"] - Build " DOS9_BUILDDATE L"\n"
 					     L"Copyright (c) 2010-" DOS9_BUILDYEAR L" " DOS9_AUTHORS L"\n\n"
 					     L"This is free software, you can modify and/or redistribute it under "
 					     L"the terms of the GNU Genaral Public License.\n");
 
-					puts(lpHlpMain);
+					putws(lpHlpMain);
 					return 0;
 
 				case L'/' :
@@ -250,12 +251,12 @@ int wmain(int argc, wchar_t *argv[])
 		if (!bQuiet)
 			Dos9_PrintIntroduction();
 
-		strcat(lpTitle, L"Command prompt");
+		wcscat(lpTitle, L"Command prompt");
 		Dos9_PutEnv(L"DOS9_IS_SCRIPT=false");
 
 	} else {
 
-		strncat(lpTitle, lpFileName, (sizeof(lpTitle)-sizeof("Dos9 [" DOS9_VERSION "] - "))/sizeof(wchar_t));
+		wcsncat(lpTitle, lpFileName, (sizeof(lpTitle)-sizeof("Dos9 [" DOS9_VERSION "] - "))/sizeof(wchar_t));
 		Dos9_PutEnv(L"DOS9_IS_SCRIPT=true");
 
 		DOS9_DBG(L"[dos9] Runing \"%s\"\n", lpFileName);

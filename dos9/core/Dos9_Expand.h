@@ -26,7 +26,7 @@
 
 void Dos9_ExpandSpecialVar(ESTR* ptrCommandLine);
 void Dos9_ExpandVar(ESTR* ptrCommandLine, wchar_t cDelimiter);
-void Dos9_DelayedExpand(ESTR* ptrCommandLine, wchar_t cEnableDelayedExpansion);
+void Dos9_DelayedExpand(ESTR* ptrCommandLine, char cEnableDelayedExpansion);
 
 wchar_t* Dos9_StrToken(wchar_t* lpString, wchar_t cToken);
 

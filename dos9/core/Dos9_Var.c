@@ -24,8 +24,9 @@
 #include <stdlib.h>
 #include <time.h>
 #include <string.h>
+#include <wchar.h>
 
-#include "libDos9.h"
+#include <libDos9.h>
 
 #include "Dos9_Core.h"
 
@@ -47,10 +48,10 @@
 
 #ifndef WIN32
 
-void strupr(char* lpBuf)
+void wcsupr(wchar_t* lpBuf)
 {
 	while (*lpBuf) {
-		*lpBuf=toupper(*lpBuf);
+		*lpBuf=towupper(*lpBuf);
 		lpBuf++;
 	}
 }
@@ -58,7 +59,7 @@ void strupr(char* lpBuf)
 #endif
 
 
-int Dos9_InitVar(char* lpArray[])
+int Dos9_InitVar(wchar_t* lpArray[])
 {
 	int i;
 	for (i=0; lpArray[i]; i++) {
@@ -67,7 +68,7 @@ int Dos9_InitVar(char* lpArray[])
 	return 0;
 }
 
-int Dos9_TestLocalVarName(char cVar)
+int Dos9_TestLocalVarName(wchar_t cVar)
 {
 	if ((cVar & 0x80) || (cVar <= 0x20)) {
 
@@ -76,7 +77,7 @@ int Dos9_TestLocalVarName(char cVar)
 
 		if (cVar && cVar!='\n' && cVar!='\t' && cVar!=' ')
 			Dos9_ShowErrorMessage(DOS9_SPECIAL_VAR_NON_ASCII,
-			                      (const char*)((int)cVar),
+			                      (const wchar_t*)cVar,
 			                      FALSE);
 
 		return -1;
@@ -85,51 +86,56 @@ int Dos9_TestLocalVarName(char cVar)
 	return 0;
 }
 
-int Dos9_GetVar(char* lpName, ESTR* lpRecieve)
+int Dos9_GetVar(wchar_t* lpName, ESTR* lpRecieve)
 {
-	char        *lpVarContent, /* a pointer to the environment var string */
+	wchar_t     *lpVarContent, /* a pointer to the environment var string */
 	            *lpToken, /* a pointer used to tokenize vars like %var:a=b% */
 	            *lpNextToken=NULL, /* a pointer used to tokenize '=' or ',' in vars like %var:a=b% */
-	             *lpNameCpy, /* a pointer used to duplicate lpName (because function should avoid bordering effect)*/
-	             *lpZeroPos=NULL;; /* a pointer to the zero put in the environment string */
+				*lpNameCpy, /* a pointer used to duplicate lpName (because function should avoid bordering effect)*/
+				*lpZeroPos=NULL;; /* a pointer to the zero put in the environment string */
 
-	char        lpBuf[12];
+	wchar_t     lpBuf[12];
 	int         iVarState=0, /* the status of the var interpreter 1 means replace, 2 means cut */
 	            iTotalLen,
 	            iBegin=0, /* the start position */
 	            iLen=0; /* the lenght to be cut */
 
 	char        cCharSave=0; /* the backup of the character replaced by '\0' */;
-	struct tm* lTime;
-	time_t iTime;
+	struct tm*  lTime;
+	time_t      iTime;
 
 	/* empty the line */
-	Dos9_EsCpy(lpRecieve, "");
+	Dos9_EsCpy(lpRecieve, L"");
 
-	if (!(lpNameCpy=strdup(lpName)))
+	if (!(lpNameCpy=wcsdup(lpName)))
 		return FALSE;
 
-	if ((lpToken=strchr(lpNameCpy, ':'))) {
-		if ((lpNextToken=strchr(lpToken, '='))) {
+	if ((lpToken=wcschr(lpNameCpy, L':'))) {
+		if ((lpNextToken=wcschr(lpToken, L'='))) {
 
 			/* char are about to be replaced */
-			*lpToken='\0';
+			*lpToken=L'\0';
 			lpToken++;
-			*lpNextToken='\0';
+			*lpNextToken=L'\0';
 			lpNextToken++;
 			iVarState=1;
 
-		} else if (*(lpToken+1)=='~') {
+		} else if (*(lpToken+1)==L'~') {
 			/* string is about to be truncated */
-			*lpToken='\0';
+			*lpToken=L'\0';
 			lpToken+=2;
-			if ((lpNextToken=strchr(lpToken, ','))) {
-				*lpNextToken='\0';
+
+			if ((lpNextToken=wcschr(lpToken, L','))) {
+
+				*lpNextToken=L'\0';
 				lpNextToken++;
-				iLen=atol(lpNextToken);
+				iLen=wtol(lpNextToken);
+
 			}
-			iBegin=atol(lpToken);
+
+			iBegin=wtol(lpToken);
 			iVarState=2;
+
 		}
 
 	}
@@ -138,38 +144,38 @@ int Dos9_GetVar(char* lpName, ESTR* lpRecieve)
 
 	/* Non windows systems are case sensitive, and thus,
 	   capitalization of charcter is needed */
-	strupr(lpNameCpy);
+	wcsupr(lpNameCpy);
 
 #endif
 
-	if (!(stricmp(lpNameCpy, "RANDOM"))) {
+	if (!(wcscasecmp(lpNameCpy, L"RANDOM"))) {
 
 		/* requested RANDOM */
 		lpVarContent=lpBuf;
-		sprintf(lpBuf, "%d", rand());
+		swprintf(lpBuf, L"%d", rand());
 
-	} else if (!(stricmp(lpNameCpy, "DATE"))) {
-
-		iTime=time(NULL);
-		lTime=localtime(&iTime);
-		lpVarContent=lpBuf;
-		sprintf(lpBuf, "%02d/%02d/%02d", lTime->tm_mday, lTime->tm_mon+1, lTime->tm_year+1900);
-
-	} else if (!(stricmp(lpNameCpy, "TIME"))) {
+	} else if (!(stricmp(lpNameCpy, L"DATE"))) {
 
 		iTime=time(NULL);
 		lTime=localtime(&iTime);
 		lpVarContent=lpBuf;
-		sprintf(lpBuf, "%02d:%02d:%02d,00", lTime->tm_hour, lTime->tm_min, lTime->tm_sec);
+		swprintf(lpBuf, L"%02d/%02d/%02d", lTime->tm_mday, lTime->tm_mon+1, lTime->tm_year+1900);
 
-	} else if (!(lpVarContent=getenv(lpNameCpy))) {
+	} else if (!(wcscasecmp(lpNameCpy, L"TIME"))) {
+
+		iTime=time(NULL);
+		lTime=localtime(&iTime);
+		lpVarContent=lpBuf;
+		swprintf(lpBuf, L"%02d:%02d:%02d,00", lTime->tm_hour, lTime->tm_min, lTime->tm_sec);
+
+	} else if (!(lpVarContent=wgetenv(lpNameCpy))) {
 
 		free(lpNameCpy);
 		return FALSE;
 
 	}
 
-	iTotalLen=strlen(lpVarContent);
+	iTotalLen=wcslen(lpVarContent);
 
 	if (iVarState==2) {
 
@@ -186,7 +192,7 @@ int Dos9_GetVar(char* lpName, ESTR* lpRecieve)
 
 				lpZeroPos=lpVarContent+iBegin+iLen;
 				cCharSave=*lpZeroPos;
-				*lpZeroPos='\0';
+				*lpZeroPos=L'\0';
 				lpVarContent+=iBegin;
 
 			}
@@ -203,7 +209,7 @@ int Dos9_GetVar(char* lpName, ESTR* lpRecieve)
 
 				lpZeroPos=lpVarContent+iTotalLen+iLen;
 				cCharSave=*lpZeroPos;
-				*lpZeroPos='\0';
+				*lpZeroPos=L'\0';
 				lpVarContent+=iBegin;
 
 			}
@@ -229,7 +235,7 @@ int Dos9_GetVar(char* lpName, ESTR* lpRecieve)
 	return TRUE;
 }
 
-char* Dos9_GetLocalVarPointer(LOCAL_VAR_BLOCK* lpvBlock, char cVarName)
+wchar_t* Dos9_GetLocalVarPointer(LOCAL_VAR_BLOCK* lpvBlock, wchar_t cVarName)
 {
 	if (Dos9_TestLocalVarName(cVarName))
 		return NULL;
@@ -238,7 +244,7 @@ char* Dos9_GetLocalVarPointer(LOCAL_VAR_BLOCK* lpvBlock, char cVarName)
 
 }
 
-int Dos9_SetLocalVar(LOCAL_VAR_BLOCK* lpvBlock, char cVarName, char* cVarContent)
+int Dos9_SetLocalVar(LOCAL_VAR_BLOCK* lpvBlock, wchar_t cVarName, wchar_t* cVarContent)
 {
 
 	/* Perform test on value cName, to test its
@@ -266,25 +272,31 @@ int Dos9_SetLocalVar(LOCAL_VAR_BLOCK* lpvBlock, char cVarName, char* cVarContent
 }
 
 
-char* Dos9_GetLocalVar(LOCAL_VAR_BLOCK* lpvBlock, char* lpName, ESTR* lpRecieve)
+wchar_t* Dos9_GetLocalVar(LOCAL_VAR_BLOCK* lpvBlock, wchar_t* lpName, ESTR* lpRecieve)
 {
-	char *lpPos, *lpNext;
-	char lpDrive[_MAX_DRIVE], lpDir[_MAX_DIR], lpFileName[_MAX_FNAME], lpExt[_MAX_EXT];
-	char cFlag[DOS9_VAR_MAX_OPTION+1]= {DOS9_ALL_PATH};
-	char lpBuffer[FILENAME_MAX];
-	char bSeekFile=FALSE, bSplitPath=FALSE;
-	char cVarName,
-	     cValidName=TRUE;
+	wchar_t *lpPos,
+			*lpNext,
+			lpDrive[_MAX_DRIVE],
+			lpDir[_MAX_DIR],
+			lpFileName[_MAX_FNAME],
+			lpExt[_MAX_EXT],
+			cFlag[DOS9_VAR_MAX_OPTION+1]={DOS9_ALL_PATH},
+			lpBuffer[FILENAME_MAX];
 
-	struct tm* lTime;
-	struct stat stFileInfo;
+	char    bSeekFile=FALSE,
+			bSplitPath=FALSE;
+
+	char    cVarName,
+			cValidName=TRUE;
+
+	struct  tm* lTime;
+	struct  stat stFileInfo;
 
 	int i=0;
 
-	Dos9_EsCpy(lpRecieve, "");
+	Dos9_EsCpy(lpRecieve, L"");
 
-
-	if (*lpName!='~') {
+	if (*lpName!=L'~') {
 
 		/* this is a conventionnal special variable */
 
@@ -305,52 +317,52 @@ char* Dos9_GetLocalVar(LOCAL_VAR_BLOCK* lpvBlock, char* lpName, ESTR* lpRecieve)
 
 	if (!*lpName) return NULL;
 
-	for (; *(lpName) && strchr("dnpxzta", *(lpName)) && i<DOS9_VAR_MAX_OPTION; lpName++) {
+	for (; *(lpName) && wcschr(L"dnpxzta", *lpName) && i<DOS9_VAR_MAX_OPTION; lpName++) {
 
 		switch(*lpName) {
-		case 'd':
+		case L'd':
 
-			cFlag[i]='d';
+			cFlag[i]=L'd';
 			i++;
 			bSplitPath=TRUE;
 			break;
 
-		case 'n':
+		case L'n':
 
-			cFlag[i]='n';
+			cFlag[i]=L'n';
 			i++;
 			bSplitPath=TRUE;
 			break;
 
 		case 'p':
 
-			cFlag[i]='p';
+			cFlag[i]=L'p';
 			i++;
 			bSplitPath=TRUE;
 			break;
 
-		case 'x':
+		case L'x':
 
-			cFlag[i]='x';
+			cFlag[i]=L'x';
 			i++;
 			bSplitPath=TRUE;
 			break;
 
-		case 'z':
+		case L'z':
 
-			cFlag[i]='z';
+			cFlag[i]=L'z';
 			i++;
 			bSeekFile=TRUE;
 			break;
 
-		case 't':
+		case L't':
 
 			cFlag[i]='t';
 			i++;
 			bSeekFile=TRUE;
 			break;
 
-		case 'a':
+		case L'a':
 
 			cFlag[i]='a';
 			i++;
@@ -359,9 +371,6 @@ char* Dos9_GetLocalVar(LOCAL_VAR_BLOCK* lpvBlock, char* lpName, ESTR* lpRecieve)
 
 		}
 	}
-
-
-
 
 	if ((*lpName & 0x80) || (*lpName <= 0x20)) {
 
@@ -385,7 +394,9 @@ char* Dos9_GetLocalVar(LOCAL_VAR_BLOCK* lpvBlock, char* lpName, ESTR* lpRecieve)
 			lpName--;
 
 			if (lpvBlock[(int)cFlag[i]]) {
-				/* the flag are all valid varnames */
+				/* The flag are all valid varnames. Ther is no need to
+				   check wether names are conformant or not, because option
+				   are strictly ansi caracters. */
 
 				cVarName=cFlag[i];
 				break;
@@ -407,10 +418,10 @@ char* Dos9_GetLocalVar(LOCAL_VAR_BLOCK* lpvBlock, char* lpName, ESTR* lpRecieve)
 	Dos9_EsCpy(lpRecieve, lpvBlock[(int)cVarName]);
 	lpPos=Dos9_EsToChar(lpRecieve);
 
-	if (*lpPos=='"' || *lpPos=='\'') {
+	if (*lpPos==L'"' || *lpPos==L'\'') {
 
 		if ((lpNext=strrchr(lpPos, *lpPos)))
-			*lpNext='\0';
+			*lpNext=L'\0';
 
 		while (*(lpPos+1)) {
 
@@ -419,7 +430,7 @@ char* Dos9_GetLocalVar(LOCAL_VAR_BLOCK* lpvBlock, char* lpName, ESTR* lpRecieve)
 
 		}
 
-		*lpPos='\0';
+		*lpPos=L'\0';
 
 	}
 
@@ -450,67 +461,86 @@ char* Dos9_GetLocalVar(LOCAL_VAR_BLOCK* lpvBlock, char* lpName, ESTR* lpRecieve)
 	}
 
 	if (cFlag[0]!=DOS9_ALL_PATH) {
+
 		Dos9_EsCpy(lpRecieve, "");
+
 		for (i=0; cFlag[i]!=0; i++) {
 			switch (cFlag[i]) {
 
-			case 'd':
+			case L'd':
 				Dos9_EsCat(lpRecieve, lpDrive);
 
-				if (cFlag[i+1]!=0 && cFlag[i+1]!='p')
-					Dos9_EsCat(lpRecieve, "\t");
+				if (cFlag[i+1]!=0 && cFlag[i+1]!=L'p')
+					Dos9_EsCat(lpRecieve, L"\t");
 
 				break;
 
-			case 'p':
+			case L'p':
 				Dos9_EsCat(lpRecieve, lpDir);
 
-				if (cFlag[i+1]!=0 && cFlag[i+1]!='n')
-					Dos9_EsCat(lpRecieve, "\t");
+				if (cFlag[i+1]!=0 && cFlag[i+1]!=L'n')
+					Dos9_EsCat(lpRecieve, L"\t");
 
 				break;
 
-			case 'n':
+			case L'n':
 				Dos9_EsCat(lpRecieve, lpFileName);
 
 				if (cFlag[i+1]!=0 && cFlag[i+1]!='x')
-					Dos9_EsCat(lpRecieve, "\t");
+					Dos9_EsCat(lpRecieve, L"\t");
 
 				break;
 
-			case 'x':
+			case L'x':
 				Dos9_EsCat(lpRecieve, lpExt);
-				if (cFlag[i+1]!=0) Dos9_EsCat(lpRecieve, "\t");
+				if (cFlag[i+1]!=0)
+					Dos9_EsCat(lpRecieve, L"\t");
+
 				break;
 
-			case 'z':
-				sprintf(lpBuffer, "%d%c", (int)stFileInfo.st_size, (cFlag[i+1]!=0 ? '\t' : '\0'));
+			case L'z':
+				swprintf(lpBuffer, "%d%c",
+						(int)stFileInfo.st_size,
+						(cFlag[i+1]!=0 ? L'\t' : L'\0'));
+
 				Dos9_EsCat(lpRecieve, lpBuffer);
+
 				break;
 
-			case 't':
+			case L't':
 				lTime=localtime(&stFileInfo.st_atime);
 
-				sprintf(lpBuffer,
-				        "%02d/%02d/%02d %02d:%02d%c",
-				        lTime->tm_mday ,
-				        lTime->tm_mon+1,
-				        1900+lTime->tm_year,
-				        lTime->tm_hour,
-				        lTime->tm_min,
-				        (cFlag[i+1]!=0 ? '\t' : '\0')
+				swprintf(lpBuffer,
+				         L"%02d/%02d/%02d %02d:%02d%c",
+				         lTime->tm_mday ,
+				         lTime->tm_mon+1,
+				         1900+lTime->tm_year,
+				         lTime->tm_hour,
+				         lTime->tm_min,
+				         (cFlag[i+1]!=0 ? L'\t' : L'\0')
 				       );
 
 				Dos9_EsCat(lpRecieve, lpBuffer);
+
 				break;
 
-			case 'a':
-				sprintf(lpBuffer, "       %c", (cFlag[i+1]!=0 ? '\t': '\0'));
-				if (stFileInfo.st_mode & DOS9_FILE_DIR) lpBuffer[0]='D';
-				if (stFileInfo.st_mode & DOS9_FILE_READONLY) lpBuffer[2]='R';
-				if (stFileInfo.st_mode & DOS9_FILE_HIDDEN) lpBuffer[3]='H';
-				if (stFileInfo.st_mode & DOS9_FILE_SYSTEM) lpBuffer[4]='S';
-				if (stFileInfo.st_mode & DOS9_FILE_ARCHIVE) lpBuffer[5]='A';
+			case L'a':
+				sprintf(lpBuffer, "       %c", (cFlag[i+1]!=0 ? L'\t': L'\0'));
+				if (stFileInfo.st_mode & DOS9_FILE_DIR)
+					lpBuffer[0]=L'D';
+
+				if (stFileInfo.st_mode & DOS9_FILE_READONLY)
+					lpBuffer[2]=L'R';
+
+				if (stFileInfo.st_mode & DOS9_FILE_HIDDEN)
+					lpBuffer[3]=L'H';
+
+				if (stFileInfo.st_mode & DOS9_FILE_SYSTEM)
+					lpBuffer[4]=L'S';
+
+				if (stFileInfo.st_mode & DOS9_FILE_ARCHIVE)
+					lpBuffer[5]=L'A';
+
 				Dos9_EsCat(lpRecieve, lpBuffer);
 				break;
 			}
@@ -522,13 +552,13 @@ char* Dos9_GetLocalVar(LOCAL_VAR_BLOCK* lpvBlock, char* lpName, ESTR* lpRecieve)
 
 #ifdef _POSIX_C_SOURCE
 
-int Dos9_PutEnv(char* lpEnv)
+int Dos9_PutEnv(wchar_t* lpEnv)
 {
 	char *lpEnvCpy, *lpToken;
 	char lpVoid[]="";
 	int iRet;
 
-	if (!(lpEnvCpy=strdup(lpEnv)))
+	if (!(lpEnvCpy=wcsdup(lpEnv)))
 		return -1;
 
 	if ((lpToken=strchr(lpEnvCpy, '='))) {
@@ -542,8 +572,8 @@ int Dos9_PutEnv(char* lpEnv)
 
 	}
 
-	strupr(lpEnvCpy);
-	iRet=setenv(lpEnvCpy, lpToken, TRUE);
+	wcsupr(lpEnvCpy);
+	iRet=wsetenv(lpEnvCpy, lpToken, TRUE);
 	free(lpEnvCpy);
 
 	return iRet;

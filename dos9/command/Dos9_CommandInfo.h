@@ -21,6 +21,8 @@
 #ifndef DOS9_COMMANDINFO_H
 #define DOS9_COMMANDINFO_H
 
+#include <wchar.h>
+
 #include "Dos9_ScriptCommands.h"
 #include "Dos9_FileCommands.h"
 #include "Dos9_Conditions.h"
@@ -30,47 +32,47 @@
 
 #include "../core/Dos9_Core.h"
 
-#define STRLEN(str) (sizeof(str)-1)
+#define STRLEN(str) (sizeof(str)/sizeof(wchar_t)-1)
 
 
 /* the flag paramater detemines wether a space should be
    searched */
 
 COMMANDINFO lpCmdInfo[]= {
-	{"ECHO", Dos9_CmdEcho, 0},
-	{"EXIT", Dos9_CmdExit, STRLEN("EXIT")},
-	{"PAUSE", Dos9_CmdPause, STRLEN("PAUSE")},
-	{"SET", Dos9_CmdSet, STRLEN("SET")},
-	{"SETLOCAL", Dos9_CmdSetLocal, STRLEN("SETLOCAL")},
-	{"HELP", "hlp.bat", STRLEN("HELP") | DOS9_ALIAS_FLAG},
-	{"REM", Dos9_CmdRem, STRLEN("REM")},
-	{"CLS", Dos9_CmdCls, STRLEN("CLS")},
-	{"COLOR", Dos9_CmdColor, STRLEN("COLOR")},
-	{"TITLE", Dos9_CmdTitle, STRLEN("TITLE")},
-	{"TYPE", Dos9_CmdType, STRLEN("TYPE")},
-	{"MORE", Dos9_CmdType, STRLEN("MORE")},
-	{"GOTO", Dos9_CmdGoto, STRLEN("GOTO")},
-	{"GOTO:", Dos9_CmdGoto, 0},
-	{"CD", Dos9_CmdCd, STRLEN("CD")},
-	{"CHDIR", Dos9_CmdCd, STRLEN("CHDIR")},
-	{"DIR", Dos9_CmdDir, STRLEN("DIR")},
-	{"IF", Dos9_CmdIf, STRLEN("IF")},
-	{"DEL", Dos9_CmdDel, STRLEN("DEL")},
-	{"ERASE", Dos9_CmdDel, STRLEN("ERASE")},
-	{"REN", Dos9_CmdRen, STRLEN("REN")},
-	{"RENAME", Dos9_CmdRen, STRLEN("RENAME")},
-	{"MOVE", Dos9_CmdMove, STRLEN("MOVE")},
-	{"MD", Dos9_CmdMkdir, STRLEN("MD")},
-	{"MKDIR", Dos9_CmdMkdir, STRLEN("MKDIR")},
-	{"RD", Dos9_CmdRmdir, STRLEN("RD")},
-	{"RMDIR", Dos9_CmdRmdir, STRLEN("RMDIR")},
-	{"COPY", Dos9_CmdCopy, STRLEN("COPY")},
-	{"FOR", Dos9_CmdFor, STRLEN("FOR")},
-	{"(", Dos9_CmdBlock, 0},
-	{"CALL", Dos9_CmdCall, STRLEN("CALL")},
-	{"CALL:", Dos9_CmdCall, 0},
-	{"ALIAS", Dos9_CmdAlias, STRLEN("ALIAS")},
-	{"SHIFT", Dos9_CmdShift, STRLEN("SHIFT")}
+	{L"ECHO", Dos9_CmdEcho, 0},
+	{L"EXIT", Dos9_CmdExit, STRLEN(L"EXIT")},
+	{L"PAUSE", Dos9_CmdPause, STRLEN(L"PAUSE")},
+	{L"SET", Dos9_CmdSet, STRLEN(L"SET")},
+	{L"SETLOCAL", Dos9_CmdSetLocal, STRLEN(L"SETLOCAL")},
+	{L"HELP", "hlp.bat", STRLEN(L"HELP") | DOS9_ALIAS_FLAG},
+	{L"REM", Dos9_CmdRem, STRLEN(L"REM")},
+	{L"CLS", Dos9_CmdCls, STRLEN(L"CLS")},
+	{L"COLOR", Dos9_CmdColor, STRLEN(L"COLOR")},
+	{L"TITLE", Dos9_CmdTitle, STRLEN(L"TITLE")},
+	{L"TYPE", Dos9_CmdType, STRLEN(L"TYPE")},
+	{L"MORE", Dos9_CmdType, STRLEN(L"MORE")},
+	{L"GOTO", Dos9_CmdGoto, STRLEN(L"GOTO")},
+	{L"GOTO:", Dos9_CmdGoto, 0},
+	{L"CD", Dos9_CmdCd, STRLEN(L"CD")},
+	{L"CHDIR", Dos9_CmdCd, STRLEN(L"CHDIR")},
+	{L"DIR", Dos9_CmdDir, STRLEN(L"DIR")},
+	{L"IF", Dos9_CmdIf, STRLEN(L"IF")},
+	{L"DEL", Dos9_CmdDel, STRLEN(L"DEL")},
+	{L"ERASE", Dos9_CmdDel, STRLEN(L"ERASE")},
+	{L"REN", Dos9_CmdRen, STRLEN(L"REN")},
+	{L"RENAME", Dos9_CmdRen, STRLEN(L"RENAME")},
+	{L"MOVE", Dos9_CmdMove, STRLEN(L"MOVE")},
+	{L"MD", Dos9_CmdMkdir, STRLEN(L"MD")},
+	{L"MKDIR", Dos9_CmdMkdir, STRLEN(L"MKDIR")},
+	{L"RD", Dos9_CmdRmdir, STRLEN(L"RD")},
+	{L"RMDIR", Dos9_CmdRmdir, STRLEN(L"RMDIR")},
+	{L"COPY", Dos9_CmdCopy, STRLEN(L"COPY")},
+	{L"FOR", Dos9_CmdFor, STRLEN(L"FOR")},
+	{L"(", Dos9_CmdBlock, 0},
+	{L"CALL", Dos9_CmdCall, STRLEN(L"CALL")},
+	{L"CALL:", Dos9_CmdCall, 0},
+	{L"ALIAS", Dos9_CmdAlias, STRLEN(L"ALIAS")},
+	{L"SHIFT", Dos9_CmdShift, STRLEN(L"SHIFT")}
 };
 
 #endif
