@@ -20,6 +20,8 @@
 #include <string.h>
 #include <wchar.h>
 
+#include <libw.h>
+
 #include "Dos9_Core.h"
 
 //#define DOS9_DBG_MODE
@@ -39,7 +41,7 @@ void Dos9_SplitPath(wchar_t* lpPath,
 			DOS9_DBG(L"Found disk_name=\"%c\"\n", *lpToken);
 
 			if (lpDisk)
-				swnprintf(lpDisk, _MAX_DRIVE, L"%c:\\", *lpToken);
+				snwprintf(lpDisk, _MAX_DRIVE, L"%c:\\", *lpToken);
 
 			lpToken+=3;
 
@@ -96,7 +98,7 @@ void Dos9_SplitPath(wchar_t* lpPath,
 		DOS9_DBG(L"found ext=\"%s\"\n", lpToken);
 
 		if (lpExt)
-			swnprintf(lpExt, _MAX_EXT, L".%s", lpToken);
+			snwprintf(lpExt, _MAX_EXT, L".%s", lpToken);
 
 	} else {
 

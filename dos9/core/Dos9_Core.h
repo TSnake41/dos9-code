@@ -59,4 +59,7 @@
 
 #endif
 
+#define TO_WIDE_LITTERAL(x) L##x
+#define L(x) TO_WIDE_LITTERAL(x)
+
 #endif // DOS9_CORE_H_INCLUDED

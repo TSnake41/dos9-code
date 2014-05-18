@@ -36,7 +36,7 @@
 
 #endif
 
-void Dos9_ShowErrorMessage(unsigned int iErrorNumber, wchar_t* lpComplement, int iExitCode);
+void Dos9_ShowErrorMessage(unsigned int iErrorNumber, const wchar_t* lpComplement, int iExitCode);
 void Dos9_LoadErrors(void);
 
 #define DOS9_FILE_ERROR                      0
@@ -77,8 +77,9 @@ void Dos9_LoadErrors(void);
 #define DOS9_UNABLE_REMAP_COMMANDS          35
 #define DOS9_TRY_REDEFINE_COMMAND           36
 #define DOS9_UNABLE_REPLACE_COMMAND         37
+#define DOS9_UNABLE_GET_VARIABLE			38
 
-#define DOS9_ERROR_MESSAGE_NUMBER 38
+#define DOS9_ERROR_MESSAGE_NUMBER 39
 
 #define DOS9_PRINT_C_ERROR 0x80
 

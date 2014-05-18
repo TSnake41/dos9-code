@@ -933,8 +933,6 @@ extern int _Dos9_TextMode;
 /** \} */
 
 LIBDOS9 int Dos9_GetConsoleEncoding(char* lpEnc, size_t iSize);
-LIBDOS9 char* Dos9_WcsToMbs(const wchar_t* lpIn);
-LIBDOS9 wchar_t* Dos9_MbsToWcs(const char* lpIn);
 
 LIBDOS9 int Dos9_FileExists(wchar_t* lpPath);
 LIBDOS9 int Dos9_DirExists(wchar_t* lpPath);

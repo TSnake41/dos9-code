@@ -100,15 +100,8 @@ int main(int argc, char *argv[])
 			argv[i]+=2;
 			if (*(argv[i])==':') argv[i]++;
 
-			if (!stricmp("UTF-8" ,argv[i])) {
-
-				Dos9_SetEncoding(DOS9_UTF8_ENCODING);
-
-			} else {
-
-				Dos9_SetEncoding(DOS9_BYTE_ENCODING);
-
-			}
+			/* Do something in order to replace encodinf in the files. For
+			   example, change the codepage */
 
 			Dos9_EsCpy(lpEsEncoding, argv[i]);
 

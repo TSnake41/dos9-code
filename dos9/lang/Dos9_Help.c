@@ -7,6 +7,8 @@
 
 #include "Dos9_Help.h"
 
+#include <libw.h>
+
 /* the main purpose of this functions is to provide little
    help embedded inside the binary, so that user can use
    this little help, even if they have no 'HLP' no
@@ -19,31 +21,30 @@ static const wchar_t* lpExternalMsg;
 void Dos9_LoadInternalHelp(void)
 {
 	wchar_t lpwPath[FILENAME_MAX];
+	wchar_t lpwSharePath[FILENAME_MAX];
 	char* lpPath;
-	char lpSharePath[FILENAME_MAX];
-	char lpSharePath[FILENAME_MAX];
 	char lpEncoding[15]="UTF-16LE"; /* this is incompatible with various
 									   operating systems, but why not use
 									   built-in functionnalities */
 
 	Dos9_GetExePath(lpwPath, FILENAME_MAX);
 
+	snwprintf(lpwSharePath, FILENAME_MAX, L"%s/share/locale", lpPath);
+
 	//Dos9_GetConsoleEncoding(lpEncoding, sizeof(lpEncoding));
 
-	if (lpPath=Dos9_WcsToMbs(lpwPath)) {
+	if (lpPath=libw_wcstombs(lpwSharePath)) {
 
 		/* the string can be translated to mbs */
-
-		snprintf(lpSharePath, FILENAME_MAX, "%s/share/locale", lpPath);
+		bindtextdomain("Dos9-hlp", lpPath);
 		free(lpPath);
 
 	} else {
 
-		strcpy(lpSharePath, "/share/locale");
+		bindtextdomain("Dos9-hlp", "/share/locale");
 
 	}
 
-	bindtextdomain("Dos9-hlp", lpSharePath);
 	bind_textdomain_codeset("Dos9-hlp", lpEncoding);
 	textdomain("Dos9-hlp");
 
@@ -184,8 +185,8 @@ void Dos9_ShowInternalHelp(int cmdId)
 	if ((cmdId >= 0)
 	    && (cmdId < DOS9_HELP_ARRAY_SIZE)) {
 
-		fputws(stdout, lpInternalHelp[cmdId]);
-		fputws(stdout, lpExternalMsg);
+		fputws(lpInternalHelp[cmdId], stdout);
+		fputws(lpExternalMsg,  stdout);
 
 	}
 

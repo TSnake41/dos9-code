@@ -24,6 +24,7 @@
 #include <stdarg.h>
 #include <wchar.h>
 
+#include <libw.h>
 #include <libDos9.h>
 
 #define DOS9_DBG_MODE
@@ -37,14 +38,14 @@ int Dos9_GetFilePath(wchar_t* lpFullPath, const wchar_t* lpPartial, size_t iBufS
 	ESTR* lpEsPart=Dos9_EsInit();
 	ESTR* lpEsFinalPath=Dos9_EsInit();
 
-	wchar_t *lpPathToken=wgetenv("PATH");
+	wchar_t *lpPathToken=wgetenv(L"PATH");
 
 	int   bFirstLoop=TRUE;
 
 #ifdef WIN32
 
-	char *lpPathExtToken,
-	     *lpPathExtBegin=getenv("PATHEXT");
+	wchar_t *lpPathExtToken,
+	        *lpPathExtBegin=wgetenv(L"PATHEXT");
 	int bFirstSubLoop;
 
 #endif // WIN32
@@ -173,8 +174,8 @@ int Dos9_MakePath(ESTR* lpReturn, int nOps, ...)
 
 	int     i;
 
-	char   *lpBegin,
-	       *lpEnd;
+	wchar_t *lpBegin,
+	        *lpEnd;
 
 	va_start(vaList, nOps);
 

@@ -1,0 +1,53 @@
+#
+#   libw - a wide character compatibility layer for#Nixes.
+#   Copyright (C) 2010-2014 DarkBatcher
+#
+#   This program is free software: you can redistribute it and/or modify
+#   it under the terms of the GNU General Public License as published by
+#   the Free Software Foundation, either version 3 of the License, or
+#   (at your option) any later version.
+#
+#   This program is distributed in the hope that it will be useful,
+#   but WITHOUT ANY WARRANTY; without even the implied warranty of
+#   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#   GNU General Public License for more details.
+#
+#   You should have received a copy of the GNU General Public License
+#   along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+
+TARGET=../lib/libw.a
+
+INCLUDE_FILE=../include/libw.h
+CONF_INCLUDE_FILE=../include/libw_conf.h
+ORIGIN_FILE=./lib/libw.h
+CONF_ORIGIN_FILE=./lib/libw_conf.h
+
+#the list of the sources
+SRC=./lib/libw_conv.c
+	
+CFLAGS=@CFLAGS@
+CC=@CC@	
+OBJ=$(SRC:.c=.o)
+
+all: $(TARGET) $(INCLUDE_FILE) $(CONF_INCLUDE_FILE)
+
+$(CONF_INCLUDE_FILE): $(CONF_ORIGIN_FILE)
+	cp $(CONF_ORIGIN_FILE) $(CONF_INCLUDE_FILE)
+
+$(INCLUDE_FILE): $(ORIGIN_FILE)
+	cp $(ORIGIN_FILE) $(INCLUDE_FILE)
+
+# build the main lib
+$(TARGET): $(OBJ)
+	ar -r -s $(TARGET) $(OBJ) 
+
+clean:
+	for i in $(SRC:.c=.o); do rm -f $$i ; done;
+
+.PHONY: clean
+
+.SUFFIXES: .o
+
+.c.o:
+	$(CC) $(CFLAGS) -o $@ -c $<

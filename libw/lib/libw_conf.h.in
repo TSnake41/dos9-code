@@ -1,0 +1,96 @@
+/*
+ *
+ *   libw - a wide character compatibility layer for *Nixes.
+ *   Copyright (C) 2010-2014 DarkBatcher
+ *
+ *   This program is free software: you can redistribute it and/or modify
+ *   it under the terms of the GNU General Public License as published by
+ *   the Free Software Foundation, either version 3 of the License, or
+ *   (at your option) any later version.
+ *
+ *   This program is distributed in the hope that it will be useful,
+ *   but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *   GNU General Public License for more details.
+ *
+ *   You should have received a copy of the GNU General Public License
+ *   along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ *
+ */
+ 
+/* lib/libw_conf.h.in.  Generated from configure.ac by autoheader.  */
+
+/* Define to 1 if you have the `snwprintf' function. */
+#undef HAVE_SNWPRINTF
+
+/* Define to 1 if you have the `swprintf' function. */
+#undef HAVE_SWPRINTF
+
+/* Define to 1 if you have the `wcscasecmp' function. */
+#undef HAVE_WCSCASECMP
+
+/* Define to 1 if you have the `wcserror' function. */
+#undef HAVE_WCSERROR
+
+/* Define to 1 if you have the `wfopen' function. */
+#undef HAVE_WFOPEN
+
+/* Define to 1 if you have the `wgetenv' function. */
+#undef HAVE_WGETENV
+
+/* Define to 1 if you have the `wstat' function. */
+#undef HAVE_WSTAT
+
+/* Define to 1 if you have the `wtoi' function. */
+#undef HAVE_WTOI
+
+/* Define to 1 if you have the `wtol' function. */
+#undef HAVE_WTOL
+
+/* Define to 1 if you have the `_snwprintf' function. */
+#undef HAVE__SNWPRINTF
+
+/* Define to 1 if you have the `_swprintf' function. */
+#undef HAVE__SWPRINTF
+
+/* Define to 1 if you have the `_wcserror' function. */
+#undef HAVE__WCSERROR
+
+/* Define to 1 if you have the `_wcsicmp' function. */
+#undef HAVE__WCSICMP
+
+/* Define to 1 if you have the `_wfopen' function. */
+#undef HAVE__WFOPEN
+
+/* Define to 1 if you have the `_wgetenv' function. */
+#undef HAVE__WGETENV
+
+/* Define to 1 if you have the `_wstat' function. */
+#undef HAVE__WSTAT
+
+/* Define to 1 if you have the `_wtoi' function. */
+#undef HAVE__WTOI
+
+/* Define to 1 if you have the `_wtol' function. */
+#undef HAVE__WTOL
+
+/* Define to the address where bug reports for this package should be sent. */
+#undef PACKAGE_BUGREPORT
+
+/* Define to the full name of this package. */
+#undef PACKAGE_NAME
+
+/* Define to the full name and version of this package. */
+#undef PACKAGE_STRING
+
+/* Define to the one symbol short name of this package. */
+#undef PACKAGE_TARNAME
+
+/* Define to the home page for this package. */
+#undef PACKAGE_URL
+
+/* Define to the version of this package. */
+#undef PACKAGE_VERSION
+
+/* Define to 1 if you have the ANSI C header files. */
+#undef STDC_HEADERS

@@ -34,6 +34,8 @@
 #include <libintl.h>
 #include <wchar.h>
 
+#include <libw.h>
+
 const wchar_t* lpErrorMsg[DOS9_ERROR_MESSAGE_NUMBER];
 const wchar_t* lpQuitMessage;
 
@@ -42,9 +44,8 @@ const wchar_t* lpQuitMessage;
 void Dos9_LoadErrors(void)
 {
 	wchar_t lpwPath[FILENAME_MAX];
+	wchar_t lpwSharePath[FILENAME_MAX];
 	char* lpPath;
-	char lpSharePath[FILENAME_MAX];
-	char lpSharePath[FILENAME_MAX];
 	char lpEncoding[15]="UTF-16LE"; /* this is incompatible with various
 									   operating systems, but why not use
 									   built-in functionnalities */
@@ -53,20 +54,21 @@ void Dos9_LoadErrors(void)
 
 	//Dos9_GetConsoleEncoding(lpEncoding, sizeof(lpEncoding));
 
-	if (lpPath=Dos9_WcsToMbs(lpwPath)) {
+	snwprintf(lpwSharePath, FILENAME_MAX, L"%s/share/locale", lpwPath);
+
+	if (lpPath=libw_wcstombs(lpwSharePath)) {
 
 		/* the string can be translated to mbs */
 
-		snprintf(lpSharePath, FILENAME_MAX, "%s/share/locale", lpPath);
+		bindtextdomain("Dos9-errors", lpPath);
+
 		free(lpPath);
 
 	} else {
 
-		strcpy(lpSharePath, "/share/locale");
+		bindtextdomain("Dos9-errors", "/share/locale");
 
 	}
-
-	bindtextdomain("Dos9-errors", lpSharePath);
 
 	bind_textdomain_codeset("Dos9-errors", lpEncoding);
 
@@ -207,6 +209,9 @@ void Dos9_LoadErrors(void)
 	lpErrorMsg[DOS9_UNABLE_REPLACE_COMMAND]=
 		(wchar_t*)gettext("Error : Unable to redefine \"%s\" command.\n");
 
+	lpErrorMsg[DOS9_UNABLE_GET_VARIABLE]=
+		(wchar_t*)gettext("Error : Unable to get \"%s\" variable.\n");
+
 	lpQuitMessage=
 	    (wchar_t*)gettext("\nAborting current command, press any key to end Dos9.\n");
 
@@ -238,9 +243,7 @@ void Dos9_ShowErrorMessage(unsigned int iErrorNumber,
 		if (pErrorHandler)
 			pErrorHandler();
 
-		puts(lpQuitMessage);
-
-		getch();
+		putws(lpQuitMessage);
 
 		exit(iExitCode);
 

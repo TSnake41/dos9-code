@@ -1,7 +1,7 @@
 /*
  *
  *   Dos9 - A Free, Cross-platform command prompt - The Dos9 project
- *   Copyright (C) 2010-2013 DarkBatcher
+ *   Copyright (C) 2010-2014 DarkBatcher
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -25,6 +25,8 @@
    and any other command that could be included in the next versions
    */
 
+#include <wchar.h>
+
 #define DOS9_IF_CASE_UNSENSITIVE 1
 #define DOS9_IF_NEGATION 2
 #define DOS9_IF_EXIST 4
@@ -43,6 +45,6 @@ typedef enum CMPTYPE {
     CMP_FLOAT_EQUAL
 } CMPTYPE;
 
-int Dos9_CmdIf(char* lpParam); // function to support if
+int Dos9_CmdIf(wchar_t* lpParam); // function to support if
 
 #endif // DOS9_CMD_CONDITION_H

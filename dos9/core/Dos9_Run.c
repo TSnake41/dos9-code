@@ -24,11 +24,11 @@
 #include <wchar.h>
 #include <assert.h>
 
-#define L(x) L##x
-
 #ifdef _POSIX_C_SOURCE
 #include <sys/wait.h>
 #endif
+
+#include <libw.h>
 
 #include "Dos9_Core.h"
 
@@ -305,7 +305,7 @@ BackTrackExternalCommand:
 
 	if (iErrorLevel!=lastErrorLevel) {
 
-		swnprintf(lpErrorlevel+11, sizeof(lpErrorlevel)/sizeof(wchar_t)-11, L"%d", iErrorLevel);
+		snwprintf(lpErrorlevel+11, sizeof(lpErrorlevel)/sizeof(wchar_t)-11, L"%d", iErrorLevel);
 		Dos9_PutEnv(lpErrorlevel);
 		lastErrorLevel=iErrorLevel;
 	}
@@ -479,11 +479,11 @@ int Dos9_RunExternalCommand(wchar_t* lpCommandLine)
 
 #ifdef WIN32
 
-		swnprintf(lpFileName, sizeof(lpFileName) ,L"%s/dos9.exe", lpExePath);
+		snwprintf(lpFileName, sizeof(lpFileName) ,L"%s/dos9.exe", lpExePath);
 
 #else
 
-		swnprintf(lpFileName, sizeof(lpFileName)/sizeof(lpFileName) ,L"%s/dos9", lpExePath);
+		snwprintf(lpFileName, sizeof(lpFileName)/sizeof(lpFileName) ,L"%s/dos9", lpExePath);
 
 #endif // WIN32
 

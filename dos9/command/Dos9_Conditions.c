@@ -22,8 +22,11 @@
 #include <stdlib.h>
 #include <math.h>
 #include <string.h>
+#include <wchar.h>
 
 #include <libDos9.h>
+
+#include <libw.h>
 
 #include "Dos9_Conditions.h"
 #include "../lang/Dos9_Lang.h"
@@ -31,17 +34,25 @@
 #include "../errors/Dos9_Errors.h"
 #include "../core/Dos9_Core.h"
 
-int Dos9_CmdIf(char* lpParam)
+int Dos9_CmdIf(wchar_t* lpParam)
 {
-	char lpArgument[FILENAME_MAX], *lpNext, *lpToken;
+	wchar_t lpArgument[FILENAME_MAX],
+			*lpNext,
+			*lpToken,
+			*lpErrorLvl;
+
 	int iFlag=0,
 	    iResult,
 	    iExp1,
 	    iExp2;
+
 	CMPTYPE cmpCompType;
+
 	ESTR *lpComparison, *lpOtherPart;
+
 	LPFILELIST lpflFileList;
-	/* syntaxe possible
+
+	/* possible syntaxes.
 	        IF [/i] [NOT] test==valeur (...)
 	        IF [/i] test2 CMP test2 (...)
 	        IF [NOT] EXIST fichier (...)
@@ -58,14 +69,14 @@ int Dos9_CmdIf(char* lpParam)
 
 	if ((lpNext=Dos9_GetNextParameter(lpParam, lpArgument, 11))) {
 
-		if (!strcmp(lpArgument, "/?")) {
+		if (!wcscmp(lpArgument, L"/?")) {
 
 			Dos9_ShowInternalHelp(DOS9_HELP_IF);
 			return 0;
 
 		}
 
-		if (!stricmp(lpArgument, "/i")) {
+		if (!wcscasecmp(lpArgument, L"/i")) {
 
 			/* this is case insensitive */
 			iFlag|=DOS9_IF_CASE_UNSENSITIVE;
@@ -73,14 +84,14 @@ int Dos9_CmdIf(char* lpParam)
 
 			if (!(lpNext=Dos9_GetNextParameter(lpNext, lpArgument, 11))) {
 
-				Dos9_ShowErrorMessage(DOS9_EXPECTED_MORE, "IF", FALSE);
+				Dos9_ShowErrorMessage(DOS9_EXPECTED_MORE, L"IF", FALSE);
 				return 0;
 
 			}
 
 		}
 
-		if (!stricmp(lpArgument, "NOT")) {
+		if (!wcscasecmp(lpArgument, L"NOT")) {
 
 			/* this is negative */
 			iFlag|=DOS9_IF_NEGATION;
@@ -88,22 +99,22 @@ int Dos9_CmdIf(char* lpParam)
 
 			if (!(lpNext=Dos9_GetNextParameter(lpNext, lpArgument, 11))) {
 
-				Dos9_ShowErrorMessage(DOS9_EXPECTED_MORE, "IF", FALSE);
+				Dos9_ShowErrorMessage(DOS9_EXPECTED_MORE, L"IF", FALSE);
 				return 0;
 
 			}
 
 		}
 
-		if (!stricmp(lpArgument, "EXIST")) {
+		if (!wcscasecmp(lpArgument, L"EXIST")) {
 
 			iFlag|=DOS9_IF_EXIST;
 
-		} else if (!stricmp(lpArgument, "DEFINED")) {
+		} else if (!wcscasecmp(lpArgument, L"DEFINED")) {
 
 			iFlag|=DOS9_IF_DEFINED;
 
-		} else if (!stricmp(lpArgument, "ERRORLEVEL")) {
+		} else if (!wcscasecmp(lpArgument, L"ERRORLEVEL")) {
 
 			iFlag|=DOS9_IF_ERRORLEVEL;
 
@@ -113,7 +124,9 @@ int Dos9_CmdIf(char* lpParam)
 		    && (iFlag & (DOS9_IF_ERRORLEVEL | DOS9_IF_EXIST | DOS9_IF_DEFINED))
 		   ) {
 
-			Dos9_ShowErrorMessage(DOS9_INCOMPATIBLE_ARGS, "'/i' (DEFINED, EXIST, ERRORLEVEL)", FALSE);
+			Dos9_ShowErrorMessage(DOS9_INCOMPATIBLE_ARGS,
+									L"'/i' (DEFINED, EXIST, ERRORLEVEL)",
+									FALSE);
 			return 0;
 
 		}
@@ -128,12 +141,20 @@ int Dos9_CmdIf(char* lpParam)
 		/* the script used 'ERRORLEVEL' Keyword */
 		if (!(lpNext=Dos9_GetNextParameter(lpParam, lpArgument, FILENAME_MAX))) {
 
-			Dos9_ShowErrorMessage(DOS9_EXPECTED_MORE, "IF", FALSE);
+			Dos9_ShowErrorMessage(DOS9_EXPECTED_MORE, L"IF", FALSE);
 			return -1;
 
 		}
 
-		iResult=!strcmp(getenv("ERRORLEVEL"), lpArgument);
+		if (!(lpErrorLvl=wgetenv(L"ERRORLEVEL"))) {
+
+			Dos9_ShowErrorMessage(DOS9_UNABLE_GET_VARIABLE | DOS9_PRINT_C_ERROR,
+									L"ERRORLEVEL",
+									FALSE);
+
+		}
+
+		iResult=!wcscmp(lpErrorLvl, lpArgument);
 
 		if (iFlag & DOS9_IF_NEGATION)
 			iResult=!iResult;
@@ -146,7 +167,7 @@ int Dos9_CmdIf(char* lpParam)
 		/* the script used 'EXIST' keyWord */
 		if (!(lpNext=Dos9_GetNextParameter(lpParam, lpArgument, FILENAME_MAX))) {
 
-			Dos9_ShowErrorMessage(DOS9_EXPECTED_MORE, "IF", FALSE);
+			Dos9_ShowErrorMessage(DOS9_EXPECTED_MORE, L"IF", FALSE);
 			return -1;
 
 		}
@@ -168,14 +189,14 @@ int Dos9_CmdIf(char* lpParam)
 		/* the script used 'DEFINED' */
 		if (!(lpNext=Dos9_GetNextParameter(lpParam, lpArgument, FILENAME_MAX))) {
 
-			Dos9_ShowErrorMessage(DOS9_EXPECTED_MORE, "IF", FALSE);
+			Dos9_ShowErrorMessage(DOS9_EXPECTED_MORE, L"IF", FALSE);
 			return -1;
 
 		}
 
 		/* avoid errors from conversion from 64 bits to
-		   32 bits */
-		iResult=(getenv(lpArgument) == NULL) ? FALSE : TRUE;
+		   32 bits (if we get memory beyond 0xFFFFFFFF) */
+		iResult=(wgetenv(lpArgument) == NULL) ? FALSE : TRUE;
 
 		if (iFlag & DOS9_IF_NEGATION)
 			iResult=!iResult;
@@ -189,15 +210,22 @@ int Dos9_CmdIf(char* lpParam)
 
 		if ((lpNext=Dos9_GetNextParameterEs(lpParam, lpComparison))) {
 
-			if ((lpToken=strstr(Dos9_EsToChar(lpComparison), "=="))) {
+			if ((lpToken=wcsstr(Dos9_EsToChar(lpComparison), L"=="))) {
 				/* if scipt uses old c-style comparison */
-				*lpToken='\0';
+				*lpToken=L'\0';
 				lpToken+=2;
 
-				if (iFlag & DOS9_IF_CASE_UNSENSITIVE) iResult=!stricmp(Dos9_EsToChar(lpComparison), lpToken);
-				else iResult=!strcmp(Dos9_EsToChar(lpComparison), lpToken);
+				if (iFlag & DOS9_IF_CASE_UNSENSITIVE) {
 
-				if (iFlag & DOS9_IF_NEGATION) iResult=!iResult;
+					iResult=!wcscasecmp(Dos9_EsToChar(lpComparison), lpToken);
+
+				} else {
+
+					iResult=!wcscmp(Dos9_EsToChar(lpComparison), lpToken);
+				}
+
+				if (iFlag & DOS9_IF_NEGATION)
+					iResult=!iResult;
 
 
 			} else {
@@ -205,42 +233,45 @@ int Dos9_CmdIf(char* lpParam)
 
 				if (!(lpNext=Dos9_GetNextParameter(lpNext, lpArgument, 11))) {
 
-					Dos9_ShowErrorMessage(DOS9_EXPECTED_MORE, "IF", FALSE);
+					Dos9_ShowErrorMessage(DOS9_EXPECTED_MORE, L"IF", FALSE);
 					return -1;
 
 				}
 
-				if (!stricmp(lpArgument, "EQU")) {
+				if (!wcscasecmp(lpArgument, L"EQU")) {
 
 					cmpCompType=CMP_EQUAL;
 
-				} else if (!stricmp(lpArgument, "NEQ")) {
+				} else if (!wcscasecmp(lpArgument, L"NEQ")) {
 
 					cmpCompType=CMP_DIFFERENT;
 
-				} else if (!stricmp(lpArgument, "GEQ")) {
+				} else if (!wcscasecmp(lpArgument, L"GEQ")) {
 
 					cmpCompType=CMP_GREATER_OR_EQUAL;
 
-				} else if (!stricmp(lpArgument, "GTR")) {
+				} else if (!wcscasecmp(lpArgument, L"GTR")) {
 
 					cmpCompType=CMP_GREATER;
 
-				} else if (!stricmp(lpArgument, "LEQ")) {
+				} else if (!wcscasecmp(lpArgument, L"LEQ")) {
 
 					cmpCompType=CMP_LESSER_OR_EQUAL;
 
-				} else if (!stricmp(lpArgument, "LSS")) {
+				} else if (!wcscasecmp(lpArgument, L"LSS")) {
 
 					cmpCompType=CMP_LESSER;
 
-				} else if (!stricmp(lpArgument, "FEQ")) {
+				} else if (!wcscasecmp(lpArgument, L"FEQ")) {
 
 					cmpCompType=CMP_FLOAT_EQUAL;
 
 				} else {
 
-					Dos9_ShowErrorMessage(DOS9_UNEXPECTED_ELEMENT, lpArgument, FALSE);
+					Dos9_ShowErrorMessage(DOS9_UNEXPECTED_ELEMENT,
+											lpArgument,
+											FALSE);
+
 					return -1;
 
 				}
@@ -249,57 +280,85 @@ int Dos9_CmdIf(char* lpParam)
 
 				if (!(lpNext=Dos9_GetNextParameterEs(lpNext, lpOtherPart))) {
 
-					Dos9_ShowErrorMessage(DOS9_EXPECTED_MORE, "IF", TRUE);
+					Dos9_ShowErrorMessage(DOS9_EXPECTED_MORE, L"IF", TRUE);
 					return -1;
 
 				}
 
 				switch (cmpCompType) {
+
 					case CMP_EQUAL:
+
+						/* this is to be fixed. First we should ensure that
+						   the given tokens are not numbers, if they are
+						   actually, then we must ensure that they're equal */
+
 						if (iFlag & DOS9_IF_CASE_UNSENSITIVE) {
 
-							iResult=!stricmp(Dos9_EsToChar(lpOtherPart), Dos9_EsToChar(lpComparison));
+							iResult=!wcscasecmp(Dos9_EsToChar(lpOtherPart),
+													Dos9_EsToChar(lpComparison));
 
 						} else {
 
-							iResult=!strcmp(Dos9_EsToChar(lpOtherPart), Dos9_EsToChar(lpComparison));
+							iResult=!wcscasecmp(Dos9_EsToChar(lpOtherPart),
+													Dos9_EsToChar(lpComparison));
 
 						}
 
 						break;
 
 					case CMP_DIFFERENT:
+
+						/* this is to be fixed. First we should ensure that
+						   the given tokens are not numbers, if they are
+						   actually, then we must ensure that they're
+						   different */
+
 						if (iFlag & DOS9_IF_CASE_UNSENSITIVE) {
 
-							iResult=stricmp(Dos9_EsToChar(lpOtherPart), Dos9_EsToChar(lpComparison));
+							iResult=wcscasecmp(Dos9_EsToChar(lpOtherPart),
+												Dos9_EsToChar(lpComparison));
 
 						} else {
 
-							iResult=strcmp(Dos9_EsToChar(lpOtherPart), Dos9_EsToChar(lpComparison));
+							iResult=wcscmp(Dos9_EsToChar(lpOtherPart),
+												Dos9_EsToChar(lpComparison));
 
 						}
 
 						break;
 
 					case CMP_GREATER:
-						iResult = (atof(Dos9_EsToChar(lpComparison)) > atof(Dos9_EsToChar(lpOtherPart)));
+
+						iResult = (wtof(Dos9_EsToChar(lpComparison))
+										> wtof(Dos9_EsToChar(lpOtherPart)));
+
 						break;
 
 					case CMP_GREATER_OR_EQUAL:
-						iResult = (atof(Dos9_EsToChar(lpComparison)) >= atof(Dos9_EsToChar(lpOtherPart)));
+
+						iResult = (wtof(Dos9_EsToChar(lpComparison))
+										>= wtof(Dos9_EsToChar(lpOtherPart)));
+
 						break;
 
 					case CMP_LESSER:
-						iResult = (atof(Dos9_EsToChar(lpComparison)) < atof(Dos9_EsToChar(lpOtherPart)));
+
+						iResult = (wtof(Dos9_EsToChar(lpComparison))
+										< wtof(Dos9_EsToChar(lpOtherPart)));
+
 						break;
 
 					case CMP_LESSER_OR_EQUAL:
-						iResult = (atof(Dos9_EsToChar(lpComparison)) <= atof(Dos9_EsToChar(lpOtherPart)));
+
+						iResult = (wtof(Dos9_EsToChar(lpComparison))
+										<= wtof(Dos9_EsToChar(lpOtherPart)));
+
 						break;
 
 					case CMP_FLOAT_EQUAL:
-						x1 = frexp(atof(Dos9_EsToChar(lpComparison)), &iExp1);
-						x2 = frexp(atof(Dos9_EsToChar(lpOtherPart)), &iExp2);
+						x1 = frexp(wtof(Dos9_EsToChar(lpComparison)), &iExp1);
+						x2 = frexp(wtof(Dos9_EsToChar(lpOtherPart)), &iExp2);
 
 						/* majorate the error */
 						iResult=(fabs(x1-x2*pow(2, iExp2-iExp1)) <= DOS9_FLOAT_EQUAL_PRECISION);
@@ -308,9 +367,10 @@ int Dos9_CmdIf(char* lpParam)
 
 				Dos9_EsFree(lpOtherPart);
 			}
+
 		} else {
 
-			Dos9_ShowErrorMessage(DOS9_EXPECTED_MORE, "IF", FALSE);
+			Dos9_ShowErrorMessage(DOS9_EXPECTED_MORE, L"IF", FALSE);
 			Dos9_EsFree(lpComparison);
 			return -1;
 
@@ -329,7 +389,7 @@ int Dos9_CmdIf(char* lpParam)
 
 		} else {
 
-			if (!strnicmp(lpNext, ") ELSE (", sizeof(") ELSE (")-1)) {
+			if (!wcsncmp(lpNext, L") ELSE (", sizeof(") ELSE (")-1)) {
 
 				lpNext+=(sizeof(") ELSE (")-2);
 
@@ -340,7 +400,7 @@ int Dos9_CmdIf(char* lpParam)
 
 				} else {
 
-					Dos9_ShowErrorMessage(DOS9_EXPECTED_MORE, "IF", FALSE);
+					Dos9_ShowErrorMessage(DOS9_EXPECTED_MORE, L"IF", FALSE);
 
 				}
 			}
@@ -348,7 +408,7 @@ int Dos9_CmdIf(char* lpParam)
 
 	} else {
 
-		Dos9_ShowErrorMessage(DOS9_EXPECTED_MORE, "IF", FALSE);
+		Dos9_ShowErrorMessage(DOS9_EXPECTED_MORE, L"IF", FALSE);
 		return -1;
 
 	}

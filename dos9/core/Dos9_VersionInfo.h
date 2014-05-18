@@ -22,7 +22,7 @@
 
 #define DOS9_VERSION L"2014.0.9b"
 #define DOS9_AUTHORS L"Romain Garbi (DarkBatcher)"
-#define DOS9_BUILDDATE L##__DATE__
+#define DOS9_BUILDDATE L(__DATE__)
 #define DOS9_BUILDYEAR L"2014"
 #define DOS9_BUILDCOMMENTS L"Beta release"
 

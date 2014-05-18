@@ -357,8 +357,6 @@ LIBDOS9 int         Dos9_FormatFileSize (wchar_t* lpBuf, int iLenght, unsigned i
 LIBDOS9 short Dos9_MakeFileAttributes(const wchar_t* lpToken);
 LIBDOS9 int Dos9_CheckFileAttributes(short wAttr, const FILELIST* lpflList);
 
-LIBDOS9 char* Dos9_WcsToMbs(const wchar_t* lpIn);
-LIBDOS9 wchar_t* Dos9_MbsToWcs(const char* lpIn);
 LIBDOS9 int Dos9_GetConsoleEncoding(wchar_t* lpEnc, size_t iSize);
 
 LIBDOS9 int Dos9_FileExists(wchar_t* lpPath);

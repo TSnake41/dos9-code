@@ -28,7 +28,6 @@
 #include "Dos9_Core.h"
 #include "../errors/Dos9_Errors.h"
 
-#define L(x) L##x
 
 PARSED_STREAM_START* Dos9_ParseLine(ESTR* lpesLine)
 {
@@ -60,7 +59,7 @@ PARSED_STREAM_START* Dos9_ParseOutput(ESTR* lpesLine)
 	      	*lpSearchBegin,
 	      	*lpNextBlock;
 
-	wchar_t lpCorrect[]="1";
+	wchar_t lpCorrect[]=L"1";
 
 	wchar_t cChar;
 
@@ -196,7 +195,7 @@ PARSED_STREAM_START* Dos9_ParseOutput(ESTR* lpesLine)
 
 			}
 
-			if (!(lppssStart->lpOutputFile=strdup(Dos9_EsToChar(lpesParam)))) {
+			if (!(lppssStart->lpOutputFile=wcsdup(Dos9_EsToChar(lpesParam)))) {
 
 				Dos9_FreeLine(lppssStart);
 
@@ -235,7 +234,7 @@ PARSED_STREAM_START* Dos9_ParseOutput(ESTR* lpesLine)
 
 			}
 
-			if (!(lppssStart->lpInputFile=strdup(Dos9_EsToChar(lpesParam)))) {
+			if (!(lppssStart->lpInputFile=wcsdup(Dos9_EsToChar(lpesParam)))) {
 
 				Dos9_FreeLine(lppssStart);
 

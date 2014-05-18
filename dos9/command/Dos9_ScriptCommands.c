@@ -25,11 +25,14 @@
 #include <ctype.h>
 #include <string.h>
 #include <errno.h>
+#include <wchar.h>
+#include <wctype.h>
 
 #include <matheval.h>
 #include <inteval.h>
 
 #include <libDos9.h>
+#include <libw.h>
 
 #include "../core/Dos9_Core.h"
 
@@ -54,16 +57,16 @@ extern char** environ;
 
 
 
-int Dos9_CmdEcho(char* lpLine)
+int Dos9_CmdEcho(wchar_t* lpLine)
 {
 
 	ESTR* lpEsParameter;
 
 	lpLine+=4;
 
-	if (*lpLine!=' '
-	    && !ispunct(*lpLine)
-	    && *lpLine!='\0') {
+	if (*lpLine!=L' '
+	    && !iswpunct(*lpLine)
+	    && *lpLine!=L'\0') {
 
 		Dos9_ShowErrorMessage(DOS9_COMMAND_ERROR, lpLine-4, FALSE);
 		return -1;
@@ -72,7 +75,7 @@ int Dos9_CmdEcho(char* lpLine)
 
 	lpEsParameter=Dos9_EsInit();
 
-	if (ispunct(*lpLine)) {
+	if (iswpunct(*lpLine)) {
 
 		Dos9_GetEndOfLine(lpLine+1, lpEsParameter);
 		puts(Dos9_EsToChar(lpEsParameter));
@@ -80,15 +83,15 @@ int Dos9_CmdEcho(char* lpLine)
 
 	} else if (Dos9_GetNextParameterEs(lpLine, lpEsParameter)) {
 
-		if (!stricmp(Dos9_EsToChar(lpEsParameter), "OFF")) {
+		if (!wcscasecmp(Dos9_EsToChar(lpEsParameter), L"OFF")) {
 
 			bEchoOn=FALSE;
 
-		} else if (!stricmp(Dos9_EsToChar(lpEsParameter) , "ON")) {
+		} else if (!wcscasecmp(Dos9_EsToChar(lpEsParameter), L"ON")) {
 
 			bEchoOn=TRUE;
 
-		} else if (!strcmp(Dos9_EsToChar(lpEsParameter), "/?")) {
+		} else if (!wcscmp(Dos9_EsToChar(lpEsParameter), L"/?")) {
 
 			Dos9_ShowInternalHelp(DOS9_HELP_ECHO);
 
@@ -102,8 +105,8 @@ int Dos9_CmdEcho(char* lpLine)
 	} else {
 
 		/* si rien n'est entré on affiche l'état de la commannd echo */
-		if (bEchoOn) puts(lpMsgEchoOn);
-		else puts(lpMsgEchoOff);
+		if (bEchoOn) putws(lpMsgEchoOn);
+		else putws(lpMsgEchoOff);
 
 	}
 
@@ -113,27 +116,27 @@ int Dos9_CmdEcho(char* lpLine)
 	return 0;
 }
 
-int Dos9_CmdExit(char* lpLine)
+int Dos9_CmdExit(wchar_t* lpLine)
 {
-	char lpArg[]="-3000000000";
-	char* lpNextToken;
+	wchar_t lpArg[]=L"-3000000000";
+	wchar_t* lpNextToken;
 
 	if ((lpNextToken=Dos9_GetNextParameter(lpLine+4, lpArg, 11))) {
 
-		if (!stricmp(lpArg, "/?")) {
+		if (!wcscmp(lpArg, L"/?")) {
 
 			Dos9_ShowInternalHelp(DOS9_HELP_EXIT);
 			return 0;
 
-		} else if (!stricmp(lpArg, "/b")) {
+		} else if (!wcscasecmp(lpArg, L"/b")) {
 
 			if ((lpNextToken=Dos9_GetNextParameter(lpNextToken, lpArg, 11))) {
 
-				exit(atoi(lpArg));
+				exit(wtoi(lpArg));
 
 			} else {
 
-				Dos9_ShowErrorMessage(DOS9_UNEXPECTED_ELEMENT, "/b", FALSE);
+				Dos9_ShowErrorMessage(DOS9_UNEXPECTED_ELEMENT, L"/b", FALSE);
 				return 1;
 
 			}
@@ -145,19 +148,22 @@ int Dos9_CmdExit(char* lpLine)
 
 		}
 	}
+
 	exit(0);
+
 	return 0;
 }
 
-int Dos9_CmdPause(char* lpLine)
+int Dos9_CmdPause(wchar_t* lpLine)
 {
-	if (!strcmp(lpLine+6, "/? ")) {
+	if (!wcscmp(lpLine+6, L"/? ")) {
 
 		Dos9_ShowInternalHelp(DOS9_HELP_PAUSE);
 		return 0;
 	}
 
-	puts(lpMsgPause);
+	putws(lpMsgPause);
+
 	getch();
 
 	return 0;
@@ -166,7 +172,6 @@ int Dos9_CmdPause(char* lpLine)
 double _Dos9_SetGetVarFloat(const char* lpName)
 {
 	char* lpContent;
-
 	lpContent=getenv(lpName);
 
 	if (lpContent) {
@@ -182,6 +187,7 @@ double _Dos9_SetGetVarFloat(const char* lpName)
 		} else {
 
 			return atof(lpContent);
+
 		}
 
 	} else {
@@ -195,7 +201,6 @@ double _Dos9_SetGetVarFloat(const char* lpName)
 int _Dos9_SetGetVarInt(const char* lpName)
 {
 	char* lpContent;
-
 	lpContent=getenv(lpName);
 
 	if (lpContent) {
@@ -212,15 +217,15 @@ int _Dos9_SetGetVarInt(const char* lpName)
 
 int Dos9_CmdSet(char *lpLine)
 {
-	char lpArgBuf[5],
-	     *lpArg=lpArgBuf;
+	wchar_t lpArgBuf[5],
+			*lpArg=lpArgBuf;
 
-	char *lpNextToken;
+	wchar_t *lpNextToken;
 
 	int i,
 	    bFloats;
 
-	if ((lpNextToken=Dos9_GetNextParameter(lpLine+3, lpArgBuf, sizeof(lpArgBuf)))) {
+	if ((lpNextToken=Dos9_GetNextParameter(lpLine+3, lpArgBuf, sizeof(lpArgBuf)/sizeof(wchar_t)))) {
 
 		if (!stricmp(lpArg, "/?")) {
 
@@ -278,12 +283,11 @@ error:
 }
 
 /* simple set */
-int Dos9_CmdSetS(char* lpLine)
+int Dos9_CmdSetS(wchar_t* lpLine)
 {
 	ESTR* lpEsVar=Dos9_EsInit();
 
-	while (*lpLine==' ' || *lpLine=='\t')
-		lpLine++;
+	lpLine=Dos9_SkipBlanks(lpLine);
 
 	Dos9_GetEndOfLine(lpLine, lpEsVar);
 
@@ -305,31 +309,31 @@ error:
 
 }
 
-int Dos9_CmdSetP(char* lpLine)
+int Dos9_CmdSetP(wchar_t* lpLine)
 {
 
 	ESTR* lpEsVar=Dos9_EsInit();
 	ESTR* lpEsInput=Dos9_EsInit();
-	char* lpEqual;
+	wchar_t* lpEqual;
 
-	while (*lpLine==' ' || *lpLine=='\t') lpLine++;
+	lpLine=Dos9_SkipBlanks(lpLine);
 
 	Dos9_GetEndOfLine(lpLine, lpEsVar);
 
-	if ((lpEqual=strchr(Dos9_EsToChar(lpEsVar), '='))) {
+	if ((lpEqual=wcschr(Dos9_EsToChar(lpEsVar), L'='))) {
 
-		*lpEqual='\0';
+		*lpEqual=L'\0';
 		lpEqual++;
 
-		puts(lpEqual);
+		putws(lpEqual);
 
 		Dos9_EsGet(lpEsInput, stdin);
 
-		Dos9_EsCat(lpEsVar, "=");
+		Dos9_EsCat(lpEsVar, L"=");
 		Dos9_EsCatE(lpEsVar, lpEsInput);
 
-		if ((lpEqual=strchr(Dos9_EsToChar(lpEsVar), '\n')))
-			*lpEqual='\0';
+		if ((lpEqual=wcschr(Dos9_EsToChar(lpEsVar), L'\n')))
+			*lpEqual=L'\0';
 
 		if (Dos9_PutEnv(Dos9_EsToChar(lpEsVar))) {
 
@@ -361,7 +365,7 @@ error:
 	return -1;
 }
 
-int Dos9_CmdSetA(char* lpLine, int bFloats)
+int Dos9_CmdSetA(wchar_t* lpLine, int bFloats)
 {
 
 	ESTR* lpExpression=Dos9_EsInit();
@@ -400,35 +404,37 @@ error:
 
 int Dos9_CmdSetEvalFloat(ESTR* lpExpression)
 {
-	void* evaluator; /* an evaluator for libmatheval-Dos9 */
-	char *lpVarName,
-	     *lpEqual,
-	     lpResult[30];
-	char  cLeftAssign=0;
-	double dResult,
-	       dVal;
+	void* 	evaluator; /* an evaluator for libmatheval-Dos9 */
+	wchar_t *lpVarName,
+			*lpEqual,
+			lpResult[30];
+
+	char  	cLeftAssign=0;
+
+	double 	dResult,
+	       	dVal;
 
 	lpVarName=Dos9_EsToChar(lpExpression);
 
-	while (*lpVarName==' ' || *lpVarName=='\t') lpVarName++;
+	lpVarName=Dos9_SkipBlanks(lpVarName);
 
 	/* if we don't have expression, end-up with an error */
 	if (!*lpVarName) {
 
-		Dos9_ShowErrorMessage(DOS9_EXPECTED_MORE, "SET", FALSE);
+		Dos9_ShowErrorMessage(DOS9_EXPECTED_MORE, L"SET", FALSE);
 		goto error;
 
 	}
 
 	/* seek an '=' sign */
-	if (!(lpEqual=strchr(lpVarName, '='))) {
+	if (!(lpEqual=strchr(lpVarName, L'='))) {
 
 		Dos9_ShowErrorMessage(DOS9_INVALID_EXPRESSION, lpVarName, FALSE);
 		goto error;
 
 	}
 
-	*lpEqual='\0';
+	*lpEqual=L'\0';
 
 	/* seek a sign like '+=', however, '' might be a valid environment
 	   variable name depending on platform */
@@ -454,29 +460,29 @@ int Dos9_CmdSetEvalFloat(ESTR* lpExpression)
 
 	switch (cLeftAssign) {
 
-		case '*':
-		case '/':
-		case '+':
-		case '-':
-			*(lpEqual-1)='\0';
+		case L'*':
+		case L'/':
+		case L'+':
+		case L'-':
+			*(lpEqual-1)=L'\0';
 			/* get the value of the variable */
 			dVal=_Dos9_SetGetVarFloat(lpVarName);
 
 			switch(cLeftAssign) {
 
-				case '*':
+				case L'*':
 					dVal*=dResult;
 					break;
 
-				case '/':
+				case L'/':
 					dVal/=dResult;
 					break;
 
-				case '+':
+				case L'+':
 					dVal+=dResult;
 					break;
 
-				case '-':
+				case L'-':
 					dVal-=dResult;
 
 			}
@@ -488,7 +494,7 @@ int Dos9_CmdSetEvalFloat(ESTR* lpExpression)
 
 	}
 
-	snprintf(lpResult, sizeof(lpResult), "=%.16g", dVal);
+	snwprintf(lpResult, sizeof(lpResult), L"=%.16g", dVal);
 
 	Dos9_EsCat(lpExpression, lpResult);
 
@@ -670,10 +676,10 @@ error:
 	return -1;
 }
 
-int Dos9_CmdSetLocal(char* lpLine)
+int Dos9_CmdSetLocal(wchar_t* lpLine)
 {
 	char lpName[FILENAME_MAX];
-	char* lpNext=lpLine+8;
+	wchar_t* lpNext=lpLine+8;
 
 	while ((lpNext=Dos9_GetNextParameter(lpNext, lpName, FILENAME_MAX))) {
 
@@ -727,7 +733,7 @@ int Dos9_CmdSetLocal(char* lpLine)
 	return 0;
 }
 
-int Dos9_CmdHelp(char* lpLine)
+int Dos9_CmdHelp(wchar_t* lpLine)
 {
 
 	puts(lpHlpDeprecated);
@@ -735,7 +741,7 @@ int Dos9_CmdHelp(char* lpLine)
 
 }
 
-int Dos9_CmdRem(char* lpLine)
+int Dos9_CmdRem(wchar_t* lpLine)
 {
 	/* well a help message for this function is included,
 	   however, is it really usefull, because, logically,
@@ -750,7 +756,7 @@ int Dos9_CmdRem(char* lpLine)
 }
 
 
-int Dos9_CmdCls(char* lpLine)
+int Dos9_CmdCls(wchar_t* lpLine)
 {
 	char lpArg[4];
 
@@ -775,7 +781,7 @@ int Dos9_CmdCls(char* lpLine)
 	return 0;
 }
 
-int Dos9_CmdColor(char* lpLine)
+int Dos9_CmdColor(wchar_t* lpLine)
 {
 	char lpArg[4];
 
@@ -801,7 +807,7 @@ int Dos9_CmdColor(char* lpLine)
 	return 0;
 }
 
-int Dos9_CmdTitle(char* lpLine)
+int Dos9_CmdTitle(wchar_t* lpLine)
 {
 	char lpArg[3];
 	ESTR* lpEsTitle=Dos9_EsInit();
@@ -831,7 +837,7 @@ int Dos9_CmdTitle(char* lpLine)
 	return -1;
 }
 
-int Dos9_CmdType(char* lpLine)
+int Dos9_CmdType(wchar_t* lpLine)
 {
 	char lpFileName[FILENAME_MAX];
 	FILE* pFile;
@@ -855,11 +861,11 @@ int Dos9_CmdType(char* lpLine)
 	return -1;
 }
 
-int Dos9_CmdGoto(char* lpLine)
+int Dos9_CmdGoto(wchar_t* lpLine)
 {
 	char lpLabelName[FILENAME_MAX];
 	char lpFileName[FILENAME_MAX];
-	char* lpFile=NULL;
+	wchar_t* lpFile=NULL;
 	int bEchoError=TRUE;
 
 	lpLine+=4;
@@ -941,9 +947,9 @@ int Dos9_CmdGoto(char* lpLine)
 	return 0;
 }
 
-int Dos9_CmdCd(char* lpLine)
+int Dos9_CmdCd(wchar_t* lpLine)
 {
-	char* lpNext;
+	wchar_t* lpNext;
 	ESTR* lpEsDir=Dos9_EsInit();
 
 	if (!(lpLine=strchr(lpLine, ' '))) {
@@ -1041,10 +1047,10 @@ error:
 	return -1;
 }
 
-int Dos9_CmdBlock(char* lpLine)
+int Dos9_CmdBlock(wchar_t* lpLine)
 {
 	BLOCKINFO bkCode;
-	char* lpToken;
+	wchar_t* lpToken;
 	ESTR* lpNextBlock=Dos9_EsInit();
 
 	Dos9_GetNextBlockEs(lpLine, lpNextBlock);
@@ -1082,7 +1088,7 @@ int Dos9_CmdBlock(char* lpLine)
 	return iErrorLevel;
 }
 
-int Dos9_CmdShift(char* lpLine)
+int Dos9_CmdShift(wchar_t* lpLine)
 {
 	ESTR* lpEsArg=Dos9_EsInit();
 	char *lpToken;

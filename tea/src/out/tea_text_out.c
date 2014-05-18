@@ -189,7 +189,8 @@ void Tea_TextOutputParagraph(size_t iMargin, size_t iFirstLine, size_t iLength, 
 
 				while (iLeft) {
 
-					lpNext=Dos9_GetNextChar(lpBlock);
+					fputwc(*lpBlock, pFile);
+					lpBlock++;
 
 					while (lpBlock < lpNext) {
 

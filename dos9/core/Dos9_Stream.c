@@ -35,8 +35,6 @@
 //#define DOS9_DBG_MODE
 #include "Dos9_Debug.h"
 
-#define L(x) L##x
-
 void Dos9_DumpStreamStack(LPSTREAMSTACK lppsStack)
 {
 	STREAMLVL* lpLvl;
@@ -49,7 +47,8 @@ void Dos9_DumpStreamStack(LPSTREAMSTACK lppsStack)
 
 		if (lpLvl) {
 
-			fwprintf(stderr, L"\tElement :\n"
+			fwprintf(stderr,
+					 L"\tElement :\n"
 			         L"\t\t- iPopLock = %d\n"
 			         L"\t\t- iPipeIndicator = %d\n"
 			         L"\t\t- iFreeDescriptors = {%d,%d,%d}\n"

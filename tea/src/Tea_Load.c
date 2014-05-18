@@ -46,8 +46,8 @@ TEAPAGE*    Tea_PageLoad(const char* lpFilename, LP_PARSE_HANDLER pHandler)
 	/* récupération de tout le contenu du fichier */
 	while (!(Dos9_EsGet(lpEstr, pFile))) {
 
-		if ((_Dos9_TextMode==DOS9_UTF8_ENCODING)
-		    && (!strncmp(Dos9_EsToChar(lpEstr), "\xEF\xBB\xBF", 3))
+		/* fixme : Take account of the actual encoding of the file */
+		if ((!strncmp(Dos9_EsToChar(lpEstr), "\xEF\xBB\xBF", 3))
 		    && (iFirstline)) {
 
 			if (*(Dos9_EsToChar(lpEstr)+3)!='#')

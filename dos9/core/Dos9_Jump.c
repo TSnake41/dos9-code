@@ -24,6 +24,8 @@
 #include <string.h>
 #include <wchar.h>
 
+#include <libw.h>
+
 int Dos9_JumpToLabel(wchar_t* lpLabelName, wchar_t* lpFileName)
 {
 	size_t iSize=wcslen(lpLabelName);

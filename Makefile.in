@@ -7,8 +7,8 @@
 # version.
 #
 
-DOS9_COMPONENTS=libDos9 libinteval libmatheval-dos9 dos9 tea dump po scripts
-DOS9_CLEAN=libDos9 libinteval libmatheval-dos9 dos9 tea dump
+DOS9_COMPONENTS=libw libDos9 libinteval libmatheval-dos9 dos9 tea dump po scripts
+DOS9_CLEAN=libDos9 libinteval libmatheval-dos9 dos9 tea dump libw
 BUILD_TREE=bin${arch} bin${arch}/cmd bin${arch}/share bin${arch}/share \
 	   bin${arch}/share/man include lib 
 

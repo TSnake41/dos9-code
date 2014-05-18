@@ -27,6 +27,8 @@
 #include <libintl.h>
 #include <libDos9.h>
 
+#include <libw.h>
+
 const wchar_t* lpIntroduction;
 
 const wchar_t* lpMsgEchoOn;
@@ -69,9 +71,8 @@ void Dos9_LoadStrings(void)
 {
 	/* this loads strings */
 	wchar_t lpwPath[FILENAME_MAX];
+	wchar_t lpwSharePath[FILENAME_MAX];
 	char* lpPath;
-	char lpSharePath[FILENAME_MAX];
-	char lpSharePath[FILENAME_MAX];
 	char lpEncoding[15]="UTF-16LE"; /* this is incompatible with various
 									   operating systems, but why not use
 									   built-in functionnalities */
@@ -80,20 +81,20 @@ void Dos9_LoadStrings(void)
 
 	//Dos9_GetConsoleEncoding(lpEncoding, sizeof(lpEncoding));
 
-	if (lpPath=Dos9_WcsToMbs(lpwPath)) {
+	snwprintf(lpwSharePath, FILENAME_MAX, L"%s/share/locale", lpwPath);
+
+	if (lpPath=libw_wcstombs(lpwSharePath)) {
 
 		/* the string can be translated to mbs */
-
-		snprintf(lpSharePath, FILENAME_MAX, "%s/share/locale", lpPath);
+		bindtextdomain("Dos9-msg", lpPath);
 		free(lpPath);
 
 	} else {
 
-		strcpy(lpSharePath, "/share/locale");
+		bindtextdomain("Dos9-msg", "/share/locale");
 
 	}
 
-	bindtextdomain("Dos9-msg", lpSharePath);
 	bind_textdomain_codeset("Dos9-msg", lpEncoding);
 	textdomain("Dos9-msg");
 

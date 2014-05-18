@@ -43,6 +43,7 @@ AC_CONFIG_FILES([Makefile
                 libDos9/Makefile
                 libinteval/Makefile
                 libmatheval-dos9/Makefile
+				libw/Makefile
                 dos9/Makefile
                 tea/Makefile
                 dump/Makefile

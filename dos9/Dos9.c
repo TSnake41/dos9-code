@@ -35,6 +35,8 @@
 
 #include <libDos9.h>
 
+#include <libw.h>
+
 #include "errors/Dos9_Errors.h"
 
 #include "lang/Dos9_Lang.h"
