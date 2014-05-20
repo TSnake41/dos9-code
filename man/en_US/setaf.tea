@@ -1,0 +1,241 @@
+#
+#   Dos9 Manual pages, The Dos9 project
+#   Copyright (C) 2012-2013  Romain Garbi (DarkBatcher)
+#
+#   This program is free software: you can redistribute it and/or modify
+#   it under the terms of the GNU General Public License as published by
+#   the Free Software Foundation, either version 3 of the License, or
+#   (at your option) any later version.
+#
+#   This program is distributed in the hope that it will be useful,
+#   but WITHOUT ANY WARRANTY; without even the implied warranty of
+#   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#   GNU General Public License for more details.
+#
+#   You should have received a copy of the GNU General Public License
+#   along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+
+
+{{SET command (/A)(floats)}} 
+
+	{SET /A} command compute {arithmetical expression} and assign its result to a
+	variable.
+
+	This manual page deals only with usage of floating numbers for {SET /A} command.
+	To see manual for {SET}, see {set|SET}. To see manual page about integers and
+	{SET /A}, see {setai|SET (/A)(integers)}.
+	
+{{Synopsis}}
+
+${	SET [/a | /a[:]f] variable=expression}
+
+   Computes {expression} and assign its result to {variable}. The
+   behaviour of the command depends on mode set through {setlocal|SETLOCAL}.
+   
+   The {=} operator can be replaced by one of the following operators:
+   
+		- {+=} : Add result to {variable}.
+		
+		- {-=} : Substract result to {variable}
+		
+		- {*=} : Multiply {variable} by result.
+		
+		- {/=} : Divide {variable} by result.
+
+	  
+{{Operators}}
+	   
+	   The {arithmetic expression} must be constituted of a sequence of operators and operands. Each operand
+	   must be conected to next operant by an operator.
+	   
+	   Operators that can be used with {floats} are :
+	   
+			- {+} : Addition.
+	   
+			- {-} : Substraction.
+	   
+			- {*} : Product.
+	   
+			- {/} : Division.
+			
+			- {^} : Raise to a power.
+			
+			- {%} : Modulo (remainder of a float division).
+			
+		Both product, division and modulo have precedence over addition and substraction. This can obviously
+		be overriden by using parenthesis.
+		
+		It il also possible to specify unary operators, that is, operators that affects only next operator
+		to the right. These are:
+		
+			- {-} : Negative signum.
+			
+		Unary operators have the highest priority.
+			
+{{Mathematic functions}}
+			
+	On top of that, mathematic function can also be specified. To specify a methematical
+	function, its argument must be enclosed within parenthesis. For instance:
+		
+${fonction(expression)}
+
+	Available functions are:
+	
+		- {exp} : exponential.
+		
+		- {log} : base-e logarithme.
+		
+		- {log10} : base-10 logarithme.
+		
+		- {sqrt} : square root.
+		
+		- Trigonometric functions :
+		
+		-- {sin} : sine.
+		
+		-- {cos} : cosine.
+		
+		-- {tan} : tangent.
+		
+		-- {cot} : cotangent.
+		
+		-- {sec} : secant.
+		
+		-- {csc} : cosecant.
+		
+		- Inverse trigonometric functions :
+		
+		-- {asin} : arc sine.
+		
+		-- {acos} : arc cosine.
+		
+		-- {atan} : arc tangent.
+		
+		-- {acot} : arc cotangent.
+		
+		-- {acec} : arc secant.
+		
+		-- {acsc} : arc cosecant.
+		
+		- Hyperbolic functions :
+		
+		-- {sinh} : Hyperbolic sine.
+		
+		-- {cosh} : Hyperbolic cosine.
+		
+		-- {tanh} : Hyperbolic tangent.
+		
+		-- {coth} : Hyperbolic cotangent.
+		
+		-- {sech} : Hyperbolic secant.
+		
+		-- {csch} : Hyperbolic cosecant.
+		
+		- Inverse hyperbolic functions :
+		
+		-- {asinh} : Argument hyperbolic sine.
+		
+		-- {acosh} : Argument hyperbolic cosine.
+		
+		-- {atanh} : Argument hyperbolic tangent.
+		
+		-- {acoth} : Argument hyperbolic cotangent.
+		
+		-- {acech} : Argument hyperbolic secant.
+		
+		-- {acsch} : Argument hyperbolic cosecant.
+		
+		- {abs} : Absolute value.
+		
+		- {step} : Step function.
+		
+		- {delta} : Dirac's function with infinite positive value on {x=0}.
+		
+		- {nandelta} : Dirac's function with {NAN} on {x=0}.
+			
+{{Constants}}
+
+	Finally, mathematical constants are also defined. These are :
+			
+		- {e}
+		
+		- {log2e} : log2(e)
+		
+		- {log10e} : log10(e)
+
+		- {ln2} : ln(2)
+		
+		- {ln10} : ln(10)
+		
+		- {pi}
+		
+		- {pi_2} : pi/2
+		
+		- {pi_4} : pi/4
+		
+		- {1_pi} : 1/pi
+		
+		- {2_pi} : 2/pi
+		
+		- {2_sqrtpi} : 2/sqrt(pi}
+		
+		- {sqrt2} : sqrt(2)
+		
+		- {sqrt1_2} : sqrt(1/2), or 1/sqrt(2) or sqrt(2)/2.
+
+{{Special Numbers}}
+
+	Special numbers are values that are not numbers but that are dealt with as
+	if they were. These values are derived from IEEE standards on float computations
+	There is two of them supported by {dos9|Dos9}.
+	
+		- {inf} (INFINITY) : Infinite value. For instance, this value can be obtained through an overflow
+		or a division by 0.
+		
+		- {nan} (NotANumber) : Undefined valuee. For instance, this valude can be obtained by calling
+		a function where it is not defined.
+
+{{Precision}}
+
+	Whearas integer are traditionnaly bound between  {-2 147 483 648} and {+2 147 483 647}, floats can store
+	values in a range between {-2 147 483 648} and {+2 147 483 647} (in absolute value). Floats have
+	nevertheless a limited precision (about 16 significant figures). Computations are thus approximate, and
+	values are round to nearest valid value.
+	
+{{Usual bugs}}
+
+	One of the mose frequent bug is cause by the limited precision of floats. Indeed, this limited precision
+	can lead to associativity issue (computation must be done in a given order) during computation involving
+	very different order of magnitude. As an example we can give :
+	Le premier des bogues fréquents est du au fait que la précision des nombres flotants est réduite. En effet,
+	
+${(2*10^60+1)-2*10^60)}
+
+	If this expression was evaluated using floating numbers, the result would surprisingly be 0 although it is
+	obviously 1. The issue is that {2*10^60} is much greater than {1} and so {2*10^60+1} is rounded to {2*10^60},
+	that explains the result of evaluation. This can be fixed by the following code:
+	
+${2*10^60-2*10^60+1}
+
+	Another issue resides on comparison of two floating numbers. Indeed, approximations made during evaluation may
+	lead to distinct results (even if they are actually really close) for expression that are rigorously the same.
+	Such an example is {1/3*3} which would be evaluated to {0.9999999...} instead of {1}. This kind of errors
+	can be avoided through {FEQ} using {if|IF command}
+			
+{{Notes}}
+	
+	This command use a modified version of the {GNU libmatheval} library.
+
+{{Compatibility}}
+
+	Available since version {0.7.1.0}. Before that, expression support was not complete.
+	Version {0.7.1.0} did support operator neither {%} operator nor {log} function. Previous
+	version only supported simplified version of expressions.
+
+	Not compatible with {cmd.exe}. Indeed, {cmd.exe} do not support expressions using floating
+	numbers.
+	
+{{See also}}
+
+	{set|SET command}, {setai|SET command (/a)(integers)}

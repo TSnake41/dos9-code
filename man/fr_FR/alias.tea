@@ -1,0 +1,43 @@
+{{Commande ALIAS}}
+
+	La commande {ALIAS} permet de définir un alias sur une commande. 
+	Concrètement, cela permet de définir une nouvelle commande (avec un nouveau
+	nom) qui fait référence à une commande déjà existante.
+	
+	Cela permet d'assurer une plus grande compatibilité des commandes et
+	de raccourcir la quantité de texte à taper en introduisant des 
+	abréviations.
+	
+{{Synopsis}}
+	
+	${ALIAS [/f] nom=équivalent}
+	
+	Définit un alias.
+	
+		- {nom} : Le nom de l'alias à définir. C'est ce nom qui sera remplacé
+		lors de l'exécution des commandes (seulement s'il s'agit du nom de
+		commande).
+		
+		- {équivalent} : La commande qui sera réellement exécutée si le nom de
+		commande {nom} est entré.
+		
+		- {/f} : Force la définition de l'alias. Par défaut, l'alias n'est pas
+		défini si il existe déjà une référence de commande interne sur la
+		commande {nom}, il est donc impossible de redéfinir une commande
+		interne ou externe. Si {/f} est spécifié, alors il est possible de
+		redéfinir toutes les commandes internes déjà définies (peu-importe le
+		type,, on peut donc redéfinir une commande interne). Redéfinir une
+		commande interne peut être intéressant afin d'instaurer une meilleure
+		version de cette commande.
+		
+{{Compatibilité}}
+
+	Incompatible avec {cmd.exe}, cette commande est spécifique à {dos9|Dos9}.
+	
+	Disponible depuis la version {2014.0.9b}.
+	
+{{À voir aussi}}
+
+	{dos9|Dos9}, {commands|Liste des commandes}, {shift|Commande SHIFT}
+	
+	

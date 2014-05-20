@@ -51,8 +51,8 @@ int Dos9_GetFilePath(wchar_t* lpFullPath, const wchar_t* lpPartial, size_t iBufS
 #endif // WIN32
 
 	DOS9_DBG(L"[Dos9_GetFilePath()]*** Start research of file : \"%s\"\n\n", lpPartial);
-	DOS9_DBG(L"[Dos9_GetFilePath()] PATH variable content=[\n%s\n]\n\n", wgetenv("PATH"));
-	DOS9_DBG(L"[Dos9_GetFilePath()] PATHEXT variable content=[\n%s\n]\n\n", wgetenv("PATHEXT"));
+	DOS9_DBG(L"[Dos9_GetFilePath()] PATH variable content=[\n%s\n]\n\n", wgetenv(L"PATH"));
+	DOS9_DBG(L"[Dos9_GetFilePath()] PATHEXT variable content=[\n%s\n]\n\n", wgetenv(L"PATHEXT"));
 
 	do {
 
@@ -212,7 +212,7 @@ wchar_t* Dos9_GetLastChar(ESTR* lpReturn)
 
 	wchar_t* lpCh=Dos9_EsToChar(lpReturn);
 
-	if (*lpCh=='\0')
+	if (*lpCh==L'\0')
 		return lpCh;
 
 	while (*(lpCh+1))

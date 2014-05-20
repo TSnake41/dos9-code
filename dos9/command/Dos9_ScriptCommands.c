@@ -169,24 +169,25 @@ int Dos9_CmdPause(wchar_t* lpLine)
 	return 0;
 }
 
-double _Dos9_SetGetVarFloat(const char* lpName)
+double _Dos9_SetGetVarFloatW(const wchar_t* lpwName)
 {
-	char* lpContent;
-	lpContent=getenv(lpName);
+	wchar_t* lpContent;
+
+	lpContent=wgetenv(lpwName);
 
 	if (lpContent) {
 
-		if (!strcmp(lpContent, "nan")) {
+		if (!wcscmp(lpContent, L"nan")) {
 
 			return NAN;
 
-		} else if (!strcmp(lpContent, "inf")) {
+		} else if (!wcscmp(lpContent, L"inf")) {
 
 			return INFINITY;
 
 		} else {
 
-			return atof(lpContent);
+			return wtof(lpContent);
 
 		}
 
@@ -198,14 +199,40 @@ double _Dos9_SetGetVarFloat(const char* lpName)
 
 }
 
-int _Dos9_SetGetVarInt(const char* lpName)
+
+double _Dos9_SetGetVarFloat(const char* lpName)
 {
-	char* lpContent;
-	lpContent=getenv(lpName);
+	wchar_t	*lpwName;
+	double	*iRet;
+
+	if (!(lpwName=libw_mbstowcs(lpName))) {
+
+		Dos9_ShowErrorMessage(DOS9_FAILED_CONVERSION,
+							  L(__FILE__) "/_Dos9_SetGetVarFloat",
+							  FALSE
+							  );
+
+		return -1;
+
+	}
+
+	iRet=_Dos9_SetGetVarFloatW(lpwName);
+
+	free(lpwName);
+
+	return iRet;
+
+}
+
+int _Dos9_SetGetVarIntW(const wchar_t* lpwName)
+{
+	wchar_t* lpContent;
+
+	lpContent=wgetenv(lpwName);
 
 	if (lpContent) {
 
-		return atoi(lpContent);
+		return wtoi(lpContent);
 
 	} else {
 
@@ -215,7 +242,30 @@ int _Dos9_SetGetVarInt(const char* lpName)
 
 }
 
-int Dos9_CmdSet(char *lpLine)
+int _Dos9_SetGetVarInt(const char* lpName)
+{
+	wchar_t* lpwName;
+	int 	 iRet;
+
+	if (!(lpwName=libw_mbtowc(lpName))) {
+
+		Dos9_ShowErrorMessage(DOS9_FAILED_CONVERSION,
+								L(__FILE__) "/_Dos9_SetGetVarInt",
+								FALSE
+								);
+
+		return -1;
+
+	}
+
+	iRet=_Dos9_SetGetVarIntW(lpwName);
+
+	free(lpwName);
+
+	return iRet;
+}
+
+int Dos9_CmdSet(wchar_t *lpLine)
 {
 	wchar_t lpArgBuf[5],
 			*lpArg=lpArgBuf;
@@ -227,27 +277,27 @@ int Dos9_CmdSet(char *lpLine)
 
 	if ((lpNextToken=Dos9_GetNextParameter(lpLine+3, lpArgBuf, sizeof(lpArgBuf)/sizeof(wchar_t)))) {
 
-		if (!stricmp(lpArg, "/?")) {
+		if (!wcscmp(lpArg, L"/?")) {
 
 			Dos9_ShowInternalHelp(DOS9_HELP_SET);
 			goto error;
 
-		} else if (!strnicmp(lpArg,"/a", 2)) {
+		} else if (!wcsncasecmp(lpArg, L"/a", 2)) {
 
 			lpArg+=2;
 
 			bFloats=bUseFloats;
 			/* use mode set through setlocal */
 
-			if (*lpArg==':') lpArg++;
+			if (*lpArg==L':') lpArg++;
 
-			switch (toupper(*lpArg)) {
+			switch (towupper(*lpArg)) {
 
-				case 'F' :
+				case L'F' :
 					bFloats=TRUE;
 					break;
 
-				case 'I' :
+				case L'I' :
 					bFloats=FALSE;
 			}
 
@@ -255,7 +305,7 @@ int Dos9_CmdSet(char *lpLine)
 			if (Dos9_CmdSetA(lpNextToken, bFloats))
 				goto error;
 
-		} else if (!stricmp(lpArg, "/p")) {
+		} else if (!wcscasecmp(lpArg, L"/p")) {
 
 			if ((Dos9_CmdSetP(lpNextToken)))
 				goto error;
@@ -409,7 +459,9 @@ int Dos9_CmdSetEvalFloat(ESTR* lpExpression)
 			*lpEqual,
 			lpResult[30];
 
-	char  	cLeftAssign=0;
+	wchar_t cLeftAssign=0;
+
+	char*   lpExp;
 
 	double 	dResult,
 	       	dVal;
@@ -427,7 +479,7 @@ int Dos9_CmdSetEvalFloat(ESTR* lpExpression)
 	}
 
 	/* seek an '=' sign */
-	if (!(lpEqual=strchr(lpVarName, L'='))) {
+	if (!(lpEqual=wcschr(lpVarName, L'='))) {
 
 		Dos9_ShowErrorMessage(DOS9_INVALID_EXPRESSION, lpVarName, FALSE);
 		goto error;
@@ -444,13 +496,26 @@ int Dos9_CmdSetEvalFloat(ESTR* lpExpression)
 
 	}
 
+	if (!(lpExp=libw_wcstombs(lpEqual+1))) {
+
+		Dos9_ShowErrorMessage(DOS9_FAILED_CONVERSION,
+							  lpEqual+1,
+							  FALSE
+							  );
+
+		goto error;
+
+	}
+
 	/* create evaluator */
-	if (!(evaluator=evaluator_create(lpEqual+1))) {
+	if (!(evaluator=evaluator_create(lpExp))) {
 
 		Dos9_ShowErrorMessage(DOS9_INVALID_EXPRESSION, lpEqual+1, FALSE);
 		goto error;
 
 	}
+
+	free(lpExp)
 
 	dResult=evaluator_evaluate2(evaluator, _Dos9_SetGetVarFloat);
 
@@ -464,9 +529,10 @@ int Dos9_CmdSetEvalFloat(ESTR* lpExpression)
 		case L'/':
 		case L'+':
 		case L'-':
+
 			*(lpEqual-1)=L'\0';
 			/* get the value of the variable */
-			dVal=_Dos9_SetGetVarFloat(lpVarName);
+			dVal=_Dos9_SetGetVarFloatW(lpVarName);
 
 			switch(cLeftAssign) {
 
@@ -517,37 +583,40 @@ error:
 /* evaluate an interger expression */
 int Dos9_CmdSetEvalInt(ESTR* lpExpression)
 {
-	char *lpVarName,
-	     *lpEqual,
-	     lpResult[30];
-	char  cLeftAssign=0;
-	int   iResult,
-	      iVal,
-	      bDouble=FALSE;
+	wchar_t *lpVarName,
+			*lpEqual,
+	     	lpResult[30],
+			cLeftAssign=0;
 
-	Dos9_EsCat(lpExpression, "\n");
+	int		iResult,
+	      	iVal,
+	      	bDouble=FALSE;
+
+	char*	lpExp;
+
+	Dos9_EsCat(lpExpression, L"\n");
 
 	lpVarName=Dos9_EsToChar(lpExpression);
 
-	while (*lpVarName==' ' || *lpVarName=='\t') lpVarName++;
+	lpVarName=Dos9_SkipBlanks(lpVarName);
 
 	/* if we don't have expression, end-up with an error */
 	if (!*lpVarName) {
 
-		Dos9_ShowErrorMessage(DOS9_EXPECTED_MORE, "SET", FALSE);
+		Dos9_ShowErrorMessage(DOS9_EXPECTED_MORE, L"SET", FALSE);
 		goto error;
 
 	}
 
 	/* seek an '=' sign */
-	if (!(lpEqual=strchr(lpVarName, '='))) {
+	if (!(lpEqual=wcschr(lpVarName, L'='))) {
 
 		Dos9_ShowErrorMessage(DOS9_INVALID_EXPRESSION, lpVarName, FALSE);
 		goto error;
 
 	}
 
-	*lpEqual='\0';
+	*lpEqual=L'\0';
 
 	if (lpEqual != lpVarName) {
 
@@ -555,7 +624,20 @@ int Dos9_CmdSetEvalInt(ESTR* lpExpression)
 
 	}
 
-	iResult=IntEval_Eval(lpEqual+1);
+	if (!(lpExp=libw_wcstombs(lpEqual+1))) {
+
+		Dos9_ShowErrorMessage(DOS9_FAILED_CONVERSION,
+								lpEqual+1,
+								FALSE
+								);
+
+		goto error;
+
+	}
+
+	iResult=IntEval_Eval(lpExp);
+
+	free(lpExp);
 
 	if (IntEval_Error != INTEVAL_NOERROR) {
 
@@ -566,34 +648,34 @@ int Dos9_CmdSetEvalInt(ESTR* lpExpression)
 
 	switch(cLeftAssign) {
 
-		case '*':
-		case '/':
-		case '+':
-		case '-':
-		case '^':
+		case L'*':
+		case L'/':
+		case L'+':
+		case L'-':
+		case L'^':
 
-			*(lpEqual-1)='\0';
-			iVal=_Dos9_SetGetVarInt(lpVarName);
+			*(lpEqual-1)=L'\0';
+			iVal=_Dos9_SetGetVarIntW(lpVarName);
 
 			switch(cLeftAssign) {
 
-				case '*':
+				case L'*':
 					iVal*=iResult;
 					break;
 
-				case '/':
+				case L'/':
 					iVal/=iResult;
 					break;
 
-				case '+':
+				case L'+':
 					iVal+=iResult;
 					break;
 
-				case '-':
+				case L'-':
 					iVal/=iResult;
 					break;
 
-				case '^':
+				case L'^':
 					iVal^=iResult;
 					break;
 
@@ -601,21 +683,21 @@ int Dos9_CmdSetEvalInt(ESTR* lpExpression)
 
 			break;
 
-		case '&':
-		case '|':
+		case L'&':
+		case L'|':
 
 			/* more complicated, it need to be
 			   resolved */
 
-			*(lpEqual-1)='\0';
-			iVal=_Dos9_SetGetVarInt(lpVarName);
+			*(lpEqual-1)=L'\0';
+			iVal=_Dos9_SetGetVarIntW(lpVarName);
 
 			if (lpVarName != (lpEqual-1)) {
 
 				if (*(lpEqual-2) == cLeftAssign) {
 
 					bDouble=TRUE;
-					*(lpEqual-2)='\0';
+					*(lpEqual-2)=L'\0';
 
 				}
 
@@ -623,7 +705,7 @@ int Dos9_CmdSetEvalInt(ESTR* lpExpression)
 
 			switch (cLeftAssign) {
 
-				case '|':
+				case L'|':
 					if (bDouble) {
 
 						iVal=iVal || iResult;
@@ -636,7 +718,7 @@ int Dos9_CmdSetEvalInt(ESTR* lpExpression)
 
 					break;
 
-				case '&':
+				case L'&':
 					if (bDouble) {
 
 						iVal=iVal && iResult;
@@ -656,7 +738,7 @@ int Dos9_CmdSetEvalInt(ESTR* lpExpression)
 
 	}
 
-	snprintf(lpResult, sizeof(lpResult), "=%d", iVal);
+	snwprintf(lpResult, sizeof(lpResult), L"=%d", iVal);
 
 	Dos9_EsCat(lpExpression, lpResult);
 
@@ -678,41 +760,42 @@ error:
 
 int Dos9_CmdSetLocal(wchar_t* lpLine)
 {
-	char lpName[FILENAME_MAX];
+	wchar_t lpName[FILENAME_MAX];
 	wchar_t* lpNext=lpLine+8;
 
 	while ((lpNext=Dos9_GetNextParameter(lpNext, lpName, FILENAME_MAX))) {
 
-		if (!strcmp(lpName, "/?")) {
+		if (!wcscasecmp(lpName, L"/?")) {
 
 			Dos9_ShowInternalHelp(DOS9_HELP_SETLOCAL);
 			return 0;
 
-		} else if (!stricmp(lpName, "ENABLEDELAYEDEXPANSION")) {
+		} else if (!wcscasecmp(lpName, L"ENABLEDELAYEDEXPANSION")) {
 
 			bDelayedExpansion=TRUE;
 
-		} else if (!stricmp(lpName, "ENABLEFLOATS")) {
+		} else if (!wcscasecmp(lpName, L"ENABLEFLOATS")) {
 
 			bUseFloats=TRUE;
 
-		} else if (!stricmp(lpName, "CMDLYCORRECT")) {
+		} else if (!wcscasecmp(lpName, L"CMDLYCORRECT")) {
 
 			bCmdlyCorrect=TRUE;
 
-		} else if (!stricmp(lpName, "CMDLYINCORRECT")) {
+		} else if (!wcscasecmp(lpName, L"CMDLYINCORRECT")) {
 
 			bCmdlyCorrect=FALSE;
 
-		} else if (!stricmp(lpName, "DISABLEFLOATS")) {
+		} else if (!wcscasecmp(lpName, L"DISABLEFLOATS")) {
 
 			bUseFloats=FALSE;
 
-		} else if (!stricmp(lpName, "DISABLEDELAYEDEXPANSION")) {
+		} else if (!wcscasecmp(lpName, L"DISABLEDELAYEDEXPANSION")) {
 
 			bDelayedExpansion=FALSE;
 
-		} else if (!stricmp(lpName, "ENABLEEXTENSIONS") || !stricmp(lpName, "DISABLEEXTENSION")) {
+		} else if (!wcscasecmp(lpName, L"ENABLEEXTENSIONS")
+					!wcscasecmp(lpName, L"DISABLEEXTENSION")) {
 
 			/* provided for backward compatibility. The ENABLEEXTENSIONS
 			   option was used to block some NT features to make scripts portables
@@ -736,7 +819,7 @@ int Dos9_CmdSetLocal(wchar_t* lpLine)
 int Dos9_CmdHelp(wchar_t* lpLine)
 {
 
-	puts(lpHlpDeprecated);
+	putws(lpHlpDeprecated);
 	return 0;
 
 }
@@ -758,11 +841,11 @@ int Dos9_CmdRem(wchar_t* lpLine)
 
 int Dos9_CmdCls(wchar_t* lpLine)
 {
-	char lpArg[4];
+	wchar_t lpArg[4];
 
 	if (Dos9_GetNextParameter(lpLine+3, lpArg, 4)) {
 
-		if (!strcmp(lpArg, "/?")) {
+		if (!wcscmp(lpArg, L"/?")) {
 
 			Dos9_ShowInternalHelp(DOS9_HELP_CLS);
 			return 0;
@@ -783,11 +866,11 @@ int Dos9_CmdCls(wchar_t* lpLine)
 
 int Dos9_CmdColor(wchar_t* lpLine)
 {
-	char lpArg[4];
+	wchar_t lpArg[4];
 
 	if (Dos9_GetNextParameter(lpLine+5, lpArg, 4)) {
 
-		if (!strcmp(lpArg, "/?")) {
+		if (!wcscmp(lpArg, L"/?")) {
 
 			Dos9_ShowInternalHelp(DOS9_HELP_COLOR);
 
@@ -816,7 +899,7 @@ int Dos9_CmdTitle(wchar_t* lpLine)
 
 	if (Dos9_GetNextParameter(lpLine, lpArg, 3)) {
 
-		if (!strcmp(lpArg, "/?")) {
+		if (!wcscmp(lpArg, L"/?")) {
 
 			Dos9_ShowInternalHelp(DOS9_HELP_TITLE);
 
@@ -839,17 +922,22 @@ int Dos9_CmdTitle(wchar_t* lpLine)
 
 int Dos9_CmdType(wchar_t* lpLine)
 {
-	char lpFileName[FILENAME_MAX];
+	wchar_t lpFileName[FILENAME_MAX];
+
 	FILE* pFile;
+
 	if (Dos9_GetNextParameter(lpLine+4, lpFileName, FILENAME_MAX)) {
-		if (!strcmp(lpFileName, "/?")) {
+
+		if (!wcscmp(lpFileName, L"/?")) {
 
 			Dos9_ShowInternalHelp(DOS9_HELP_TYPE);
 			return 0;
 
-		} else if ((pFile=fopen(lpFileName, "r"))) {
+		} else if ((pFile=wfopen(lpFileName, L"r"))) {
 
-			while (fgets(lpFileName, FILENAME_MAX, pFile)) printf("%s", lpFileName);
+			while (fgetws(lpFileName, FILENAME_MAX, pFile))
+				wprintf("%s", lpFileName);
+
 			fclose(pFile);
 			return 0;
 
@@ -858,25 +946,27 @@ int Dos9_CmdType(wchar_t* lpLine)
 	}
 
 	Dos9_ShowErrorMessage(DOS9_FILE_ERROR, lpFileName, FALSE);
+
 	return -1;
 }
 
 int Dos9_CmdGoto(wchar_t* lpLine)
 {
-	char lpLabelName[FILENAME_MAX];
-	char lpFileName[FILENAME_MAX];
-	wchar_t* lpFile=NULL;
-	int bEchoError=TRUE;
+	wchar_t lpLabelName[FILENAME_MAX],
+			lpFileName[FILENAME_MAX],
+			lpFile=NULL;
+
+	int 	bEchoError=TRUE;
 
 	lpLine+=4;
-	*lpLine=':';
+	*lpLine=L':';
 
 	if (*(lpLine+1)==':')
 		lpLine++;
 
 	if ((lpLine=Dos9_GetNextParameter(lpLine, lpLabelName, FILENAME_MAX))) {
 
-		if (!strcmp(lpLabelName, ":/?")) {
+		if (!wcscmp(lpLabelName, L":/?")) {
 
 			Dos9_ShowInternalHelp(DOS9_HELP_GOTO);
 			return 0;
@@ -885,7 +975,7 @@ int Dos9_CmdGoto(wchar_t* lpLine)
 
 		if ((lpLine=Dos9_GetNextParameter(lpLine ,lpFileName, FILENAME_MAX))) {
 
-			if (!stricmp(lpFileName, "/Q")) {
+			if (!wcscasecmp(lpFileName, L"/Q")) {
 
 				/* on a choisi de rendre l'erreux muette */
 				bEchoError=FALSE;
@@ -914,14 +1004,18 @@ int Dos9_CmdGoto(wchar_t* lpLine)
 
 	next:
 
-		/* Now we have a valid label name, thus  we are about to find a label in the specified file */
-		/* if we do have a valid file name, the search will be made in specified file */
-		DOS9_DBG("Jump to Label \"%s\" in \"%s\"", lpLabelName, lpFile);
+		/* Now we have a valid label name, thus  we are about to find a label
+		   in the specified file.
+		   If we do have a valid file name, the search will be made in specified
+		   file */
 
-		if (!stricmp(lpLabelName,  ":EOF")) {
+		DOS9_DBG(L"Jump to Label \"%s\" in \"%s\"", lpLabelName, lpFile);
 
-			/* do not even look for ``:EOF'', just
-			   abort the command */
+		if (!wcscmp(lpLabelName,  L":EOF")) {
+
+			/* do not even look for ``:EOF'', just abort the command. The value -1
+			   is used to tell upper level function that the script should
+			   be aborted */
 
 			bAbortCommand=-1;
 
@@ -940,9 +1034,10 @@ int Dos9_CmdGoto(wchar_t* lpLine)
 
 
 	/* let's set a this global variable to let the other functions
-	   know that they should reload an entire line */
+	   know that they should reload an entire line. They tell the
+	   interpreter to abort the current block, and nested block,
+	   until we are back to to level functions */
 	bAbortCommand=TRUE;
-
 
 	return 0;
 }
@@ -959,18 +1054,18 @@ int Dos9_CmdCd(wchar_t* lpLine)
 
 	if ((lpNext=Dos9_GetNextParameterEs(lpLine, lpEsDir))) {
 
-		if (!strcmp(Dos9_EsToChar(lpEsDir), "/?")) {
+		if (!wcscmp(Dos9_EsToChar(lpEsDir), L"/?")) {
 
 			Dos9_ShowInternalHelp(DOS9_HELP_CD);
 			goto error;
 
-		} else if (!stricmp(Dos9_EsToChar(lpEsDir), "/d")) {
+		} else if (!wcscasecmp(Dos9_EsToChar(lpEsDir), L"/d")) {
 
 			lpLine=lpNext;
 
 		}
 
-		while (*lpLine==' ' || *lpLine=='\t') lpLine++;
+		while (*lpLine==L' ' || *lpLine==L'\t') lpLine++;
 
 		Dos9_GetEndOfLine(lpLine, lpEsDir);
 
@@ -981,8 +1076,8 @@ int Dos9_CmdCd(wchar_t* lpLine)
 		while (*lpLine) {
 
 			switch(*lpLine) {
-				case '\t':
-				case ' ':
+				case L'\t':
+				case L' ':
 
 					if (!lpNext) lpNext=lpLine;
 					break;
@@ -995,15 +1090,15 @@ int Dos9_CmdCd(wchar_t* lpLine)
 
 		}
 
-		if (lpNext) *lpNext='\0';
+		if (lpNext) *lpNext=L'\0';
 
 		errno=0;
 
 		lpLine=Dos9_EsToChar(lpEsDir);
 
-		DOS9_DBG("Changing directory to : \"%s\"\n", lpLine);
+		DOS9_DBG(L"Changing directory to : \"%s\"\n", lpLine);
 
-		chdir(lpLine);
+		wchdir(lpLine);
 
 		if (errno ==  0) {
 
@@ -1032,13 +1127,13 @@ int Dos9_CmdCd(wchar_t* lpLine)
 
 	} else {
 
-		puts(Dos9_GetCurrentDir());
+		putws(Dos9_GetCurrentDir());
 
 	}
 
 	Dos9_EsFree(lpEsDir);
 
-	DOS9_DBG("Returning from \"cd\" on success\n");
+	DOS9_DBG(L"Returning from \"cd\" on success\n");
 	return 0;
 
 error:
@@ -1064,7 +1159,7 @@ int Dos9_CmdBlock(wchar_t* lpLine)
 
 	}
 
-	if (*lpToken!=')') {
+	if (*lpToken!=L')') {
 
 		Dos9_ShowErrorMessage(DOS9_INVALID_TOP_BLOCK, lpLine, FALSE);
 		return -1;
@@ -1090,8 +1185,8 @@ int Dos9_CmdBlock(wchar_t* lpLine)
 
 int Dos9_CmdShift(wchar_t* lpLine)
 {
-	ESTR* lpEsArg=Dos9_EsInit();
-	char *lpToken;
+	ESTR* 	lpEsArg=Dos9_EsInit();
+	wchar_t *lpToken;
 	int iBegin=0,        /* the first parameter to be displaced */
 	    iDisplacement=1; /* the displacement of parameters on the left */
 
@@ -1101,27 +1196,27 @@ int Dos9_CmdShift(wchar_t* lpLine)
 
 		lpToken=Dos9_EsToChar(lpEsArg);
 
-		if ((*lpToken)=='/') {
+		if ((*lpToken)==L'/') {
 
 			lpToken++;
 
 			switch (*lpToken) {
-				case '0':
-				case '1':
-				case '2':
-				case '3':
-				case '4':
-				case '5':
-				case '6':
-				case '8':
-				case '9':
-					iBegin=*lpToken-'0'; /* well, we assume that all numbers
+				case L'0':
+				case L'1':
+				case L'2':
+				case L'3':
+				case L'4':
+				case L'5':
+				case L'6':
+				case L'8':
+				case L'9':
+					iBegin=*lpToken-L'0'; /* well, we assume that all numbers
                                             are folowing 0 */
 
 					break;
 
 					/* following switchs are Dos9-specific */
-				case 's':
+				case L's':
 					lpToken++;
 
 					if (*lpToken==':')
@@ -1137,7 +1232,7 @@ int Dos9_CmdShift(wchar_t* lpLine)
 
 					}
 
-					iBegin=*lpToken-'0';
+					iBegin=*lpToken-L'0';
 					lpToken++;
 
 					if (*lpToken) {
@@ -1153,13 +1248,13 @@ int Dos9_CmdShift(wchar_t* lpLine)
 
 					break;
 
-				case 'd':
+				case L'd':
 					lpToken++;
 
-					if (*lpToken==':')
+					if (*lpToken==L':')
 						lpToken++;
 
-					if (!(*lpToken>='0' && *lpToken<='9')) {
+					if (!(*lpToken>=L'0' && *lpToken<=L'9')) {
 
 						Dos9_ShowErrorMessage(DOS9_UNEXPECTED_ELEMENT,
 						                      lpToken,
@@ -1169,7 +1264,7 @@ int Dos9_CmdShift(wchar_t* lpLine)
 
 					}
 
-					iDisplacement=*lpToken-'0';
+					iDisplacement=*lpToken-L'0';
 					lpToken++;
 
 					if (*lpToken) {
@@ -1185,7 +1280,7 @@ int Dos9_CmdShift(wchar_t* lpLine)
 
 					break;
 
-				case '?':
+				case L'?':
 					Dos9_ShowInternalHelp(DOS9_HELP_SHIFT);
 					goto error;
 
@@ -1216,9 +1311,9 @@ int Dos9_CmdShift(wchar_t* lpLine)
 	while ((iBegin+iDisplacement) < 10) {
 
 		Dos9_SetLocalVar(lpvLocalVars,
-		                 '0'+iBegin,
+		                 L'0'+iBegin,
 		                 Dos9_GetLocalVarPointer(lpvLocalVars,
-		                         '0'+iBegin+iDisplacement
+		                         L'0'+iBegin+iDisplacement
 		                                        )
 		                );
 
@@ -1229,7 +1324,7 @@ int Dos9_CmdShift(wchar_t* lpLine)
 	/* empty the remaining arguments */
 	while (iBegin < 10) {
 
-		Dos9_SetLocalVar(lpvLocalVars, '0'+iBegin, "");
+		Dos9_SetLocalVar(lpvLocalVars, L'0'+iBegin, L"");
 
 		iBegin++;
 

@@ -23,6 +23,7 @@
 #include <string.h>
 
 #include <libDos9.h>
+#include <libw.h>
 
 #include "Dos9_Alias.h"
 #include "../core/Dos9_Core.h"
@@ -43,19 +44,19 @@ int Dos9_CmdAlias(char* lpLine)
 
 	void* pVoid;
 
-	char* lpCh;
+	wchar_t* lpCh;
 
 	lpLine+=5;
 
 	while ((lpCh=Dos9_GetNextParameterEs(lpLine, lpEsParam))) {
 
-		if (!strcmp("/?", Dos9_EsToChar(lpEsParam))) {
+		if (!wcscmp("/?", Dos9_EsToChar(lpEsParam))) {
 
 			Dos9_ShowInternalHelp(DOS9_HELP_ALIAS);
 
 			goto error;
 
-		} else if (!stricmp("/f", Dos9_EsToChar(lpEsParam))) {
+		} else if (!wcscasecmp(L"/f", Dos9_EsToChar(lpEsParam))) {
 
 			iReplace=TRUE;
 
@@ -74,7 +75,7 @@ int Dos9_CmdAlias(char* lpLine)
 
 	}
 
-	if (!(lpCh=Dos9_SearchChar(lpLine, '='))) {
+	if (!(lpCh=Dos9_SearchChar(lpLine, L'='))) {
 
 		Dos9_ShowErrorMessage(DOS9_UNEXPECTED_ELEMENT,
 		                      lpLine,
@@ -85,7 +86,7 @@ int Dos9_CmdAlias(char* lpLine)
 
 	}
 
-	*lpCh='\0';
+	*lpCh=L'\0';
 	lpCh++;
 
 	ciCommand.cfFlag=strlen(lpLine) | DOS9_ALIAS_FLAG;
@@ -97,10 +98,12 @@ int Dos9_CmdAlias(char* lpLine)
 
 	if (iReplace && (iRet!=-1)) {
 
-		/* it is possible to reassign Dos9 internal commands. I decided
+		/* It is possible to reassign Dos9 internal commands. I decided
 		   to allow this because it may be a funny trick to hack arround for
 		   example, if some batch requires some uncompatible features it
-		   allows to redifine those commands in order to get compatibility */
+		   allows to redifine those commands in order to get compatibility.
+
+		   Of course, it requires '/f' option to be passed to the command. */
 
 		if ((Dos9_ReplaceCommand(&ciCommand, lpclCommands))) {
 
@@ -149,7 +152,7 @@ int Dos9_CmdAlias(char* lpLine)
 	if (!(lpclNewCommands=Dos9_ReMapCommandInfo(lpclCommands))) {
 
 		Dos9_ShowErrorMessage(DOS9_UNABLE_REMAP_COMMANDS,
-		                      __FILE__ "/Dos9_CmdAlias()",
+		                      L(__FILE__) L"/Dos9_CmdAlias()",
 		                      FALSE
 		                     );
 

@@ -27,6 +27,8 @@
 #include <unistd.h>
 #include <sys/types.h>
 
+#include <libw.h>
+
 #include "Dos9_Stream.h"
 #include "Dos9_Core.h"
 

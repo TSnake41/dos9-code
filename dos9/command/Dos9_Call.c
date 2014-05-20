@@ -23,6 +23,7 @@
 #include <string.h>
 
 #include <libDos9.h>
+#include <libw.h>
 
 #include "../core/Dos9_Core.h"
 
@@ -36,11 +37,11 @@ int Dos9_CmdCall(char* lpLine)
 		 *lpEsLabel=Dos9_EsInit(),
 		 *lpEsFile=Dos9_EsInit();
 
-	char *lpCh,
-	     *lpNxt,
-	     *lpFile,
-	     *lpLabel,
-	     lpExt[_MAX_EXT];
+	wchar_t *lpCh,
+			*lpNxt,
+			*lpFile,
+			*lpLabel,
+			lpExt[_MAX_EXT];
 
 	int  bIsExtended=FALSE,
 	     iNbParam=0;
@@ -52,7 +53,7 @@ int Dos9_CmdCall(char* lpLine)
 
 		lpCh=Dos9_EsToChar(lpEsParameter);
 
-		if (!stricmp(lpCh, "//")) {
+		if (!wcscasecmp(lpCh, L"//")) {
 
 			/* this is the last parameter switch, that means,
 			   the following arguments are just command
@@ -62,7 +63,7 @@ int Dos9_CmdCall(char* lpLine)
 
 			break;
 
-		} else if (!stricmp(lpCh, "/E")) {
+		} else if (!wcscasecmp(lpCh, L"/E")) {
 
 			if (bCmdlyCorrect == TRUE) {
 
@@ -71,6 +72,7 @@ int Dos9_CmdCall(char* lpLine)
 				   command. */
 
 				Dos9_ShowErrorMessage(DOS9_EXTENSION_DISABLED_ERROR, lpCh, FALSE);
+
 				goto error;
 
 			}
@@ -81,7 +83,7 @@ int Dos9_CmdCall(char* lpLine)
 
 			bIsExtended=TRUE;
 
-		} else if (!stricmp(lpCh, "/?")) {
+		} else if (!wcscmp(lpCh, L"/?")) {
 
 			Dos9_ShowInternalHelp(DOS9_HELP_CALL);
 			goto error;
@@ -100,7 +102,7 @@ int Dos9_CmdCall(char* lpLine)
 
 			switch(*lpCh) {
 
-				case ':' :
+				case L':' :
 					/* this is a label, obviously, so that we must
 					   parameter ``label'' */
 
@@ -164,7 +166,7 @@ int Dos9_CmdCall(char* lpLine)
 
 	} else if (lpLabel) {
 
-		/* both ``label'' was given. This is not problematic,
+		/* only ``label'' was given. This is not problematic,
 		   since the function Dos9_CmdCallFile can cope with
 		   NULL as ``file'' */
 
@@ -180,8 +182,8 @@ int Dos9_CmdCall(char* lpLine)
 
 		Dos9_SplitPath(lpFile, NULL, NULL, NULL, lpExt);
 
-		if (!stricmp(lpExt, ".bat")
-		    || !stricmp(lpExt,".cmd")) {
+		if (!wcscasecmp(lpExt, L".bat")
+		    || !wcscasecmp(lpExt, L".cmd")) {
 
 			/* ``file'' is a batch file, indeed */
 
@@ -217,11 +219,13 @@ int Dos9_CmdCallFile(char* lpFile, char* lpLabel, char* lpCmdLine)
 {
 	INPUT_FILE ifOldFile;
 	LOCAL_VAR_BLOCK lpvOldBlock[LOCAL_VAR_BLOCK_SIZE];
-	char lpAbsPath[FILENAME_MAX];
 
 	ESTR *lpEsParam=Dos9_EsInit();
-	int   c='1',
-	      iLockState;
+
+	wchar_t c=L'1',
+			lpAbsPath[FILENAME_MAX];
+
+	int 	iLockState;
 
 	/* We backup the old informations */
 
@@ -250,13 +254,13 @@ int Dos9_CmdCallFile(char* lpFile, char* lpLabel, char* lpCmdLine)
 
 		ifIn.bEof=FALSE;          /* the file is not at EOF */
 		ifIn.iPos=0;              /* places the cursor at the origin */
-		snprintf(ifIn.lpFileName,
-		         sizeof(ifIn.lpFileName),
-		         "%s",
+		snwprintf(ifIn.lpFileName,
+		         sizeof(ifIn.lpFileName)/sizeof(wchar_t),
+		         L"%s",
 		         lpAbsPath
 		        );               /* sets input to given file */
 
-		Dos9_SetLocalVar(lpvLocalVars, '0', lpFile);
+		Dos9_SetLocalVar(lpvLocalVars, L'0', lpFile);
 
 	} else if (Dos9_JumpToLabel(lpLabel, lpFile)== -1) {
 
@@ -265,14 +269,14 @@ int Dos9_CmdCallFile(char* lpFile, char* lpLabel, char* lpCmdLine)
 
 	} else {
 
-		Dos9_SetLocalVar(lpvLocalVars, '0', lpLabel);
+		Dos9_SetLocalVar(lpvLocalVars, L'0', lpLabel);
 
 	}
 
 	/* Set scripts arguments */
 
 	while ((lpCmdLine=Dos9_GetNextParameterEs(lpCmdLine, lpEsParam))
-	       && (c <= '9')) {
+	       && (c <= L'9')) {
 
 		Dos9_SetLocalVar(lpvLocalVars, c, Dos9_EsToChar(lpEsParam));
 
@@ -280,18 +284,7 @@ int Dos9_CmdCallFile(char* lpFile, char* lpLabel, char* lpCmdLine)
 
 	}
 
-	if (c > '9') {
-
-		Dos9_ShowErrorMessage(DOS9_UNEXPECTED_ELEMENT,
-		                      Dos9_EsToChar(lpEsParam),
-		                      FALSE);
-
-		goto error;
-
-
-	}
-
-	while (c<='9') {
+	while (c<=L'9') {
 
 		Dos9_SetLocalVar(lpvLocalVars, c, "");
 		c++;
@@ -329,16 +322,32 @@ int Dos9_CmdCallFile(char* lpFile, char* lpLabel, char* lpCmdLine)
 
 	/* restore old settings */
 	memcpy(&ifIn, &ifOldFile, sizeof(INPUT_FILE));
-	memcpy(lpvLocalVars, lpvOldBlock, LOCAL_VAR_BLOCK_SIZE*sizeof(LOCAL_VAR_BLOCK));
+
+	memcpy(lpvLocalVars,
+			lpvOldBlock,
+			LOCAL_VAR_BLOCK_SIZE*sizeof(LOCAL_VAR_BLOCK)
+			);
+
 	Dos9_EsFree(lpEsParam);
 
 	return 0;
 
 error:
 
-	/* can't let the interpretor like that, restore old settings */
-	memcpy(&ifIn, &ifOldFile, sizeof(INPUT_FILE));
-	memcpy(lpvLocalVars, lpvOldBlock, LOCAL_VAR_BLOCK_SIZE*sizeof(LOCAL_VAR_BLOCK));
+	/* can't let the interpretor like that, restore old settings,
+	   if we do not do that, we can be ensured to face a crash when we are
+	   back to the top-level function */
+
+	memcpy(&ifIn,
+			&ifOldFile,
+			sizeof(INPUT_FILE)
+			);
+
+	memcpy(lpvLocalVars,
+			lpvOldBlock,
+			LOCAL_VAR_BLOCK_SIZE*sizeof(LOCAL_VAR_BLOCK)
+			);
+
 	Dos9_EsFree(lpEsParam);
 
 	return -1;
@@ -352,19 +361,29 @@ int Dos9_CmdCallExternal(char* lpFile, char* lpCh)
 
 	ESTR *lpEsLine=Dos9_EsInit();
 
-	char *lpStr;
+	wchar_t *lpStr;
 
 	Dos9_EsCpy(lpEsLine, lpFile);
-	Dos9_EsCat(lpEsLine, " ");
+	Dos9_EsCat(lpEsLine, L" ");
 	Dos9_EsCat(lpEsLine, lpCh);
 
 	Dos9_ReplaceVars(lpEsLine);
 
 	bkInfo.lpBegin=Dos9_EsToChar(lpEsLine);
 
-	for (lpStr=Dos9_EsToChar(lpEsLine); *lpStr; lpStr++);
+	/* ok, this is not really safe, but well, there's no
+	   reason for the string not to be terminated by a
+	   terminating character. We actually limit the search to
+	   a half of availiable memory, in order to make implementation
+	   easier.
 
-	bkInfo.lpEnd=lpStr;
+	   This solution was chosen because the c standard does not define
+	   behaviour of strchr(p, '\0'); and various implementation may
+	   either return a pointer to the terminating NULL character or
+	   NULL, depending wether '\0' should be considired as part of string
+	   for developper.
+	  */
+	bkInfo.lpEnd=memchr(bkInfo, '\0', 1 << (sizeof(size_t)-1));
 
 	Dos9_RunBlock(&bkInfo);
 

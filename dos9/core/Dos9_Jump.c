@@ -39,11 +39,9 @@ int Dos9_JumpToLabel(wchar_t* lpLabelName, wchar_t* lpFileName)
 	}
 
 
-	if (!(pFile=wfopen(lpName, "r"))) {
-		Dos9_EsFree(lpLine);
+	if (!(pFile=wfopen(lpName, L"r"))) {
 
-		DEBUG("unable to open file : %s");
-		DEBUG(strerror(errno));
+		Dos9_EsFree(lpLine);
 
 		return -1;
 	}
@@ -57,9 +55,10 @@ int Dos9_JumpToLabel(wchar_t* lpLabelName, wchar_t* lpFileName)
 				/* at that time, we can assume that lpFileName is not
 				   the empty string, because the empty string is not usually
 				   a valid file name */
+
 				if (*lpFileName==L'/'
-				    || !strncmp(L":/", lpFileName+1, 2)
-				    || !strncmp(L":\\", lpFileName+1, 2)) {
+				    || !wcsncasecmp(L":/", lpFileName+1, 2)
+				    || !wcsncasecmp(L":\\", lpFileName+1, 2)) {
 
 					/* the path is absolute */
 					wcsncpy(ifIn.lpFileName,
@@ -68,6 +67,9 @@ int Dos9_JumpToLabel(wchar_t* lpLabelName, wchar_t* lpFileName)
 							);
 
 					ifIn.lpFileName[FILENAME_MAX-1]=L'\0';
+					/* wcsncpy do not ensure that a terminating null character
+					   is written to string, just that the number of characters
+					   copied will not exceed the given size. */
 
 				} else {
 
@@ -86,13 +88,9 @@ int Dos9_JumpToLabel(wchar_t* lpLabelName, wchar_t* lpFileName)
 			ifIn.iPos=ftell(pFile);
 			ifIn.bEof=feof(pFile);
 
-
-			DEBUG("Freeing data");
-
 			fclose(pFile);
-			Dos9_EsFree(lpLine);
 
-			DEBUG("Jump created with success");
+			Dos9_EsFree(lpLine);
 
 			return 0;
 		}
@@ -100,8 +98,6 @@ int Dos9_JumpToLabel(wchar_t* lpLabelName, wchar_t* lpFileName)
 
 	fclose(pFile);
 	Dos9_EsFree(lpLine);
-
-	DEBUG("Unable to find label");
 
 	return -1;
 }

@@ -20,6 +20,8 @@
 #ifndef DOS9_FOR_H
 #define DOS9_FOR_H
 
+#include <wchar.h>
+
 #define TOKENINFO_NB_MAX 128-32
 #define MAX_UNICODE_CHAR 5
 #define TOKENNB_ALL_REMAINING 0xFFFF
@@ -37,13 +39,13 @@
 #define FOR_LOOP_D 3
 
 typedef struct FORINFO {
-	char lpDelims[FILENAME_MAX];
+	wchar_t lpDelims[FILENAME_MAX];
 	/*  the delims */
-	char lpEol[FILENAME_MAX];
+	wchar_t lpEol[FILENAME_MAX];
 	/* the eol character, in a unicode character */
 	int iSkip;
 	/* the number of lines to be skipped */
-	char cFirstVar;
+	wchar_t cFirstVar;
 	/* position of the first special var */
 	int bUsebackq;
 	int iTokenNb;
@@ -51,7 +53,7 @@ typedef struct FORINFO {
 
 	int	lpToken[TOKENINFO_NB_MAX];
 	/* an array that describes characteristics of the
-	different special var. The syntax is the following :
+	   different special var. The syntax is the following :
 
 	    [high order word] [low order word]
 	    [     start     ] [     end      ]
@@ -66,15 +68,18 @@ typedef struct FORINFO {
 	      the token is the cast of the p-th and all remaining
 	      tokens.
 
+		This supposes that int are at least 32bits long, but it
+		does not requires int to be exactly 32bits long.
+
 	*/
 
 } FORINFO;
 
 typedef struct STRINGINFO {
-	char* lpString;
+	wchar_t* lpString;
 	/* the location of the original string. Used
 	   for freeing memory */
-	char* lpToken;
+	wchar_t* lpToken;
 	/* a token to be processed */
 } STRINGINFO;
 
@@ -93,11 +98,11 @@ typedef struct INPUTINFO {
 } INPUTINFO;
 
 
-int Dos9_CmdFor(char* lpCommand);
+int Dos9_CmdFor(wchar_t* lpCommand);
 /* This is the function used for running
    ``for'' loops */
 
-int Dos9_CmdForSimple(ESTR* lpInput, BLOCKINFO* lpbkCommand, char cVarName, char* lpDelimiters);
+int Dos9_CmdForSimple(ESTR* lpInput, BLOCKINFO* lpbkCommand, wchar_t cVarName, wchar_t* lpDelimiters);
 /* this handles simple ``for'' loops */
 
 int Dos9_CmdForF(ESTR* lpInput, BLOCKINFO* lpbkCommand, FORINFO* lpfrInfo);
@@ -109,18 +114,18 @@ int Dos9_CmdForF(ESTR* lpInput, BLOCKINFO* lpbkCommand, FORINFO* lpfrInfo);
 #define DOS9_FORL_INC   1
 #define DOS9_FORL_END   2
 
-int Dos9_CmdForL(ESTR* lpInput, BLOCKINFO* lpbkCommand, char cVarName);
+int Dos9_CmdForL(ESTR* lpInput, BLOCKINFO* lpbkCommand, wchar_t cVarName);
 /* this handle the ``for /L'' loop */
 
 
-int Dos9_ForMakeInfo(char* lpOptions, FORINFO* lpfrInfo);
+int Dos9_ForMakeInfo(wchar_t* lpOptions, FORINFO* lpfrInfo);
 /* this makes token from a parameter command
    i.e. from a string like "tokens=1,3,4 delims=, "
 */
 
-void Dos9_ForAdjustParameter(char* lpOptions, ESTR* lpParam);
+void Dos9_ForAdjustParameter(wchar_t* lpOptions, ESTR* lpParam);
 
-int  Dos9_ForMakeTokens(char* lpToken, FORINFO* lpfrInfo);
+int  Dos9_ForMakeTokens(wchar_t* lpToken, FORINFO* lpfrInfo);
 
 void Dos9_ForSplitTokens(ESTR* lpContent, FORINFO* lpfrInfo);
 /*
@@ -138,7 +143,7 @@ void Dos9_ForGetToken(ESTR* lpContent, FORINFO* lpfrInfo, int iPos, ESTR* lpRetu
 
 int Dos9_ForMakeInputInfo(ESTR* lpInput, INPUTINFO* lpipInfo, FORINFO* lpfrInfo);
 
-int Dos9_ForAdjustInput(char* lpInput);
+int Dos9_ForAdjustInput(wchar_t* lpInput);
 
 int Dos9_ForInputProcess(ESTR* lpInput, INPUTINFO* lpipInfo, int* iPipeFdIn, int* iPipeFdOut);
 
@@ -152,7 +157,6 @@ void Dos9_ForVarUnassign(FORINFO* lpfrInfo);
 
 int  Dos9_ForVarCheckAssignment(FORINFO* lpfrInfo);
 
-int  Dos9_CmdForDeprecatedWrapper(ESTR* lpMask, ESTR* lpDir, char* lpAttribute, BLOCKINFO* lpbkCode, char cVarName);
-
+int  Dos9_CmdForDeprecatedWrapper(ESTR* lpMask, ESTR* lpDir, wchar_t* lpAttribute, BLOCKINFO* lpbkCode, wchar_t cVarName);
 
 #endif /* DOS9_FOR_H */

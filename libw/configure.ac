@@ -34,6 +34,7 @@ AC_HEADER_STDC
 dnl Looking for functions that are availiable in the current environement
 
 AC_CHECK_FUNCS(wcserror _wcserror wstat _wstat wgetenv _wgetenv wcscasecmp _wcsicmp wfopen _wfopen wtol _wtol wtoi _wtoi swprintf _swprintf snwprintf _snwprintf)
+AC_CHECK_FUNCS(wcsncasecmp _wcsnicmp putws _putws wprintf wcsdup _wcsdup)
 
 AC_CONFIG_FILES([Makefile])
 

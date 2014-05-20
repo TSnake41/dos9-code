@@ -1,0 +1,157 @@
+#
+#   Dos9 Manual pages, The Dos9 project
+#   Copyright (C) 2012-2013  Romain Garbi (DarkBatcher)
+#
+#   This program is free software: you can redistribute it and/or modify
+#   it under the terms of the GNU General Public License as published by
+#   the Free Software Foundation, either version 3 of the License, or
+#   (at your option) any later version.
+#
+#   This program is distributed in the hope that it will be useful,
+#   but WITHOUT ANY WARRANTY; without even the implied warranty of
+#   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#   GNU General Public License for more details.
+#
+#   You should have received a copy of the GNU General Public License
+#   along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+
+{{SET command (/A)(integers)}} 
+
+	{SET /A} command compute {arithmetical expression} and assign its result to a
+	variable.
+
+	This manual page deals only with usage of integers for {SET /A} command.
+	To see manual for {SET}, see {set|SET}. To see manual page about floats and
+	{SET /A}, see {setai|SET (/A)(floats)}.
+	
+{{Synopsis}}
+
+${SET [/a | /a[:]f] variable=expression}
+
+   Computes {expression} and assign its result to {variable}. The
+   behaviour of the command depends on mode set through {setlocal|SETLOCAL}.
+   
+   The {=} operator can be replaced by one of the following operators:
+	   
+	  - Arithmetic operators :
+   
+		-- {+=} : Add result to {variable}.
+		
+		-- {-=} : Substract result to {variable}.
+		
+		-- {*=} : Multiply {variable} by result.
+		
+		-- {/=} : Divide {variable} by result.
+	
+	 - Logical operators :
+	 
+		-- {&&=} : Logical AND between {variable} and result.
+		
+		-- {||=} : Logocal OR between {variable} and result.
+		
+	 - Bitwise operators :
+	 
+		-- {&=} : Bitwise AND between {variable} and result.
+		
+		-- {|=} : Bitwise OR between {variable} and result.
+		
+		-- {^=} : Bitwise XOR between {variable} and result.
+		
+		-- {>>=} : Shift {variable} of result bit to left.
+		
+		-- {<<=} : Shift {variable} of result bit to right.
+			
+{{Operators}}
+
+   The {arithmetic expression} must be constituted of a sequence of operators and operands. Each operand
+   must be conected to next operant by an operator.
+   
+   Operators that can be used with {integers} are :
+		
+		- Arithmetic operators :
+		
+		-- {*} : Product.
+		
+		-- {/} : Division.
+		
+		-- {%} : Modulo (remainder of division).
+		
+		-- {+} : Addition.
+		
+		-- {-} : Substraction.
+		
+		- Bitwise operators :
+		
+		-- {\|} : Bitwise OR.
+		
+		-- {^} : Bitwise XOR.
+		
+		-- {&} : Bitwise AND.
+		
+		-- {>>} : Shift bits to left.
+		
+		-- {<<} : Shift bits to right.
+		
+		- Logical operators :
+		
+		-- {\|\|} : Logical OR.
+		
+		-- {&&} : Logical AND.
+	
+	Operator precedence is the following :
+
+		- {*}, {/}, {%}
+		
+		- {+}, {-}
+		
+		- {>>}, {<<}
+		
+		- {&&}, {&}
+		
+		- {^}
+		
+		- {\|\|}, {\|}
+		
+	Operators precedence can obviously be overriden using parenthesis {(} and {)}.
+		
+	It il also possible to specify unary operators, that is, operators that affects only next operator
+	to the right. These are:
+	
+		- {-} : Negative signum.
+		
+		- {~} : Bitwise NOT.
+		
+		- {!} : Logical NOT.
+		
+	Unary operators have the highest priority.
+	
+{{Bases}}
+
+	The numbers given in the {arithmetical expression} can be specified in three different radix: decimal,
+	octal and hexadecimal. The default is obviously decimal, but you can specify another base using the
+	following prefix:
+	
+		- {0x} : Specify that the number is in {hexadecimal} (base-16), this base is widely used for
+		denoting position of bits on a binary system.
+		
+		- {0} : Specify that the number is in {octal} (base-8). This base is not more widely used for
+		anything, thus, use of this base sounds like being obsolete and is strongly discouraged. Sadly, the syntax is ambiguous,
+		because numbers like {070} is usually read as {70} rather than {56}, as leading zero usualy
+		do not matter.
+		
+{{Note}}
+
+	This command uses {libinteval}, a parser build with {YACC}
+	
+{{Compatibility}}
+		
+	Perfectly compatible with {cmd.exe}. Nevertheless, logical operators {&&} and {\|\|} are {dos9|Dos9}
+	extensions.
+
+	Available since version {0.7.1.0}. Before that, support for expression was much more reduced.
+	
+{{See also}}
+
+	{set|SET command}, {setaf|SET command (/A)(floats)}, {setlocal|SETLOCAL command}
+		

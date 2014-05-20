@@ -68,6 +68,15 @@ int wcscasecmp(const wchar_t* lpw1, const wchar_t* lpw2);
 #endif //_wcsicmp
 #endif // wcscasecmp
 
+#ifndef HAVE_WCSNCASECMP
+#ifdef HAVE__WCSNICMP
+#define wcsncasecmp _wcsnicmp
+#else
+int wcsncasecmp(const wchar_t* lpw1, const wchar_t* lpw2, size_t n);
+#define BUILD_WCSNCASECMP 1
+#endif // _wcsnicmp
+#endif // wcscasecmp
+
 #ifndef HAVE_WFOPEN
 #ifdef  HAVE__WFOPEN
 #define wfopen _wfopen
@@ -106,12 +115,32 @@ int swprintf(wchar_t* dest, const wchar_t* format, ...);
 
 #ifndef HAVE_SNWPRINTF
 #ifdef  HAVE__SNWPRINTF
-#error we have snwprintf
 #define snwprintf _snwprintf
 #else
 int snwprintf(wchar_t* dest, size_t n, const wchar_t* format, ...);
+#define BUILD_SNWPRINTF 1
 #endif // _snwprintf
 #endif // snwprintf
+
+#ifndef HAVE_PUTWS
+#ifdef  HAVE__PUTWS
+#define putws _putws
+#elif defined HAVE_WPRINTF
+#define putws(str) wprintf("%s\n", str)
+#else
+int putws(wchar_t* str);
+#define BUILD_PUTWS 1
+#endif // _putws
+#endif // putws
+
+#ifndef HAVE_WCSDUP
+#ifdef HAVE__WCSDUP
+#define wcsdup _wcsdup
+#else
+wchar_t* wcsdup(const wchar_t* lpwD);
+#define BUILD_WCSDUP
+#endif // _wcsdup
+#endif // wcsdup
 
 #define LIBW
 

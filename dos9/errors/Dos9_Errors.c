@@ -212,6 +212,9 @@ void Dos9_LoadErrors(void)
 	lpErrorMsg[DOS9_UNABLE_GET_VARIABLE]=
 		(wchar_t*)gettext("Error : Unable to get \"%s\" variable.\n");
 
+	lpErrorMsg[DOS9_FAILED_CONVERSION]=
+		(wchar_t*)gettext("Error : Unable to convert \"%s\" to multibyte string\n");
+
 	lpQuitMessage=
 	    (wchar_t*)gettext("\nAborting current command, press any key to end Dos9.\n");
 

@@ -4,15 +4,16 @@
 #include <stdarg.h>
 
 #include <libDos9.h>
+#include <libw.h>
 
 #include "Dos9_Ask.h"
 #include "../lang/Dos9_Lang.h"
 
-int Dos9_AskConfirmation(int iFlags, const char* lpMsg, ...)
+int Dos9_AskConfirmation(int iFlags, const wchar_t* lpMsg, ...)
 {
 	va_list vaArgs;
-	const char *lpChoices=NULL;
-	char *lpLf;
+	const wchar_t *lpChoices=NULL;
+	wchar_t *lpLf;
 
 	int iRet;
 
@@ -76,50 +77,57 @@ int Dos9_AskConfirmation(int iFlags, const char* lpMsg, ...)
 
 	va_start(vaArgs, lpMsg);
 
+	/* loop until the user answer correctly */
 	do {
 
-		vfprintf(stderr, lpMsg, vaArgs);
+		/* Print the message along with args */
+		vfwprintf(stderr, lpMsg, vaArgs);
 
-		fputs(lpChoices, stderr);
+		/* Print choices */
+		fputws(lpChoices, stderr);
 
 		Dos9_EsGet(lpInput, stdin);
 
-		if ((lpLf=strchr(Dos9_EsToChar(lpInput), '\n')))
-			*lpLf='\0';
+		if ((lpLf=wcschr(Dos9_EsToChar(lpInput), L'\n')))
+			*lpLf=L'\0';
 
-		if (!stricmp(Dos9_EsToChar(lpInput), lpAskYes)
-		    || !stricmp(Dos9_EsToChar(lpInput), lpAskYesA)) {
+		if (!wcscasecmp(Dos9_EsToChar(lpInput), lpAskYes)
+		    || !wcscasecmp(Dos9_EsToChar(lpInput), lpAskYesA)) {
 
 			iRet=DOS9_ASK_YES;
 
-		} else if (!stricmp(Dos9_EsToChar(lpInput), lpAskNo)
-		           || !stricmp(Dos9_EsToChar(lpInput), lpAskNoA)) {
+		} else if (!wcscasecmp(Dos9_EsToChar(lpInput), lpAskNo)
+		           || !wcscasecmp(Dos9_EsToChar(lpInput), lpAskNoA)) {
 
 			iRet=DOS9_ASK_NO;
 
 		} else {
 
 			if ((iFlags & DOS9_ASK_YNA) && (
-			        !stricmp(Dos9_EsToChar(lpInput), lpAskAll)
-			        || !stricmp(Dos9_EsToChar(lpInput), lpAskAllA))) {
+			        !wcscasecmp(Dos9_EsToChar(lpInput), lpAskAll)
+			        || !wcscasecmp(Dos9_EsToChar(lpInput), lpAskAllA))) {
 
 
 				iRet=DOS9_ASK_ALL;
 
 			} else if ((iFlags & (DOS9_ASK_DEFAULT_Y | DOS9_ASK_DEFAULT_N
 			                      | DOS9_ASK_DEFAULT_A))
-			           && *Dos9_EsToChar(lpInput)=='\0') {
+			           && *Dos9_EsToChar(lpInput)==L'\0') {
 
 				iRet=iFlags & (DOS9_ASK_DEFAULT_Y | DOS9_ASK_DEFAULT_N
 				               | DOS9_ASK_DEFAULT_A);
 
 			} else if (!(iFlags & DOS9_ASK_INVALID_REASK)) {
 
+				/* If we are not requested to ask again if the
+				   answer is invalid, return an invalid value
+				 */
+
 				iRet=DOS9_ASK_INVALID;
 
 			} else {
 
-				fputs(lpAskInvalid, stderr);
+				fputws(lpAskInvalid, stderr);
 
 			}
 

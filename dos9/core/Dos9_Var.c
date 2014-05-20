@@ -27,6 +27,7 @@
 #include <wchar.h>
 
 #include <libDos9.h>
+#include <libw.h>
 
 #include "Dos9_Core.h"
 
@@ -154,7 +155,7 @@ int Dos9_GetVar(wchar_t* lpName, ESTR* lpRecieve)
 		lpVarContent=lpBuf;
 		swprintf(lpBuf, L"%d", rand());
 
-	} else if (!(stricmp(lpNameCpy, L"DATE"))) {
+	} else if (!(wcscasecmp(lpNameCpy, L"DATE"))) {
 
 		iTime=time(NULL);
 		lTime=localtime(&iTime);
@@ -262,9 +263,15 @@ int Dos9_SetLocalVar(LOCAL_VAR_BLOCK* lpvBlock, wchar_t cVarName, wchar_t* cVarC
 		free(lpvBlock[(int)cVarName]);
 
 	if (cVarContent) {
-		lpvBlock[(int)cVarName]=strdup(cVarContent);
+
+		lpvBlock[(int)cVarName]=wcsdup(cVarContent);
+		/* if it fails, errors is silenced (it will not prevent
+		   Dos9 to work, but the variable will not be set. */
+
 	} else {
+
 		lpvBlock[(int)cVarName]=NULL;
+
 	}
 
 
@@ -420,7 +427,7 @@ wchar_t* Dos9_GetLocalVar(LOCAL_VAR_BLOCK* lpvBlock, wchar_t* lpName, ESTR* lpRe
 
 	if (*lpPos==L'"' || *lpPos==L'\'') {
 
-		if ((lpNext=strrchr(lpPos, *lpPos)))
+		if ((lpNext=wcsrchr(lpPos, *lpPos)))
 			*lpNext=L'\0';
 
 		while (*(lpPos+1)) {
@@ -437,10 +444,10 @@ wchar_t* Dos9_GetLocalVar(LOCAL_VAR_BLOCK* lpvBlock, wchar_t* lpName, ESTR* lpRe
 
 
 	if (bSeekFile) {
-		stat(lpPos, &stFileInfo);
+		wstat(lpPos, &stFileInfo);
 
 #if defined WIN32
-		stFileInfo.st_mode=Dos9_GetFileAttributes(lpPos);
+		stFileInfo.st_mode=GetFileAttributesW(lpPos);
 #endif
 	}
 
@@ -462,7 +469,7 @@ wchar_t* Dos9_GetLocalVar(LOCAL_VAR_BLOCK* lpvBlock, wchar_t* lpName, ESTR* lpRe
 
 	if (cFlag[0]!=DOS9_ALL_PATH) {
 
-		Dos9_EsCpy(lpRecieve, "");
+		Dos9_EsCpy(lpRecieve, L"");
 
 		for (i=0; cFlag[i]!=0; i++) {
 			switch (cFlag[i]) {
@@ -517,7 +524,7 @@ wchar_t* Dos9_GetLocalVar(LOCAL_VAR_BLOCK* lpvBlock, wchar_t* lpName, ESTR* lpRe
 				         1900+lTime->tm_year,
 				         lTime->tm_hour,
 				         lTime->tm_min,
-				         (cFlag[i+1]!=0 ? L'\t' : L'\0')
+				         (cFlag[i+1]!=L'\0' ? L'\t' : L'\0')
 				       );
 
 				Dos9_EsCat(lpRecieve, lpBuffer);
