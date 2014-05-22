@@ -49,7 +49,7 @@
 #ifdef _POSIX_C_SOURCE
 
 /* if we actually use a POSIX-operating system, the environ variable
-       should be marked as external */
+	should be marked as external */
 
 extern char** environ;
 
@@ -78,7 +78,7 @@ int Dos9_CmdEcho(wchar_t* lpLine)
 	if (iswpunct(*lpLine)) {
 
 		Dos9_GetEndOfLine(lpLine+1, lpEsParameter);
-		puts(Dos9_EsToChar(lpEsParameter));
+		putws(Dos9_EsToChar(lpEsParameter));
 
 
 	} else if (Dos9_GetNextParameterEs(lpLine, lpEsParameter)) {
@@ -98,7 +98,7 @@ int Dos9_CmdEcho(wchar_t* lpLine)
 		} else {
 
 			Dos9_GetEndOfLine(lpLine+1, lpEsParameter);
-			puts(Dos9_EsToChar(lpEsParameter));
+			putws(Dos9_EsToChar(lpEsParameter));
 
 		}
 
@@ -203,12 +203,12 @@ double _Dos9_SetGetVarFloatW(const wchar_t* lpwName)
 double _Dos9_SetGetVarFloat(const char* lpName)
 {
 	wchar_t	*lpwName;
-	double	*iRet;
+	double	iRet;
 
 	if (!(lpwName=libw_mbstowcs(lpName))) {
 
 		Dos9_ShowErrorMessage(DOS9_FAILED_CONVERSION,
-							  L(__FILE__) "/_Dos9_SetGetVarFloat",
+							  L(__FILE__) L"/_Dos9_SetGetVarFloat",
 							  FALSE
 							  );
 
@@ -247,10 +247,10 @@ int _Dos9_SetGetVarInt(const char* lpName)
 	wchar_t* lpwName;
 	int 	 iRet;
 
-	if (!(lpwName=libw_mbtowc(lpName))) {
+	if (!(lpwName=libw_mbstowcs(lpName))) {
 
 		Dos9_ShowErrorMessage(DOS9_FAILED_CONVERSION,
-								L(__FILE__) "/_Dos9_SetGetVarInt",
+								L(__FILE__) L"/_Dos9_SetGetVarInt",
 								FALSE
 								);
 
@@ -321,8 +321,15 @@ int Dos9_CmdSet(wchar_t *lpLine)
 
 	} else {
 
-		/* in default cases, print environment */
-		for (i=0; environ[i]; i++) puts(environ[i]);
+		/* There is no standard way for doing that in a cross platform
+		   maneer, thus, we only should use different codes, depending
+		   on platforms to be supported */
+		#ifdef WIN32
+
+			for (i=0; _wenviron[i]; i++)
+				putws(_wenviron[i]);
+
+		#endif
 
 	}
 
@@ -515,7 +522,7 @@ int Dos9_CmdSetEvalFloat(ESTR* lpExpression)
 
 	}
 
-	free(lpExp)
+	free(lpExp);
 
 	dResult=evaluator_evaluate2(evaluator, _Dos9_SetGetVarFloat);
 
@@ -795,13 +802,17 @@ int Dos9_CmdSetLocal(wchar_t* lpLine)
 			bDelayedExpansion=FALSE;
 
 		} else if (!wcscasecmp(lpName, L"ENABLEEXTENSIONS")
-					!wcscasecmp(lpName, L"DISABLEEXTENSION")) {
+					|| !wcscasecmp(lpName, L"DISABLEEXTENSION")) {
 
 			/* provided for backward compatibility. The ENABLEEXTENSIONS
 			   option was used to block some NT features to make scripts portables
 			   to MS-DOS based prompt. This is not interesting anymore (at most
 			   interest it too few people), so it is just ignored, since many NT
-			   designed script use ENABLEEXTENSIONS to enable cmd.exe features
+			   designed script use ENABLEEXTENSIONS to enable cmd.exe features.
+
+			   Achieving MS-DOS compatible function may added by putting an alias
+			   on commands wanted to be MS-DOS compatible, rather than implementing
+			   it in the core of Dos9.
 			 */
 
 		} else {
@@ -876,7 +887,7 @@ int Dos9_CmdColor(wchar_t* lpLine)
 
 		} else {
 
-			colColor=strtol(lpArg, NULL, 16);
+			colColor=wcstol(lpArg, NULL, 16);
 			Dos9_SetConsoleColor(colColor);
 
 		}
@@ -892,7 +903,7 @@ int Dos9_CmdColor(wchar_t* lpLine)
 
 int Dos9_CmdTitle(wchar_t* lpLine)
 {
-	char lpArg[3];
+	wchar_t lpArg[3];
 	ESTR* lpEsTitle=Dos9_EsInit();
 
 	lpLine+=5;
@@ -936,7 +947,7 @@ int Dos9_CmdType(wchar_t* lpLine)
 		} else if ((pFile=wfopen(lpFileName, L"r"))) {
 
 			while (fgetws(lpFileName, FILENAME_MAX, pFile))
-				wprintf("%s", lpFileName);
+				wprintf(L"%s", lpFileName);
 
 			fclose(pFile);
 			return 0;
@@ -954,7 +965,7 @@ int Dos9_CmdGoto(wchar_t* lpLine)
 {
 	wchar_t lpLabelName[FILENAME_MAX],
 			lpFileName[FILENAME_MAX],
-			lpFile=NULL;
+			*lpFile=NULL;
 
 	int 	bEchoError=TRUE;
 
@@ -1047,9 +1058,11 @@ int Dos9_CmdCd(wchar_t* lpLine)
 	wchar_t* lpNext;
 	ESTR* lpEsDir=Dos9_EsInit();
 
-	if (!(lpLine=strchr(lpLine, ' '))) {
+	if (!(lpLine=wcschr(lpLine, L' '))) {
+
 		Dos9_ShowErrorMessage(DOS9_BAD_COMMAND_LINE, NULL, FALSE);
 		goto error;
+
 	}
 
 	if ((lpNext=Dos9_GetNextParameterEs(lpLine, lpEsDir))) {
@@ -1065,7 +1078,7 @@ int Dos9_CmdCd(wchar_t* lpLine)
 
 		}
 
-		while (*lpLine==L' ' || *lpLine==L'\t') lpLine++;
+		lpLine=Dos9_SkipBlanks(lpLine);
 
 		Dos9_GetEndOfLine(lpLine, lpEsDir);
 

@@ -41,6 +41,6 @@ clean:
 .SUFFIXES: .o
 
 .c.o:
-	$(CC) $(CFLAGS) -o $@ -c $<
+	$(CC) $(CFLAGS) -o $@ -c $< -I../include
 
 

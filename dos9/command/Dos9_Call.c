@@ -22,6 +22,8 @@
 #include <stdio.h>
 #include <string.h>
 
+#include <wchar.h>
+
 #include <libDos9.h>
 #include <libw.h>
 
@@ -31,7 +33,7 @@
 
 #include "Dos9_Call.h"
 
-int Dos9_CmdCall(char* lpLine)
+int Dos9_CmdCall(wchar_t* lpLine)
 {
 	ESTR *lpEsParameter=Dos9_EsInit(),
 		 *lpEsLabel=Dos9_EsInit(),
@@ -160,7 +162,7 @@ int Dos9_CmdCall(char* lpLine)
 
 		/* neither ``file'' nor ``label'' were given */
 
-		Dos9_ShowErrorMessage(DOS9_EXPECTED_MORE, "CALL", FALSE);
+		Dos9_ShowErrorMessage(DOS9_EXPECTED_MORE, L"CALL", FALSE);
 		goto error;
 
 
@@ -215,7 +217,7 @@ error:
 
 }
 
-int Dos9_CmdCallFile(char* lpFile, char* lpLabel, char* lpCmdLine)
+int Dos9_CmdCallFile(wchar_t* lpFile, wchar_t* lpLabel, wchar_t* lpCmdLine)
 {
 	INPUT_FILE ifOldFile;
 	LOCAL_VAR_BLOCK lpvOldBlock[LOCAL_VAR_BLOCK_SIZE];
@@ -286,7 +288,7 @@ int Dos9_CmdCallFile(char* lpFile, char* lpLabel, char* lpCmdLine)
 
 	while (c<=L'9') {
 
-		Dos9_SetLocalVar(lpvLocalVars, c, "");
+		Dos9_SetLocalVar(lpvLocalVars, c, L"");
 		c++;
 
 	}
@@ -354,7 +356,7 @@ error:
 
 }
 
-int Dos9_CmdCallExternal(char* lpFile, char* lpCh)
+int Dos9_CmdCallExternal(wchar_t* lpFile, wchar_t* lpCh)
 {
 
 	BLOCKINFO bkInfo;
@@ -383,7 +385,7 @@ int Dos9_CmdCallExternal(char* lpFile, char* lpCh)
 	   NULL, depending wether '\0' should be considired as part of string
 	   for developper.
 	  */
-	bkInfo.lpEnd=memchr(bkInfo, '\0', 1 << (sizeof(size_t)-1));
+	bkInfo.lpEnd=memchr(bkInfo.lpBegin, L'\0', 1 << (sizeof(size_t)-1));
 
 	Dos9_RunBlock(&bkInfo);
 

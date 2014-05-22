@@ -21,6 +21,8 @@
 #ifndef DOS9_ASK_H
 #define DOS9_ASK_H
 
+#include <wchar.h>
+
 #define DOS9_ASK_YN             (0x00)
 /* The use can choose either YES or NO */
 
@@ -47,6 +49,6 @@ return DOS9_ASK_ALL */
 #define DOS9_ASK_ALL            (4)
 #define DOS9_ASK_INVALID        (-1)
 
-int Dos9_AskConfirmation(int iFlags, const char* lpMsg, ...);
+int Dos9_AskConfirmation(int iFlags, const wchar_t* lpMsg, ...);
 
 #endif // DOS9_ASK_H

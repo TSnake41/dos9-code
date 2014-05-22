@@ -76,9 +76,9 @@ int Dos9_TestLocalVarName(wchar_t cVar)
 		/* if the name is not strict ASCII, it
 		   is not conformant */
 
-		if (cVar && cVar!='\n' && cVar!='\t' && cVar!=' ')
+		if (cVar && cVar!=L'\n' && cVar!=L'\t' && cVar!=L' ')
 			Dos9_ShowErrorMessage(DOS9_SPECIAL_VAR_NON_ASCII,
-			                      (const wchar_t*)cVar,
+			                      (const wchar_t*)((size_t)cVar),
 			                      FALSE);
 
 		return -1;
@@ -91,17 +91,21 @@ int Dos9_GetVar(wchar_t* lpName, ESTR* lpRecieve)
 {
 	wchar_t     *lpVarContent, /* a pointer to the environment var string */
 	            *lpToken, /* a pointer used to tokenize vars like %var:a=b% */
-	            *lpNextToken=NULL, /* a pointer used to tokenize '=' or ',' in vars like %var:a=b% */
-				*lpNameCpy, /* a pointer used to duplicate lpName (because function should avoid bordering effect)*/
-				*lpZeroPos=NULL;; /* a pointer to the zero put in the environment string */
+	            *lpNextToken=NULL, /* a pointer used to tokenize '=' or
+	            					',' in vars like %var:a=b% */
+				*lpNameCpy, /* a pointer used to duplicate lpName (because
+								function should avoid bordering effect)*/
+				*lpZeroPos=NULL;; /* a pointer to the zero put in the
+									environment string */
 
 	wchar_t     lpBuf[12];
-	int         iVarState=0, /* the status of the var interpreter 1 means replace, 2 means cut */
+	int         iVarState=0, /* the status of the var interpreter 1 means
+								replace, 2 means cut */
 	            iTotalLen,
 	            iBegin=0, /* the start position */
 	            iLen=0; /* the lenght to be cut */
 
-	char        cCharSave=0; /* the backup of the character replaced by '\0' */;
+	char        cCharSave=0; /* the backup of the character replaced by '\0ss' */
 	struct tm*  lTime;
 	time_t      iTime;
 
@@ -506,7 +510,8 @@ wchar_t* Dos9_GetLocalVar(LOCAL_VAR_BLOCK* lpvBlock, wchar_t* lpName, ESTR* lpRe
 				break;
 
 			case L'z':
-				swprintf(lpBuffer, "%d%c",
+				swprintf(lpBuffer,
+						L"%d%c",
 						(int)stFileInfo.st_size,
 						(cFlag[i+1]!=0 ? L'\t' : L'\0'));
 
@@ -532,7 +537,11 @@ wchar_t* Dos9_GetLocalVar(LOCAL_VAR_BLOCK* lpvBlock, wchar_t* lpName, ESTR* lpRe
 				break;
 
 			case L'a':
-				sprintf(lpBuffer, "       %c", (cFlag[i+1]!=0 ? L'\t': L'\0'));
+				swprintf(lpBuffer,
+							L"       %c",
+							(cFlag[i+1]!=0 ? L'\t': L'\0')
+							);
+
 				if (stFileInfo.st_mode & DOS9_FILE_DIR)
 					lpBuffer[0]=L'D';
 

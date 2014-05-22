@@ -100,7 +100,7 @@ int Dos9_CmdDel(wchar_t* lpLine)
 
 			bParam|=DOS9_DONT_ASK_GENERIC;
 
-		} else if (!wcscasecmp(lpToken, L"/A", 2)) {
+		} else if (!wcsncasecmp(lpToken, L"/A", 2)) {
 
 			/* gestion des attributs */
 			lpToken+=2;
@@ -202,7 +202,7 @@ int Dos9_CmdDel(wchar_t* lpLine)
 
 			} else {
 
-				wprintf(L"<DEBUG> Fichier `%s' non suprimmé (attributs incorrects)\n", lpFileList->lpFileName);
+				wprintf(L"<DEBUG> Fichier `%s' non suprimme (attributs incorrects)\n", lpFileList->lpFileName);
 
 			}
 
@@ -330,7 +330,7 @@ int Dos9_CmdDir(wchar_t* lpLine)
 			/* set the command to recusive */
 			iFlag|=DOS9_SEARCH_RECURSIVE;
 
-		} else if (!strnicmp(L"/a", lpToken,2)) {
+		} else if (!wcsncasecmp(L"/a", lpToken,2)) {
 
 			/* uses the attributes command */
 			lpToken+=2;
@@ -369,7 +369,7 @@ int Dos9_CmdDir(wchar_t* lpLine)
 	iDirNb=0;
 	iFileNb=0;
 
-	if (!bSimple) puts(lpDirListTitle);
+	if (!bSimple) putws(lpDirListTitle);
 
 	/* Get a list of file and directories matching to the
 	   current filename and options set */
@@ -435,9 +435,9 @@ int Dos9_CmdRen(wchar_t* lpLine)
 			}
 
 			/* cat with new name */
-			wcsncat(lpFileDest, Dos9_EsToChar(lpEstr), FILENAME_MAX-strlen(lpFileDest));
+			wcsncat(lpFileDest, Dos9_EsToChar(lpEstr), FILENAME_MAX-wcslen(lpFileDest));
 
-			if (!wprintf("<DEBUG> renaming `%s` to `%s`\n", lpFileName, lpFileDest)) {
+			if (!wprintf(L"<DEBUG> renaming `%s` to `%s`\n", lpFileName, lpFileDest)) {
 
 				Dos9_ShowErrorMessage(DOS9_UNABLE_RENAME, lpFileName, FALSE);
 				Dos9_EsFree(lpEstr);
@@ -451,7 +451,7 @@ int Dos9_CmdRen(wchar_t* lpLine)
 
 	}
 
-	Dos9_ShowErrorMessage(DOS9_EXPECTED_MORE, "REN / RENAME", FALSE);
+	Dos9_ShowErrorMessage(DOS9_EXPECTED_MORE, L"REN / RENAME", FALSE);
 	Dos9_EsFree(lpEstr);
 	return -1;
 }
@@ -462,7 +462,7 @@ int Dos9_CmdRmdir(wchar_t* lpLine)
 
 	if (!(lpLine=Dos9_GetNextParameterEs(lpLine, lpEstr))) {
 
-		Dos9_ShowErrorMessage(DOS9_EXPECTED_MORE, "RD/RMDIR", FALSE);
+		Dos9_ShowErrorMessage(DOS9_EXPECTED_MORE, L"RD/RMDIR", FALSE);
 		goto error;
 
 	}

@@ -21,6 +21,8 @@
 #ifndef DOS9_CMD_ALIAS_H
 #define DOS9_CMD_ALIAS_H
 
-int Dos9_CmdAlias(char* lpLine);
+#include <wchar.h>
+
+int Dos9_CmdAlias(wchar_t* lpLine);
 
 #endif // DOS9_CMD_ALIAS_H

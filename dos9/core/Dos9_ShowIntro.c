@@ -63,8 +63,8 @@ void Dos9_PrintIntroduction(void)
 
 #endif
 
-	if (sizeof(DOS9_DESC_TOKEN)/sizeof(char)-1 < iSize)
-		iSize=sizeof(DOS9_DESC_TOKEN)/sizeof(char)-1;
+	if (sizeof(DOS9_DESC_TOKEN)/sizeof(wchar_t)-1 < iSize)
+		iSize=sizeof(DOS9_DESC_TOKEN)/sizeof(wchar_t)-1;
 
 	wcsncpy(lpDesc, DOS9_DESC_TOKEN , iSize);
 

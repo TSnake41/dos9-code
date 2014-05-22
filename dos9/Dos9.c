@@ -51,7 +51,7 @@
 #include "command/Dos9_For.h"
 #include "command/Dos9_CommandInfo.h"
 
-#define DOS9_DBG_MODE
+//#define DOS9_DBG_MODE
 #include "core/Dos9_Debug.h"
 
 
@@ -61,8 +61,11 @@ void Dos9_SigHandler(int c)
 	   the command prompt. */
 }
 
-
-int wmain(int argc, wchar_t *argv[])
+#ifdef WIN32
+int main(void)
+#else
+int main(int argc, wchar_t *argv[])
+#endif
 {
 	/*  a function which initializes Dos9's engine,
 	    parses the command line argumments,
@@ -79,6 +82,31 @@ int wmain(int argc, wchar_t *argv[])
 
 	int bQuiet=FALSE,
 	    bGetSwitch=TRUE;
+
+	#ifdef WIN32
+
+		int argc;
+		wchar_t** argv, env;
+		void* si;
+	#endif
+
+	setlocale(LC_ALL, "");
+
+
+	#ifdef WIN32
+		__wgetmainargs(&argc, &argv, &env, 0, &si);
+		/* this is a trick to get wide-character versions of arguments
+		   through mingw
+		 */
+
+		_setmode(DOS9_STDOUT, _O_WTEXT);
+		_setmode(DOS9_STDERR, _O_WTEXT);
+		//_setmode(DOS9_STDIN, _O_U16TEXT);
+
+		//setvbuf(stdin, NULL, _IONBF, 0);
+
+	#endif // WIN32
+
 
 	DOS9_DBG(L"Initializing signal handler...\n");
 
@@ -112,11 +140,7 @@ int wmain(int argc, wchar_t *argv[])
 
 	SetThreadLocale(LOCALE_USER_DEFAULT);
 
-#elif defined _POSIX_C_SOURCE
-
-	setlocale(LC_ALL, "");
-
-#endif // WINDOWS
+#endif
 
 	DOS9_DBG(L"Loading GETTEXT messages... \n");
 

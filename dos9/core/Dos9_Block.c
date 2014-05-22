@@ -19,6 +19,7 @@
 
 #include <wchar.h>
 #include <libDos9.h>
+#include <libw.h>
 
 #include "Dos9_Core.h"
 
@@ -44,7 +45,7 @@ wchar_t* Dos9_GetNextBlockBeginEx(wchar_t* lpCh, int bIsBlockCmd)
 
 		/* check if there is a new openning right there */
 
-		if ((lpNextParent=Dos9_SearchToken(lpCh, "(\n"))) {
+		if ((lpNextParent=Dos9_SearchToken(lpCh, L"(\n"))) {
 
 			if (*lpNextParent=='(')
 				return lpNextParent;

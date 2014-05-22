@@ -60,6 +60,9 @@ void Dos9_LoadErrors(void)
 
 		/* the string can be translated to mbs */
 
+		wprintf(L"lpwPath : '%s'\n", lpwSharePath);
+		wprintf(L"lpPath : '%S' \n", lpPath);
+
 		bindtextdomain("Dos9-errors", lpPath);
 
 		free(lpPath);

@@ -22,19 +22,19 @@ AC_INIT([libw],
 
 AC_PREREQ([2.59])
 
+dnl Adding configuration header
 AC_CONFIG_HEADERS(lib/libw_conf.h)
 
+dnl Checking for programs
 AC_PROG_CC
 AC_LANG_C
-
 AC_PROG_MAKE_SET
-
 AC_HEADER_STDC
 
 dnl Looking for functions that are availiable in the current environement
-
 AC_CHECK_FUNCS(wcserror _wcserror wstat _wstat wgetenv _wgetenv wcscasecmp _wcsicmp wfopen _wfopen wtol _wtol wtoi _wtoi swprintf _swprintf snwprintf _snwprintf)
-AC_CHECK_FUNCS(wcsncasecmp _wcsnicmp putws _putws wprintf wcsdup _wcsdup)
+AC_CHECK_FUNCS(wcsncasecmp _wcsnicmp putws _putws wprintf wcsdup _wcsdup wputenv _wputenv wrmdir _wrmdir wmkdir _wmkdir wtof _wtof wfdopen _wfdopen)
+AC_CHECK_FUNCS(wopen _wopen wchdir _wchdir)
 
 AC_CONFIG_FILES([Makefile])
 

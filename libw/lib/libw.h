@@ -32,6 +32,17 @@
 
 #include "libw_conf.h"
 
+/* This lib provides a compatibility layer for *Nixes system calls. Indeed
+   Some *Nixes do not ship wide characters systems call, nor wide characters
+   equivalent of libc function. Thus this library provides these wrappers
+   for systems that do not support these functions.
+
+   Usually, equivalent searched on *Nixes systems match the name that are not
+   prefixed with an underscore ('_'). The functions prefixed by an underscore
+   are usually functions provided by Microsoft Windows' CRT.
+
+ */
+
 #ifndef HAVE_WCSERROR
 #ifdef  HAVE__WCSERROR
 #define wcserror _wcserror
@@ -58,6 +69,15 @@ wchar_t* wgetenv(const wchar_t* lpEnv);
 #define BUILD_WGETENV 1
 #endif //_wgetenv
 #endif //wgetenv
+
+#ifndef HAVE_WPUTENV
+#ifdef  HAVE__WPUTENV
+#define wputenv _wputenv
+#else
+int wputenv(const char* lpEnv);
+#define BUILD_WPUTENV 1
+#endif // _wputenv
+#endif // wputenv
 
 #ifndef HAVE_WCSCASECMP
 #ifdef  HAVE__WCSICMP
@@ -96,13 +116,22 @@ long wtol(const wchar_t* lpwNum);
 #endif //wtof
 
 #ifndef HAVE_WTOI
-#ifdef  HAVE_WTOI
+#ifdef  HAVE__WTOI
 #define wtoi _wtoi
 #else
 #define BUILD_WTOI 1
 int wtoi(const wchar_t* lpNum);
 #endif // _wtoi
 #endif // wtol
+
+#ifndef HAVE_WTOF
+#ifdef  HAVE__WTOF
+#define wtof _wtof
+#else
+#define BUILD_WTOF 1
+int wtoi(const wchar_t* lpNum);
+#endif // _wtof
+#endif // _wtof
 
 #ifndef HAVE_SWPRINTF
 #ifdef  HAVE__SWPRINTF
@@ -141,6 +170,51 @@ wchar_t* wcsdup(const wchar_t* lpwD);
 #define BUILD_WCSDUP
 #endif // _wcsdup
 #endif // wcsdup
+
+#ifndef HAVE_WRMDIR
+#ifdef  HAVE__WRMDIR
+#define wrmdir _wrmdir
+#else
+int wrmdir(const wchar_t* lpwDir);
+#define BUILD_WRMDIR 1
+#endif // _wrmdir
+#endif // wrmdir
+
+#ifndef HAVE_WMKDIR
+#ifdef  HAVE__WMKDIR
+#define wmkdir _wmkdir
+#else
+int wmkdir(const wchar_t* lpwDir);
+#define BUILD_WMKDIR 1
+#endif // _wrmdir
+#endif // wrmdir
+
+#ifndef HAVE_WOPEN
+#ifdef  HAVE__WOPEN
+#define wopen _wopen
+#else
+int open(const wchar_t *pathname, int flags, int mode)
+#define BUILD_WOPEN 1
+#endif // _wopen
+#endif // wopen
+
+#ifndef HAVE_WFDOPEN
+#ifdef  HAVE__WFDOPEN
+#define wfdopen _wfdopen
+#else
+int wfdopen(int d, const wchar_t* mode);
+#define BUILD_WOPEN 1
+#endif // _wfdopen
+#endif // wfdopen
+
+#ifndef HAVE_WCHDIR
+#ifdef  HAVE__WCHDIR
+#define wchdir _wchdir
+#else
+int wchdir(const wchar_t* dir);
+#define BUILD_WCHDIR 1
+#endif // _wchdir
+#endif // wchdir
 
 #define LIBW
 

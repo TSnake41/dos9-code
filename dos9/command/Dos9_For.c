@@ -321,7 +321,7 @@ error:
 	return -1;
 }
 
-int Dos9_CmdForSimple(ESTR* lpInput, BLOCKINFO* lpbkCommand, char cVarName, char* lpDelimiters)
+int Dos9_CmdForSimple(ESTR* lpInput, BLOCKINFO* lpbkCommand, wchar_t cVarName, wchar_t* lpDelimiters)
 {
 
 	wchar_t *lpToken=Dos9_EsToChar(lpInput);
@@ -430,12 +430,12 @@ int Dos9_CmdForSimple(ESTR* lpInput, BLOCKINFO* lpbkCommand, char cVarName, char
 
 }
 
-int Dos9_CmdForL(ESTR* lpInput, BLOCKINFO* lpbkCommand, char cVarName)
+int Dos9_CmdForL(ESTR* lpInput, BLOCKINFO* lpbkCommand, wchar_t cVarName)
 {
 	int iLoopInfo[3]= {0,0,0}, /* loop information */
 		i;
 
-	wchar_t	lpValue[]="-3000000000",
+	wchar_t	lpValue[]=L"-3000000000",
 			*lpToken;
 
 	lpToken=Dos9_EsToChar(lpInput);
@@ -576,7 +576,7 @@ error:
     FORINFO functions
 */
 
-int Dos9_ForMakeInfo(char* lpOptions, FORINFO* lpfiInfo)
+int Dos9_ForMakeInfo(wchar_t* lpOptions, FORINFO* lpfiInfo)
 /*
     Fill the FORINFO structure with the appropriate
     informations
@@ -633,7 +633,7 @@ int Dos9_ForMakeInfo(char* lpOptions, FORINFO* lpfiInfo)
 			/* see C89 or later standard */
 
 
-		} else if (!(wcscasecmp(Dos9_EsToChar(lpParam), "skip"))) {
+		} else if (!(wcscasecmp(Dos9_EsToChar(lpParam), L"skip"))) {
 
 			lpfiInfo->iSkip=wcstol(lpToken, NULL, 0);
 
@@ -648,7 +648,7 @@ int Dos9_ForMakeInfo(char* lpOptions, FORINFO* lpfiInfo)
 
 			lpfiInfo->lpEol[sizeof(lpfiInfo->lpEol)/sizeof(wchar_t)-1] = L'\0';
 
-		} else if (!(wcscasecmp(Dos9_EsToChar(lpParam), "tokens"))) {
+		} else if (!(wcscasecmp(Dos9_EsToChar(lpParam), L"tokens"))) {
 
 			/* make the options */
 			if (Dos9_ForMakeTokens(lpToken, lpfiInfo)==-1) {
@@ -712,16 +712,16 @@ int  Dos9_ForMakeTokens(wchar_t* lpToken, FORINFO* lpfrInfo)
 
 					lpfrInfo->lpToken[i]|=TOLOW(iTokenNb);
 					isCat=FALSE;
-					d
+
 					break;
 				}
 
 				if (i >= TOKENINFO_NB_MAX ) {
 
 					Dos9_ShowErrorMessage(DOS9_FOR_TOKEN_OVERFLOW,
-											(char*)TOKENINFO_NB_MAX,
+											(wchar_t*)TOKENINFO_NB_MAX,
 											FALSE);
-											d
+
 					return -1;
 
 				}
@@ -1073,7 +1073,7 @@ int Dos9_ForVarCheckAssignment(FORINFO* lpfrInfo)
 		if ((Dos9_GetLocalVarPointer(lpvLocalVars, cVarName))) {
 
 			Dos9_ShowErrorMessage(DOS9_FOR_TRY_REASSIGN_VAR,
-									(char*)((int)cVarName),
+									(wchar_t*)((size_t)cVarName),
 									FALSE
 									);
 
@@ -1190,7 +1190,7 @@ int Dos9_ForMakeInputInfo(ESTR* lpInput, INPUTINFO* lpipInfo, FORINFO* lpfrInfo)
 			if (!(lpipInfo->Info.StringInfo.lpString=wcsdup(lpToken))) {
 
 				Dos9_ShowErrorMessage(DOS9_FAILED_ALLOCATION | DOS9_PRINT_C_ERROR,
-				                      __FILE__ "/Dos9_MakeInputInfo()",
+				                      L(__FILE__) "/Dos9_MakeInputInfo()",
 				                      TRUE);
 
 			}
@@ -1283,9 +1283,9 @@ int Dos9_ForAdjustInput(wchar_t* lpInput)
 
 int Dos9_ForInputProcess(ESTR* lpInput, INPUTINFO* lpipInfo, int* iPipeFdIn, int* iPipeFdOut)
 {
-	wchar_t* lpArgs[10];
-	wchar_t* lpInArg[16],
-	     	 lpOutArg[16];
+	wchar_t *lpArgs[10],
+			lpInArg[16],
+			lpOutArg[16];
 
 	FILE* pFile;
 
@@ -1331,7 +1331,7 @@ int Dos9_ForInputProcess(ESTR* lpInput, INPUTINFO* lpipInfo, int* iPipeFdIn, int
 
 #ifdef WIN32
 
-	spawnvp(_P_NOWAIT, lpArgs[0], (char * const*)lpArgs);
+	_spawnvp(_P_NOWAIT, lpArgs[0], lpArgs);
 
 	if (errno == ENOENT) {
 
@@ -1507,7 +1507,7 @@ void Dos9_ForCloseInputInfo(INPUTINFO* lpipInfo)
 }
 
 /* Wrapper for deprecated old FOR /R */
-int  Dos9_CmdForDeprecatedWrapper(ESTR* lpMask, ESTR* lpDir, char* lpAttribute, BLOCKINFO* lpbkCode, char cVarName)
+int  Dos9_CmdForDeprecatedWrapper(ESTR* lpMask, ESTR* lpDir, wchar_t* lpAttribute, BLOCKINFO* lpbkCode, wchar_t cVarName)
 {
 	FORINFO forInfo= {
 		L" ", /* no tokens delimiters, since only one

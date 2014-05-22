@@ -21,6 +21,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <wchar.h>
 
 #include <libDos9.h>
 #include <libw.h>
@@ -31,7 +32,7 @@
 #include "../errors/Dos9_Errors.h"
 #include "../lang/Dos9_Help.h"
 
-int Dos9_CmdAlias(char* lpLine)
+int Dos9_CmdAlias(wchar_t* lpLine)
 {
 
 	ESTR* lpEsParam=Dos9_EsInit();
@@ -50,7 +51,7 @@ int Dos9_CmdAlias(char* lpLine)
 
 	while ((lpCh=Dos9_GetNextParameterEs(lpLine, lpEsParam))) {
 
-		if (!wcscmp("/?", Dos9_EsToChar(lpEsParam))) {
+		if (!wcscmp(L"/?", Dos9_EsToChar(lpEsParam))) {
 
 			Dos9_ShowInternalHelp(DOS9_HELP_ALIAS);
 
@@ -89,7 +90,7 @@ int Dos9_CmdAlias(char* lpLine)
 	*lpCh=L'\0';
 	lpCh++;
 
-	ciCommand.cfFlag=strlen(lpLine) | DOS9_ALIAS_FLAG;
+	ciCommand.cfFlag=wcslen(lpLine) | DOS9_ALIAS_FLAG;
 	ciCommand.ptrCommandName=lpLine;
 
 	ciCommand.lpCommandProc=lpCh;

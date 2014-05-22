@@ -21,13 +21,15 @@
 #ifndef DOS9_CALL_H
 #define DOS9_CALL_H
 
-int Dos9_CmdCall(char* lpCh);
+#include <wchar.h>
+
+int Dos9_CmdCall(wchar_t* lpCh);
 
 /* this is used to call other batch files */
-int Dos9_CmdCallFile(char* lpFile, char* lpLabel, char* lpCmdLine);
+int Dos9_CmdCallFile(wchar_t* lpFile, wchar_t* lpLabel, wchar_t* lpCmdLine);
 
 /* this is used to call external programs
    or even internals  */
-int Dos9_CmdCallExternal(char* lpFile, char* lpCh);
+int Dos9_CmdCallExternal(wchar_t* lpFile, wchar_t* lpCh);
 
 #endif // DOS9_CALL_H

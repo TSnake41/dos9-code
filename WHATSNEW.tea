@@ -829,3 +829,17 @@ ${make}
 	trigered.
 	
 	- Fixed omition of {ansicon} on the {Dos9_Auto.bat}, which is launched at startup.
+	
+{{Thursday 22, May}}
+
+	- Finished working on an unicode version of {Dos9}. This works pretty well for output characters in many different
+	charsets through the console. However, I've not been able to make stdin use so-called unicode version of functions
+	of the API, so that it result on the fact that instead of having full unicode input, we obtain unicode input that
+	have be stripped from the character that are not on the current code page. This is sad, but it's still to be
+	addressed.
+	
+	- Added a compatibility library (libw). This library is intended to provide a compatibility layer for *Nixes.
+	Indeed, most *Nixes operating systems do not support {wchar_t] aware function (because it has different stratigies
+	toward internationalization). Thus, this lib provides wrappers to make functions more portable. However, the
+	*Nix compatibility is still broken yet. Anyway, the last "stable" (version 2014.0.9) should be able to handle *Nixes
+	without much problems. As of today, incompatibity issues are still to be addressed.

@@ -29,8 +29,9 @@ LIBW char* libw_wcstombs(const wchar_t* lpIn)
 	char* lpBuf;
 	size_t size;
 
-	size=wcstombs(NULL, lpIn, 0);
-		/* get the requiered length for translation */
+	size=wcstombs(NULL, lpIn, 0)+1;
+		/* get the requiered length for translation, and add the
+		   NULL-terminating character */
 
 	if (!(lpBuf=malloc(size)))
 		return NULL;
@@ -53,7 +54,7 @@ LIBW wchar_t* libw_mbstowcs(const char* lpIn)
 	wchar_t* lpBuf;
 	size_t size;
 
-	size=mbstowcs(NULL, lpIn, 0);
+	size=mbstowcs(NULL, lpIn, 0)+1;
 		/* get the requiered length for translation */
 
 	if (!(lpBuf=malloc(size*sizeof(wchar_t))))

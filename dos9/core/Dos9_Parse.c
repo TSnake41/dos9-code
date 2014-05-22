@@ -287,7 +287,7 @@ PARSED_STREAM*       Dos9_ParseOperators(ESTR* lpesLine)
 	if (!(lppsStreamBegin=Dos9_AllocParsedStream(NULL))) {
 
 		Dos9_ShowErrorMessage(DOS9_FAILED_ALLOCATION | DOS9_PRINT_C_ERROR,
-		                      __FILE__ L"/Dos9_ParseOperators()",
+		                      L(__FILE__) L"/Dos9_ParseOperators()",
 		                      -1
 		                     );
 

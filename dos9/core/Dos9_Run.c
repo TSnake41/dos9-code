@@ -268,8 +268,6 @@ RestartSearch:
 
 	lpCmdLine=Dos9_SkipAllBlanks(lpCmdLine);
 
-	fwprintf(stderr, L"*** Running  line '%s'\n", lpCmdLine);
-
 	switch((iFlag=Dos9_GetCommandProc(lpCmdLine, lpclCommands, (void**)&lpProc))) {
 
 	case -1:
@@ -516,7 +514,7 @@ int Dos9_RunExternalFile(wchar_t* lpFileName, wchar_t** lpArguments)
 	errno=0;
 
 	/* in windows the result is directly returned */
-	res=spawnv(_P_WAIT, lpFileName, (wchar_t * const*)lpArguments);
+	res=_wspawnv(_P_WAIT, lpFileName, (wchar_t * const*)lpArguments);
 
 	if (errno==ENOENT) {
 

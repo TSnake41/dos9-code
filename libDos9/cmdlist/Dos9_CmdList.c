@@ -20,6 +20,9 @@
 
 #include "../LibDos9.h"
 
+#include <wchar.h>
+#include <libw.h>
+
 LIBDOS9 int Dos9_AddCommandDynamic(LPCOMMANDINFO lpciCommandInfo, LPCOMMANDLIST* lpclListEntry)
 {
     int iRet;
@@ -190,7 +193,7 @@ LIBDOS9 COMMANDFLAG   Dos9_GetCommandProc(wchar_t* lpCommandLine, LPCOMMANDLIST 
 
     while (lpclCommandList) {
 
-        iRet=wcscasecmp(lpCommandLine,
+        iRet=wcsncasecmp(lpCommandLine,
                       lpclCommandList->ptrCommandName,
                       lpclCommandList->iLenght);
 
@@ -219,6 +222,12 @@ LIBDOS9 COMMANDFLAG   Dos9_GetCommandProc(wchar_t* lpCommandLine, LPCOMMANDLIST 
                        [lpclCommandList->cfFlag & ~DOS9_ALIAS_FLAG]) {
 
                     case L' ':
+					case L',':
+					case L';': /* Additionnal delimiters that are not widely used
+								  but, it can be used as in cmd.exe
+								  Maybe these were used for obsucation purposes, however,
+								  it is always simple to be used in for-commands.
+								*/
                     case L'\n':
                     case L'\t':
 					case L'/': /* accept '/' as valid delimiters in order to support
@@ -262,7 +271,7 @@ LIBDOS9 int				Dos9_ReplaceCommand(LPCOMMANDINFO lpciCommand, LPCOMMANDLIST lpcl
 
     while (lpclCommandList) {
 
-        iRet=wcscasecmp(lpCommandLine,
+        iRet=wcsncasecmp(lpCommandLine,
                       lpclCommandList->ptrCommandName,
                       lpclCommandList->iLenght);
 
@@ -330,7 +339,7 @@ LIBDOS9 LPCOMMANDLIST   Dos9_ReMapCommandInfo(LPCOMMANDLIST lpclCommandList)
 	   running, it will probably crash */
 
     /* trying to re-balance an unbalanced tree is
-       to much difficult for me, thus, create a new
+       too much difficult for me, thus, create a new
        commandinfo structure and Map it again */
 
     size_t iNewSize;
