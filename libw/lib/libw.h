@@ -133,28 +133,18 @@ int wtoi(const wchar_t* lpNum);
 #endif // _wtof
 #endif // _wtof
 
-#ifndef HAVE_SWPRINTF
-#ifdef  HAVE__SWPRINTF
-#define swprintf _swprintf
-#else
-int swprintf(wchar_t* dest, const wchar_t* format, ...);
+#if !defined(HAVE_SWPRINTF) || !defined(HAVE_ISO_SWPRINTF)
+#if defined(HAVE__VSNWPRINTF)
+int libw_swprintf(wchar_t* dest, size_t count, const wchar_t* format, ...);
 #define BUILD_SWPRINTF 1
+#define swprintf libw_swprintf
 #endif // _swprintf
 #endif // swprintf
-
-#ifndef HAVE_SNWPRINTF
-#ifdef  HAVE__SNWPRINTF
-#define snwprintf _snwprintf
-#else
-int snwprintf(wchar_t* dest, size_t n, const wchar_t* format, ...);
-#define BUILD_SNWPRINTF 1
-#endif // _snwprintf
-#endif // snwprintf
 
 #ifndef HAVE_PUTWS
 #ifdef  HAVE__PUTWS
 #define putws _putws
-#elif defined HAVE_WPRINTF
+#elif defined(HAVE_WPRINTF)
 #define putws(str) wprintf("%s\n", str)
 #else
 int putws(wchar_t* str);
@@ -193,7 +183,7 @@ int wmkdir(const wchar_t* lpwDir);
 #ifdef  HAVE__WOPEN
 #define wopen _wopen
 #else
-int open(const wchar_t *pathname, int flags, int mode)
+int wopen(const wchar_t *pathname, int flags, int mode);
 #define BUILD_WOPEN 1
 #endif // _wopen
 #endif // wopen

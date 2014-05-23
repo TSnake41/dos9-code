@@ -303,7 +303,7 @@ BackTrackExternalCommand:
 
 	if (iErrorLevel!=lastErrorLevel) {
 
-		snwprintf(lpErrorlevel+11, sizeof(lpErrorlevel)/sizeof(wchar_t)-11, L"%d", iErrorLevel);
+		swprintf(lpErrorlevel+11, sizeof(lpErrorlevel)/sizeof(wchar_t)-11, L"%d", iErrorLevel);
 		Dos9_PutEnv(lpErrorlevel);
 		lastErrorLevel=iErrorLevel;
 	}
@@ -477,11 +477,11 @@ int Dos9_RunExternalCommand(wchar_t* lpCommandLine)
 
 #ifdef WIN32
 
-		snwprintf(lpFileName, sizeof(lpFileName) ,L"%s/dos9.exe", lpExePath);
+		swprintf(lpFileName, sizeof(lpFileName)/sizeof(wchar_t) ,L"%s/dos9.exe", lpExePath);
 
 #else
 
-		snwprintf(lpFileName, sizeof(lpFileName)/sizeof(lpFileName) ,L"%s/dos9", lpExePath);
+		swprintf(lpFileName, sizeof(lpFileName)/sizeof(wchar_t) ,L"%s/dos9", lpExePath);
 
 #endif // WIN32
 

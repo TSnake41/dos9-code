@@ -1,6 +1,9 @@
 /* lib/libw_conf.h.  Generated from libw_conf.h.in by configure.  */
 /* lib/libw_conf.h.in.  Generated from configure.ac by autoheader.  */
 
+/* Define if C99 swprintf available */
+/* #undef HAVE_ISO_SWPRINTF */
+
 /* Define to 1 if you have the `putws' function. */
 /* #undef HAVE_PUTWS */
 
@@ -69,6 +72,9 @@
 
 /* Define to 1 if you have the `_swprintf' function. */
 /* #undef HAVE__SWPRINTF */
+
+/* Define to 1 if you have the `_vsnwprintf' function. */
+#define HAVE__VSNWPRINTF 1
 
 /* Define to 1 if you have the `_wchdir' function. */
 #define HAVE__WCHDIR 1

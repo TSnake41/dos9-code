@@ -127,7 +127,7 @@ int Dos9_GetFilePath(wchar_t* lpFullPath, const wchar_t* lpPartial, size_t iBufS
 
 file_found:
 
-	snwprintf(lpFullPath ,
+	swprintf(lpFullPath ,
 			  iBufSize,
 			  L"%s",
 	          Dos9_EsToChar(lpEsFinalPath)

@@ -157,21 +157,31 @@ int Dos9_GetVar(wchar_t* lpName, ESTR* lpRecieve)
 
 		/* requested RANDOM */
 		lpVarContent=lpBuf;
-		swprintf(lpBuf, L"%d", rand());
+		swprintf(lpBuf, sizeof(lpBuf)/sizeof(char), L"%d", rand());
 
 	} else if (!(wcscasecmp(lpNameCpy, L"DATE"))) {
 
 		iTime=time(NULL);
 		lTime=localtime(&iTime);
 		lpVarContent=lpBuf;
-		swprintf(lpBuf, L"%02d/%02d/%02d", lTime->tm_mday, lTime->tm_mon+1, lTime->tm_year+1900);
+		swprintf(lpBuf,
+				sizeof(lpBuf)/sizeof(wchar_t),
+				L"%02d/%02d/%02d",
+				lTime->tm_mday,
+				lTime->tm_mon+1,
+				lTime->tm_year+1900);
 
 	} else if (!(wcscasecmp(lpNameCpy, L"TIME"))) {
 
 		iTime=time(NULL);
 		lTime=localtime(&iTime);
 		lpVarContent=lpBuf;
-		swprintf(lpBuf, L"%02d:%02d:%02d,00", lTime->tm_hour, lTime->tm_min, lTime->tm_sec);
+		swprintf(lpBuf,
+				sizeof(lpBuf)/sizeof(wchar_t),
+				L"%02d:%02d:%02d,00",
+				lTime->tm_hour,
+				lTime->tm_min,
+				lTime->tm_sec);
 
 	} else if (!(lpVarContent=wgetenv(lpNameCpy))) {
 
@@ -511,6 +521,7 @@ wchar_t* Dos9_GetLocalVar(LOCAL_VAR_BLOCK* lpvBlock, wchar_t* lpName, ESTR* lpRe
 
 			case L'z':
 				swprintf(lpBuffer,
+						sizeof(lpBuffer)/sizeof(wchar_t),
 						L"%d%c",
 						(int)stFileInfo.st_size,
 						(cFlag[i+1]!=0 ? L'\t' : L'\0'));
@@ -523,6 +534,7 @@ wchar_t* Dos9_GetLocalVar(LOCAL_VAR_BLOCK* lpvBlock, wchar_t* lpName, ESTR* lpRe
 				lTime=localtime(&stFileInfo.st_atime);
 
 				swprintf(lpBuffer,
+						 sizeof(lpBuffer)/sizeof(wchar_t),
 				         L"%02d/%02d/%02d %02d:%02d%c",
 				         lTime->tm_mday ,
 				         lTime->tm_mon+1,
@@ -538,6 +550,7 @@ wchar_t* Dos9_GetLocalVar(LOCAL_VAR_BLOCK* lpvBlock, wchar_t* lpName, ESTR* lpRe
 
 			case L'a':
 				swprintf(lpBuffer,
+							sizeof(lpBuffer)/sizeof(wchar_t),
 							L"       %c",
 							(cFlag[i+1]!=0 ? L'\t': L'\0')
 							);

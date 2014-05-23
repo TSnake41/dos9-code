@@ -24,7 +24,7 @@ ORIGIN_FILE=./lib/libw.h
 CONF_ORIGIN_FILE=./lib/libw_conf.h
 
 #the list of the sources
-SRC=./lib/libw_conv.c
+SRC=./lib/libw_conv.c ./lib/libw_swprintf.c
 	
 CFLAGS=@CFLAGS@
 CC=@CC@	

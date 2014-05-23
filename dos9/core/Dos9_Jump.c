@@ -74,7 +74,7 @@ int Dos9_JumpToLabel(wchar_t* lpLabelName, wchar_t* lpFileName)
 				} else {
 
 					/* the path is relative */
-					snwprintf(ifIn.lpFileName,
+					swprintf(ifIn.lpFileName,
 					          sizeof(ifIn.lpFileName)/sizeof(wchar_t),
 					          L"%s/%s",
 					          Dos9_GetCurrentDir(),

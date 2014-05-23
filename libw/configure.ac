@@ -22,6 +22,8 @@ AC_INIT([libw],
 
 AC_PREREQ([2.59])
 
+AC_LANG_SOURCE(C)
+
 dnl Adding configuration header
 AC_CONFIG_HEADERS(lib/libw_conf.h)
 
@@ -32,9 +34,30 @@ AC_PROG_MAKE_SET
 AC_HEADER_STDC
 
 dnl Looking for functions that are availiable in the current environement
-AC_CHECK_FUNCS(wcserror _wcserror wstat _wstat wgetenv _wgetenv wcscasecmp _wcsicmp wfopen _wfopen wtol _wtol wtoi _wtoi swprintf _swprintf snwprintf _snwprintf)
-AC_CHECK_FUNCS(wcsncasecmp _wcsnicmp putws _putws wprintf wcsdup _wcsdup wputenv _wputenv wrmdir _wrmdir wmkdir _wmkdir wtof _wtof wfdopen _wfdopen)
-AC_CHECK_FUNCS(wopen _wopen wchdir _wchdir)
+AC_CHECK_FUNCS(wcserror _wcserror wstat _wstat wgetenv _wgetenv wcscasecmp)
+AC_CHECK_FUNCS(_wcsicmp wfopen _wfopen wtol _wtol wtoi _wtoi swprintf)
+AC_CHECK_FUNCS(_swprintf wcsncasecmp _wcsnicmp putws)
+AC_CHECK_FUNCS(_putws wprintf wcsdup _wcsdup wputenv _wputenv wrmdir _wrmdir)
+AC_CHECK_FUNCS(wmkdir _wmkdir wtof _wtof wfdopen _wfdopen wopen _wopen)
+AC_CHECK_FUNCS(wchdir _wchdir _vsnwprintf)
+
+dnl Check if the system is supporting C99 version of swprintf (this is an
+dnl issue on windows, where the function may not be compliant)
+
+CFLAGS_tmp=$CFLAGS
+CFLAGS='$CFLAGS -Werror -Wfatal-errors'
+conform=no
+
+AC_MSG_CHECKING([wether swprintf is ISO-C 99 conformant])
+AC_LINK_IFELSE([AC_LANG_PROGRAM([[#include <stdio.h>]
+[#include <stdlib.h>]
+[#include <wchar.h>]],[[char buf[FILENAME_MAX];]
+[swprintf(buf, FILENAME_MAX, "test %s", "test2");]])], [AC_DEFINE([HAVE_ISO_SWPRINTF], [1], [Define if C99 swprintf available])
+conform=yes])
+
+AC_MSG_RESULT([$conform])
+
+CFLAGS=$CFLAGS_tmp
 
 AC_CONFIG_FILES([Makefile])
 

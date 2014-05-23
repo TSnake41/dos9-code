@@ -843,3 +843,6 @@ ${make}
 	toward internationalization). Thus, this lib provides wrappers to make functions more portable. However, the
 	*Nix compatibility is still broken yet. Anyway, the last "stable" (version 2014.0.9) should be able to handle *Nixes
 	without much problems. As of today, incompatibity issues are still to be addressed.
+	
+	- Fixed a issue introduced by switching to {wchar_t} type. The function {libw_mbstowcs} and {libw_wcstombs} did not
+	roomed enough memory in order to get memory

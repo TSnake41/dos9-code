@@ -1911,6 +1911,8 @@ ac_compiler_gnu=$ac_cv_c_compiler_gnu
 
 
 
+C
+
 ac_config_headers="$ac_config_headers lib/libw_conf.h"
 
 
@@ -3123,7 +3125,7 @@ $as_echo "#define STDC_HEADERS 1" >>confdefs.h
 fi
 
 
-for ac_func in wcserror _wcserror wstat _wstat wgetenv _wgetenv wcscasecmp _wcsicmp wfopen _wfopen wtol _wtol wtoi _wtoi swprintf _swprintf snwprintf _snwprintf
+for ac_func in wcserror _wcserror wstat _wstat wgetenv _wgetenv wcscasecmp
 do :
   as_ac_var=`$as_echo "ac_cv_func_$ac_func" | $as_tr_sh`
 ac_fn_c_check_func "$LINENO" "$ac_func" "$as_ac_var"
@@ -3135,7 +3137,7 @@ _ACEOF
 fi
 done
 
-for ac_func in wcsncasecmp _wcsnicmp putws _putws wprintf wcsdup _wcsdup wputenv _wputenv wrmdir _wrmdir wmkdir _wmkdir wtof _wtof wfdopen _wfdopen
+for ac_func in _wcsicmp wfopen _wfopen wtol _wtol wtoi _wtoi swprintf
 do :
   as_ac_var=`$as_echo "ac_cv_func_$ac_func" | $as_tr_sh`
 ac_fn_c_check_func "$LINENO" "$ac_func" "$as_ac_var"
@@ -3147,7 +3149,7 @@ _ACEOF
 fi
 done
 
-for ac_func in wopen _wopen wchdir _wchdir
+for ac_func in _swprintf snwprintf _snwprintf wcsncasecmp _wcsnicmp putws
 do :
   as_ac_var=`$as_echo "ac_cv_func_$ac_func" | $as_tr_sh`
 ac_fn_c_check_func "$LINENO" "$ac_func" "$as_ac_var"
@@ -3159,6 +3161,77 @@ _ACEOF
 fi
 done
 
+for ac_func in _putws wprintf wcsdup _wcsdup wputenv _wputenv wrmdir _wrmdir
+do :
+  as_ac_var=`$as_echo "ac_cv_func_$ac_func" | $as_tr_sh`
+ac_fn_c_check_func "$LINENO" "$ac_func" "$as_ac_var"
+if eval test \"x\$"$as_ac_var"\" = x"yes"; then :
+  cat >>confdefs.h <<_ACEOF
+#define `$as_echo "HAVE_$ac_func" | $as_tr_cpp` 1
+_ACEOF
+
+fi
+done
+
+for ac_func in wmkdir _wmkdir wtof _wtof wfdopen _wfdopen wopen _wopen
+do :
+  as_ac_var=`$as_echo "ac_cv_func_$ac_func" | $as_tr_sh`
+ac_fn_c_check_func "$LINENO" "$ac_func" "$as_ac_var"
+if eval test \"x\$"$as_ac_var"\" = x"yes"; then :
+  cat >>confdefs.h <<_ACEOF
+#define `$as_echo "HAVE_$ac_func" | $as_tr_cpp` 1
+_ACEOF
+
+fi
+done
+
+for ac_func in wchdir _wchdir _vsnwprintf
+do :
+  as_ac_var=`$as_echo "ac_cv_func_$ac_func" | $as_tr_sh`
+ac_fn_c_check_func "$LINENO" "$ac_func" "$as_ac_var"
+if eval test \"x\$"$as_ac_var"\" = x"yes"; then :
+  cat >>confdefs.h <<_ACEOF
+#define `$as_echo "HAVE_$ac_func" | $as_tr_cpp` 1
+_ACEOF
+
+fi
+done
+
+
+
+CFLAGS_tmp=$CFLAGS
+CFLAGS='$CFLAGS -Werror -Wfatal-errors'
+conform=no
+
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking if swprintf is ISO-C 99 conformant" >&5
+$as_echo_n "checking if swprintf is ISO-C 99 conformant... " >&6; }
+cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+#include <stdio.h>
+#include <stdlib.h>
+#include <wchar.h>
+int
+main ()
+{
+char buf[FILENAME_MAX];
+swprintf(buf, FILENAME_MAX, "test %s", "test2");
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_link "$LINENO"; then :
+
+$as_echo "#define HAVE_ISO_SWPRINTF 1" >>confdefs.h
+
+conform=yes
+fi
+rm -f core conftest.err conftest.$ac_objext \
+    conftest$ac_exeext conftest.$ac_ext
+
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $conform" >&5
+$as_echo "$conform" >&6; }
+
+CFLAGS=$CFLAGS_tmp
 
 ac_config_files="$ac_config_files Makefile"
 

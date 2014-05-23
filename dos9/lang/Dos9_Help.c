@@ -29,11 +29,14 @@ void Dos9_LoadInternalHelp(void)
 
 	Dos9_GetExePath(lpwPath, FILENAME_MAX);
 
-	snwprintf(lpwSharePath, FILENAME_MAX, L"%s/share/locale", lpPath);
+	swprintf(lpwSharePath, FILENAME_MAX, L"%s/share/locale", lpwPath);
 
 	//Dos9_GetConsoleEncoding(lpEncoding, sizeof(lpEncoding));
 
 	if (lpPath=libw_wcstombs(lpwSharePath)) {
+
+		wprintf(L"lpwPath : '%s'\n", lpwSharePath);
+		wprintf(L"lpPath : '%S' \n", lpPath);
 
 		/* the string can be translated to mbs */
 		bindtextdomain("Dos9-hlp", lpPath);
@@ -185,8 +188,8 @@ void Dos9_ShowInternalHelp(int cmdId)
 	if ((cmdId >= 0)
 	    && (cmdId < DOS9_HELP_ARRAY_SIZE)) {
 
-		fputws(lpInternalHelp[cmdId], stdout);
-		fputws(lpExternalMsg,  stdout);
+		putws(lpInternalHelp[cmdId]);
+		putws(lpExternalMsg);
 
 	}
 

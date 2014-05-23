@@ -256,7 +256,7 @@ int Dos9_CmdCallFile(wchar_t* lpFile, wchar_t* lpLabel, wchar_t* lpCmdLine)
 
 		ifIn.bEof=FALSE;          /* the file is not at EOF */
 		ifIn.iPos=0;              /* places the cursor at the origin */
-		snwprintf(ifIn.lpFileName,
+		swprintf(ifIn.lpFileName,
 		         sizeof(ifIn.lpFileName)/sizeof(wchar_t),
 		         L"%s",
 		         lpAbsPath

@@ -54,7 +54,7 @@ void Dos9_LoadErrors(void)
 
 	//Dos9_GetConsoleEncoding(lpEncoding, sizeof(lpEncoding));
 
-	snwprintf(lpwSharePath, FILENAME_MAX, L"%s/share/locale", lpwPath);
+	swprintf(lpwSharePath, FILENAME_MAX, L"%s/share/locale", lpwPath);
 
 	if (lpPath=libw_wcstombs(lpwSharePath)) {
 

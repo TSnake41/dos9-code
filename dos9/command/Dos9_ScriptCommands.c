@@ -567,7 +567,7 @@ int Dos9_CmdSetEvalFloat(ESTR* lpExpression)
 
 	}
 
-	snwprintf(lpResult, sizeof(lpResult), L"=%.16g", dVal);
+	swprintf(lpResult, sizeof(lpResult)/sizeof(wchar_t), L"=%.16g", dVal);
 
 	Dos9_EsCat(lpExpression, lpResult);
 
@@ -745,7 +745,7 @@ int Dos9_CmdSetEvalInt(ESTR* lpExpression)
 
 	}
 
-	snwprintf(lpResult, sizeof(lpResult), L"=%d", iVal);
+	swprintf(lpResult, sizeof(lpResult)/sizeof(wchar_t), L"=%d", iVal);
 
 	Dos9_EsCat(lpExpression, lpResult);
 

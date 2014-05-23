@@ -22,6 +22,7 @@
 #include <stdlib.h>
 #include <errno.h>
 #include <string.h>
+#include <wchar.h>
 
 #include <libDos9.h>
 #include <libw.h>
@@ -134,6 +135,8 @@ int Dos9_CmdFor(wchar_t* lpLine)
 			/* if the line is not complete */
 			Dos9_ShowErrorMessage(DOS9_EXPECTED_MORE, L"FOR", FALSE);
 
+			wprintf("Exiting without reason !");
+
 			goto error;
 
 		}
@@ -160,7 +163,7 @@ int Dos9_CmdFor(wchar_t* lpLine)
 
 		} else if (iForType == FOR_LOOP_SIMPLE
 					|| iForType == FOR_LOOP_L
-					|| *Dos9_EsToChar(lpDirectory) != '\0') {
+					|| *Dos9_EsToChar(lpDirectory) != L'\0') {
 
 			/* It appears that the users does not specify a variable
 			   but try rather to pass options, that are obviously inconsistent
@@ -217,7 +220,7 @@ int Dos9_CmdFor(wchar_t* lpLine)
 
 	lpToken=Dos9_GetNextParameterEs(lpToken, lpParam);
 
-	if (wcscmp(Dos9_EsToChar(lpParam), L"IN")
+	if (wcscasecmp(Dos9_EsToChar(lpParam), L"IN")
 		|| lpToken == NULL ) {
 
 		Dos9_ShowErrorMessage(DOS9_EXPECTED_MORE, L"FOR", FALSE);
@@ -270,8 +273,7 @@ int Dos9_CmdFor(wchar_t* lpLine)
 
 		lpToken++;
 
-		while (*lpToken==' ' || *lpToken=='\t')
-			lpToken++;
+		lpToken=Dos9_SkipBlanks(lpToken);
 
 		if (*lpToken) {
 
@@ -483,7 +485,7 @@ int Dos9_CmdForL(ESTR* lpInput, BLOCKINFO* lpbkCommand, wchar_t cVarName)
 	     i<=iLoopInfo[DOS9_FORL_END];
 	     i+=iLoopInfo[DOS9_FORL_INC]) {
 
-		snwprintf(lpValue, sizeof(lpValue), L"%d", i);
+		swprintf(lpValue, sizeof(lpValue)/sizeof(wchar_t), L"%d", i);
 
 		Dos9_SetLocalVar(lpvLocalVars, cVarName, lpValue);
 
@@ -1311,13 +1313,13 @@ int Dos9_ForInputProcess(ESTR* lpInput, INPUTINFO* lpipInfo, int* iPipeFdIn, int
 
 	lpArgs[i++]=L"/I";
 
-	snwprintf(lpInArg, sizeof(lpInArg)/sizeof(wchar_t), L"%d", iPipeFdIn[0]);
+	swprintf(lpInArg, sizeof(lpInArg)/sizeof(wchar_t), L"%d", iPipeFdIn[0]);
 
 	lpArgs[i++]=lpInArg;
 
 	lpArgs[i++]=L"/O";
 
-	snwprintf(lpOutArg,
+	swprintf(lpOutArg,
 				sizeof(lpOutArg)/sizeof(wchar_t),
 				L"%d",
 				iPipeFdOut[1]
