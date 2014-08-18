@@ -47,7 +47,7 @@
 /* Fixme : Introduce real code for the command which
    is only a stub now */
 
-int Dos9_CmdCopy(char* lpLine)
+int Dos9_CmdCopy(DOS9CONTEXT* pContext, char* lpLine)
 {
 	return 0;
 }

@@ -44,8 +44,10 @@
    the /e switch may only be located right after the call command, this is
    intended for compatibility purposes. Hence we could easily imagine a
    command that takes a /e switch that would confuse call command.
+
 */
-int Dos9_CmdCall(char* lpLine)
+
+int Dos9_CmdCall(DOS9CONTEXT* pContext, char* lpLine)
 {
 	ESTR *lpEsParameter=Dos9_EsInit(),
 		 *lpEsLabel=Dos9_EsInit(),
@@ -62,7 +64,7 @@ int Dos9_CmdCall(char* lpLine)
 
 	lpLine+=4;
 
-	while (lpNxt=Dos9_GetNextParameterEs(lpLine, lpEsParameter)) {
+	while (lpNxt=Dos9_GetNextParameterEs(pContext, lpLine, lpEsParameter)) {
 
 		lpCh=Dos9_EsToChar(lpEsParameter);
 
@@ -73,13 +75,15 @@ int Dos9_CmdCall(char* lpLine)
 			/* only accept this switch if this is the first parameter
 			   given (see description above */
 
-			if (bCmdlyCorrect == TRUE) {
+			if (pContext->iMode & DOS9_CONTEXT_CMDLYCORRECT) {
 
 				/* The user specified CMDLYCORRECT, so that what we
 				   need is to output an error and to return from the
 				   command. */
 
-				Dos9_ShowErrorMessage(DOS9_EXTENSION_DISABLED_ERROR, lpCh, FALSE);
+				Dos9_ShowErrorMessageX(pContext,
+                                        DOS9_EXTENSION_DISABLED_ERROR,
+                                        lpCh);
 				goto error;
 
 			}
@@ -92,7 +96,7 @@ int Dos9_CmdCall(char* lpLine)
 
 		} else if (!stricmp(lpCh, "/?")) {
 
-			Dos9_ShowInternalHelp(DOS9_HELP_CALL);
+			Dos9_ShowInternalHelp(pContext, DOS9_HELP_CALL);
 			goto error;
 
 		} else {
@@ -199,7 +203,7 @@ int Dos9_CmdCall(char* lpLine)
 		} else {
 
 			/* this is an executable */
-			Dos9_GetEndOfLine(lpLine, lpEsParameter);
+			Dos9_GetEndOfLine(pContext, lpLine, lpEsParameter);
 			Dos9_CmdCallExternal(lpFile, Dos9_EsToChar(lpEsParameter));
 
 		}

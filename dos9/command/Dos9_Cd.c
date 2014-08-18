@@ -43,27 +43,50 @@
 
 #include "../errors/Dos9_Errors.h"
 
+/* Change current directory
+
+   CD [/d] [drive:][/directory]
+
+   Changes current directory.
+
+        [drive:][/directory] : The new directory path
+
+        /d : Forces current disk change. Indeed, when you specify
+        a distinct drive path without specifying '/d', the CD command
+        only sets a diferent path for these drives, without actually
+        changing the current path
+
+ */
+
 /* FIXME : Make it more compatible with cmd.exe
    In fact, cmd.exe supports different paths on differents drives
    through variables like %=x:% where x is the name of the drive.
    So that the /d switch is *really* usefull.
 */
 
-int Dos9_CmdCd(char* lpLine)
+int Dos9_CmdCd(DOS9CONTEXT* pContext, char* lpLine)
 {
 	char* lpNext;
 	ESTR* lpEsDir=Dos9_EsInit();
 
-	if (!(lpLine=strchr(lpLine, ' '))) {
-		Dos9_ShowErrorMessage(DOS9_BAD_COMMAND_LINE, NULL, FALSE);
-		goto error;
+    lpLine+=2;
+
+	if (*lpLine!=' ' && *lpLine!='.'  && *lpLine!='\t' && *lpLine=='/'
+        && *lpLine!=',' && *lpLine!=';') {
+
+		Dos9_ShowErrorMessageX(pContext,
+                                DOS9_BAD_COMMAND_LINE,
+                                NULL
+                                );
+        goto error;
+
 	}
 
-	if ((lpNext=Dos9_GetNextParameterEs(lpLine, lpEsDir))) {
+	if ((lpNext=Dos9_GetNextParameterEs(pContext, lpLine, lpEsDir))) {
 
 		if (!strcmp(Dos9_EsToChar(lpEsDir), "/?")) {
 
-			Dos9_ShowInternalHelp(DOS9_HELP_CD);
+			Dos9_ShowInternalHelp(pContext, DOS9_HELP_CD);
 			goto error;
 
 		} else if (!stricmp(Dos9_EsToChar(lpEsDir), "/d")) {
@@ -72,11 +95,13 @@ int Dos9_CmdCd(char* lpLine)
 
 		}
 
-		while (*lpLine==' ' || *lpLine=='\t') lpLine++;
+		lpLine=Dos9_SkipBlanks(lpLine);
 
-		Dos9_GetEndOfLine(lpLine, lpEsDir);
+		Dos9_GetEndOfLine(pContext, lpLine, lpEsDir);
 
 		lpLine=Dos9_EsToChar(lpEsDir);
+
+        /* remove trailing characters */
 
 		lpNext=NULL;
 
@@ -99,42 +124,24 @@ int Dos9_CmdCd(char* lpLine)
 
 		if (lpNext) *lpNext='\0';
 
-		errno=0;
-
 		lpLine=Dos9_EsToChar(lpEsDir);
 
 		DOS9_DBG("Changing directory to : \"%s\"\n", lpLine);
 
-		chdir(lpLine);
+		/* don't change the OS actual current working directory.
+           Indeed, various thread may be working on different
+           paths, so intempestive use of path is not tolerable.
+           In addition, the POSIX standards do not require
+           chdir to be thread-safe or reentrant. Change it at
+           the very execution time */
 
-		if (errno ==  0) {
+        snprintf(pContext->lpCurrentDir, FILENAME_MAX, "%s", lpLine);
 
-			/* update the current directory buffer */
-
-			Dos9_UpdateCurrentDir();
-
-		} else {
-
-			/* do not perform errno checking
-			   as long as the most important reason for
-			   chdir to fail is obviously the non existence
-			   or the specified directory
-
-			   However, it appears that this is inconsistant
-			   using windows as it does not returns on failure
-			   every time a non-existing folder is passed to the
-			   function, tried with '.. ' on my system
-
-			*/
-
-			Dos9_ShowErrorMessage(DOS9_DIRECTORY_ERROR, lpLine, FALSE);
-			goto error;
-
-		}
 
 	} else {
 
-		puts(Dos9_GetCurrentDir());
+		fputs(pContext->lpCurrentDir, pContext->pStack->out;
+
 
 	}
 

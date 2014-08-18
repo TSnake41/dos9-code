@@ -1,5 +1,4 @@
 /*
-/*
  *
  *   Dos9 - A Free, Cross-platform command prompt - The Dos9 project
  *   Copyright (C) 2010-2014 DarkBatcher
@@ -75,7 +74,10 @@ int main(int argc, char *argv[])
 	    j,
 	    c='0',
 	    bQuiet=FALSE,
-	    bGetSwitch=TRUE;
+	    bGetSwitch=TRUE,
+	    iMode=DOS9_CONTEXT_ECHO_ON;
+
+    DOS9CONTEXT* pContext;
 
 	DOS9_DBG("Initializing signal handler...\n");
 
@@ -93,10 +95,6 @@ int main(int argc, char *argv[])
 
 	/* Set new line Mode to UNIX */
 	Dos9_SetNewLineMode(DOS9_NEWLINE_UNIX);
-
-	DOS9_DBG("Allocating local variable block ... \n");
-
-	lpvLocalVars=Dos9_GetLocalBlock();
 
 	DOS9_DBG("Initializing console ...\n");
 
@@ -121,10 +119,6 @@ int main(int argc, char *argv[])
 	Dos9_LoadErrors();
 	Dos9_LoadInternalHelp();
 
-	DOS9_DBG("Loading current directory...\n");
-
-	Dos9_UpdateCurrentDir();
-
 	/* **********************************
 	   *   getting Dos9's parameters    *
 	   ********************************** */
@@ -148,27 +142,20 @@ int main(int argc, char *argv[])
 
 				case 'V':
 					/* enables delayed expansion */
-					bDelayedExpansion=TRUE;
+					iMode |= DOS9_CONTEXT_DELAYED_EXPANSION;
 					break;
 
 				case 'F':
 					/* enables floats */
-					bUseFloats=TRUE;
+					iMode |= DOS9_CONTEXT_USE_FLOATS;
 					break;
 
 				case 'E':
-					bEchoOn=FALSE;
+					iMode &= ~DOS9_CONTEXT_ECHO_ON;
 					break;
 
 				case 'C':
-					/* enable cmd-compatible mode */
-                    #if !defined(DOS9_STATIC_CMDLYCORRECT)
-                    bCmdlyCorrect=TRUE;
-                    #else
-                    Dos9_ShowErrorMessage(DOS9_UNABLE_SET_OPTION,
-                                            "CMDLYCORRECT",
-                                            FALSE);
-                    #endif
+                    iMode |= DOS9_CONTEXT_CMDLYCORRECT;
 					break;
 
 				case 'Q':
@@ -225,7 +212,7 @@ int main(int argc, char *argv[])
 				/* set parameters for the file currently runned */
 				for (j=i ,  c='1'; argv[j] && c<='9'; i++, c++ , j++ ) {
 
-					Dos9_SetLocalVar(lpvLocalVars, c, argv[j]);
+					Dos9_SetLocalVar(pContext->pLocalVars, c, argv[j]);
 
 				}
 
@@ -233,7 +220,7 @@ int main(int argc, char *argv[])
 			}
 
 			lpFileName=argv[i];
-			Dos9_SetLocalVar(lpvLocalVars, '0', lpFileName);
+			Dos9_SetLocalVar(pContext->pLocalVars, '0', lpFileName);
 			c='1';
 		}
 
@@ -241,7 +228,7 @@ int main(int argc, char *argv[])
 
 	/* empty remaining special vars */
 	for (; c<='9'; c++)
-		Dos9_SetLocalVar(lpvLocalVars, c , "");
+		Dos9_SetLocalVar(pContext->pLocalVars, c , "");
 
 	/* initialisation du système de génération aléatoire */
 
@@ -250,6 +237,8 @@ int main(int argc, char *argv[])
 	colColor=DOS9_COLOR_DEFAULT;
 	/* messages affichés */
 
+    pContext = Dos9_InitContext(lpCmdInfo, sizeof(lpCmdInfo)/sizeof(COMMANDINFO));
+    pContext->iMode = iMode;
 
 	DOS9_DBG("Setting introduction and DOS9_IS_SCRIPT ...\n");
 
@@ -283,22 +272,18 @@ int main(int argc, char *argv[])
 
 	DOS9_DBG("\tGot \"%s\" as name ...\n", lpTitle);
 
+    pContext = Dos9_InitContext(lpCmdInfo, sizeof(lpCmdInfo)/sizeof(COMMANDINFO));
+
 	lpInitVar[4]="DOS9_PATH";
 	lpInitVar[5]=lpTitle;
 
+
 	DOS9_DBG("Initializing variables ...\n");
 
-	Dos9_InitVar(lpInitVar);
-
-	Dos9_setenv("ERRORLEVEL","0");
+	Dos9_InitVar(pContext, lpInitVar);
+    Dos9_SetEnv(pContext->pEnv, "ERRORLEVEL", "0");
 
 	DOS9_DBG("Mapping commands ... \n");
-
-	lpclCommands=Dos9_MapCommandInfo(lpCmdInfo, sizeof(lpCmdInfo)/sizeof(COMMANDINFO));
-
-	DOS9_DBG("Initializing streams ... \n");
-
-	lppsStreamStack=Dos9_InitStreamStack();
 
 
 	/* getting input intialised (if they are specified) */
@@ -315,19 +300,15 @@ int main(int argc, char *argv[])
 
 	}
 
-	pErrorHandler=Dos9_Exit;
-
 	/* running auto batch initialisation */
 
 	strcat(lpTitle, "/Dos9_Auto.bat");
 
-	strcpy(ifIn.lpFileName, lpTitle);
-	ifIn.iPos=0;
-	ifIn.bEof=FALSE;
+	strcpy(pContext->pIn->lpFileName, lpTitle);
 
-	DOS9_DBG("Running file \"%s\"\n", ifIn.lpFileName);
+	DOS9_DBG("Running file \"%s\"\n", pContext->pIn->lpFileName);
 
-	Dos9_RunBatch(&ifIn);
+	Dos9_RunBatch(pContext);
 
 	DOS9_DBG("\tRan\n");
 
@@ -338,34 +319,34 @@ int main(int argc, char *argv[])
 		if (Dos9_GetFilePath(lpFileAbs, lpFileName, sizeof(lpFileAbs))==-1)
 			Dos9_ShowErrorMessage(DOS9_FILE_ERROR, lpFileName, -1);
 
-		if (*lpFileAbs) {
-			if (strncmp(lpFileAbs+1, ":\\", 2)
-			    && strncmp(lpFileAbs+1, ":/", 2)
-			    && *lpFileAbs!='/'
-			   ) {
-				/* if the file path is relative */
+		if (*lpFileAbs
+			&& strncmp(lpFileAbs+1, ":\\", 2)
+            && strncmp(lpFileAbs+1, ":/", 2)
+            && *lpFileAbs!='/'
+            ) {
 
-				snprintf(lpTmp, sizeof(lpFileAbs), "%s/%s", Dos9_GetCurrentDir(), lpFileAbs);
-				strcpy(lpFileAbs, lpTmp);
+            /* if the file path is relative */
 
-			}
+            snprintf(lpTmp, sizeof(lpFileAbs), "%s/%s", pContext->lpCurrentDir, lpFileAbs);
+            strcpy(lpFileAbs, lpTmp);
+
 		}
 
 		lpFileName=lpFileAbs;
 	}
 
-
 	/* run the batch */
-	strcpy(ifIn.lpFileName, lpFileName);
-	ifIn.iPos=0;
-	ifIn.bEof=FALSE;
+	strcpy(pContext->pIn->lpFileName, lpFileName);
+	pContext->pIn->bEof = 0;
+	pContext->pIn->iPos = 0;
 
 	DOS9_DBG("Running file \"%s\" ...\n", ifIn.lpFileName);
 
-	Dos9_RunBatch(&ifIn);
+	Dos9_RunBatch(pContext);
 
 	DOS9_DBG("\t Ran\nExiting...\n");
 
+    Dos9_FreeContext(pContext);
 
 	Dos9_Exit();
 

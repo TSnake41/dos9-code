@@ -15,148 +15,92 @@
  *
  *   You should have received a copy of the GNU General Public License
  *   along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ *
  */
 
-#ifndef DOS9_MODULE_STREAM_H
-#define DOS9_MODULE_STREAM_H
-
-/** \file Dos9_Stream.h
-    \brief A header that contains definitions of stream modules fonctions
-
-*/
-
-
-#include <fcntl.h>
-#include <sys/types.h>
-#include <sys/stat.h>
+#ifndef DOS9_STREAM_H
+#define DOS9_STREAM_H
 
 #include <libDos9.h>
+#include "Dos9_Core.h"
 
-#ifdef WIN32
-/* used for compatibility purpose */
-#include <io.h>
-#define pipe(a,b,c) _pipe(a,b,c)
-#define flushall() _flushall()
-#define dup(a) _dup(a)
-#define dup2(a,b) _dup2(a,b)
+/* The aim of this new implementation is to get to be able to run several Dos9
+   threads at the same time without conflicts of stream redirection.
 
-#define O_WRONLY _O_WRONLY
-#define O_RDONLY _O_RDONLY
-#define O_TRUNC _O_TRUNC
+    * To handle this, descriptors are only redirected when external executables are
+    run, otherwise, output and input are dealt with internally.
 
-#define S_IREAD _S_IREAD
-#define O_IWRITE _S_IWRITE
-#else
+   This implementation must support the following redirection types :
 
-#include <unistd.h>
-#define flushall()
+        command [n]> file
 
-#endif
+        which redirect the n file descriptor in the file.
 
+        command [n]>&[m]
 
+        which redirects the n file descriptor into the m descriptor
 
-/** \defgroup DESCRIPTORS_CONSTANT Descriptors constants
-    \{
-*/
-/** the descriptor number of stdout */
-#define DOS9_STDIN STDIN_FILENO
-/** The descriptor number of stdout */
-#define DOS9_STDOUT STDOUT_FILENO
-/** The descriptor number of stderr */
-#define DOS9_STDERR STDERR_FILENO
+    Assuming a STREAMSTACK struct named stack, stdin, stdout and stderr can
+    be retrieved through stack.in, stack.out, stack.err.
 
-/** \} */
+    Note that, however, the current implement can not handle more than 10
+    non-trivial redirection simultaneously.
 
-/** \defgroup MODE_CONSTANT Redirection mode monstants
-    \{
-*/
-/** The content redirected will be added at the end of the file */
-#define STREAM_MODE_ADD 0
-/** The file will be truncated before the content redirected will be add to the file */
-#define STREAM_MODE_TRUNCATE 0xffffffff
-/** \} */
+ */
 
-#define DOS9MOD
-#define MODSTREAM
+#define STREAMSTACK_REDIRECT_FILE (0)
+#define STREAMSTACK_REDIRECT_FD   (1)
 
-/** \struct STREAMLVL
-    \brief  A structure used to store the information about the current stream environment
-*/
-typedef struct STREAMLVL {
-	int iStandardDescriptors[3]; /**< stores the standard outputs an output descriptors */
-	int iFreeDescriptors[3];/**< stores the descriptors to be feed during poping from stack */
-	int iPipeIndicator;
-	int iPopLock;
-	//int iResetStdBuff;
-} STREAMLVL,*LPSTREAMLVL;
+#define STREAMSTACK_BUFSIZ         10
+#define STREAMSTACK_FREE_BUFSIZ   (STREAMSTACK_BUFSIZ+3)
 
-/** \typedef STACK STREAMSTACK,*LPSTREAMSTACK
-    \brief used to make an stack of stream environment
-*/
+union _STREAMSTACK_REDIRECT_DEST {
+    int fd;
+    FILE* file;
+};
 
-typedef STACK STREAMSTACK,*LPSTREAMSTACK;
+struct _STREAMSTACK_REDIRECT {
+    char type; /* The redirection type (to file or to fd) */
+    int fromFd; /* The original fd */
+    union _STREAMSTACK_REDIRECT_DEST to; /* the destination of the
+                    redirection */
+};
 
-/** \brief Initializes and returns a LPSTREAMSTACK structure
-    \return Returns a pointer to the allocated STREAMSTACK. If the function fails, it returns NULL
-*/
-LPSTREAMSTACK     Dos9_InitStreamStack(void);
+typedef struct STREAMSTACK {
+    FILE* in; /* the current stdin file */
+    FILE* out; /* the current stdout file */
+    FILE* err; /* the current error file */
+    FILE* tofree[STREAMSTACK_FREE_BUFSIZ]; /* file pointers to be free */
+    int   freeindex;
+    int   lock; /* a lock that prevent current redirection level to be poped */
+    int   index;
+    struct _STREAMSTACK_REDIRECT redir[STREAMSTACK_BUFSIZ]; /* not implemented yet */
+    struct STREAMSTACK *next; /* a pointer to the previous element */
+} STREAMSTACK;
 
-void              Dos9_FreeStreamStack(LPSTREAMSTACK lpssStream);
+/* pushes or pop the stream stack */
+STREAMSTACK* Dos9_PushStreamStack(STREAMSTACK* lpssStreamStack);
+STREAMSTACK* Dos9_PopStreamStack(STREAMSTACK* lpssStreamStack);
 
-/** \brief Open a redirection of a sstandard input or output
-    \param lpssStreamStack : The STREAMSTACK structures used to store redirections environment. (Can be allocated by Dos9_InitStreamStack())
-    \param lpName : A pointer to a NULL-terminated c string that contains the name of the file to which (or from which) the output (or the input) will be redirected
-    \param iDescriptor : A descriptor numbers that represent the standard input or output to be redirected
-    Can be either DOS9_STDIN, DOS9_STDOUT, DOS9_STDERR or DOS9_STDERR | DOS9_STDOUT
-    \param iMode : The redirection mode (used only for output redirection). Can be either STREAM_MODE_ADD or STREAM_MODE_TRUNCATE
-    \return Returns 0 if the function has succeded, -1 otherwise.
-*/
-int               Dos9_OpenOutput(LPSTREAMSTACK lpssStreamStack, char* lpName, int iDescriptor, int iMode);
+/* open output redirection */
+int     Dos9_OpenOutput(STREAMSTACK* lpssStreamStack,
+                            PARSED_STREAM_START* lpssStart);
 
-int Dos9_OpenOutputD(LPSTREAMSTACK lpssStreamStack, int iNewDescriptor, int iDescriptor);
+#define Dos9_SetStreamLockState(stack, state) (stack->lock = state)
+#define Dos9_GetStreamLockState(stack) (stack->lock)
 
-/** \brief Open a pipe redirection
-    \param lpssStreamStack : The STREAMSTACK structures used to store redirections environment. (Can be allocated by Dos9_InitStreamStack())
-    \return Returns 0 if the function has succeded, -1 otherwise.
-*/
-int               Dos9_OpenPipe(LPSTREAMSTACK lpssStreamStack);
+/* Setup aditionnal redirections */
+int     Dos9_RedirectStreams(STREAMSTACK* lpssStack);
 
-/** \brief Flushes the pipe
-            A pipe need to be flushed, in order to put output of a program into input of another program. Then when the pipe is no longer needed,
-            it must be freed. This functions do both. When it is called for the first time, it flushes the pipe, the it frees it.
-    \param lpssStreamStack : The STREAMSTACK structures used to store redirections environment. (Can be allocated by Dos9_InitStreamStack())
-    \return Returns 0 if the function has succeded, -1 otherwise.
-*/
-LPSTREAMSTACK     Dos9_Pipe(LPSTREAMSTACK lppsStreamStack);
+/* Setup a pipe. That is, pushes two redirection level :
 
-/** \brief Pop the content of the STREAMSTACK stack
-    \param lpssStreamStack : The STREAMSTACK structures used to store redirections environment. (Can be allocated by Dos9_InitStreamStack())
-    \return Returns 0 if the function has succeded, -1 otherwise.
-*/
-LPSTREAMSTACK     Dos9_PopStreamStack(LPSTREAMSTACK lppsStack);
+   * The first one redirect stdin into the input of the pipe
+   * The second on redirects  the output of pipe into stdin
 
-/** \brief Pop the content of the STREAMSTACK stack
-    \param lpssStreamStack : The STREAMSTACK structures used to store redirections environment. (Can be allocated by Dos9_InitStreamStack())
-    \return Returns 0 if the function has succeded, -1 otherwise.
-*/
-LPSTREAMSTACK     Dos9_PushStreamStack(LPSTREAMSTACK lppsStack);
+ Use Dos9_PopStreamStack to pop the levels of redirections and
+ so execute the pipe
 
-void              Dos9_DumpStreamStack(LPSTREAMSTACK lppsStack);
+ */
+int     Dos9_OpenPipe(STREAMSTACK* lpssStreamStack);
 
-
-
-void  Dos9_SetStreamStackLockState(STREAMSTACK* lppsStack, int iState);
-int Dos9_GetStreamStackLockState(STREAMSTACK* lppsStack);
-
-
-int Dos9_GetDescriptors(int* Array);
-void Dos9_FlushDescriptor(int iDescriptor, unsigned int iStd);
-void Dos9_FlushDescriptors(int* Array);
-void Dos9_CloseDescriptors(int* Array);
-int Dos9_CreatePipe(int* Array);
-int Dos9_FlushPipeDescriptors(int* Array, int iLastDescriptor, int iStdOut);
-void Dos9_FlushStd(void);
-void Dos9_SetStdBuffering(void);
-LPSTREAMLVL Dos9_AllocStreamLvl(void);
-
-#endif
+#endif // DOS9_STREAM_H

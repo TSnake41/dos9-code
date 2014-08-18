@@ -36,26 +36,24 @@
 #include "../errors/Dos9_Errors.h"
 
 
-int Dos9_RunBatch(INPUT_FILE* pIn)
+int Dos9_RunBatch(DOS9CONTEXT* pContext)
 {
 	ESTR* lpLine=Dos9_EsInit();
-
-	INPUT_FILE pIndIn;
-
-	char* const lpCurrentDir=Dos9_GetCurrentDir();
 
 	char *lpCh,
 	     *lpTmp;
 
 	int res;
 
-	while (!(pIn->bEof)) {
+	while (!(pContext->pIn->bEof)) {
 
 		DOS9_DBG("[*] %d : Parsing new line\n", __LINE__);
 
+        pContext->iMode &= ~ DOS9_CONTEXT_ABORT;
 
-		if (*(pIn->lpFileName)=='\0'
-		    && bEchoOn ) {
+		if (*(pContext->pIn->lpFileName)=='\0' /* if taking cmd from prompt */
+		    && (pContext->iMode &  DOS9_CONTEXT_ECHO_ON)
+		    ) {
 
 			/* this is a direct input */
 
@@ -68,36 +66,36 @@ int Dos9_RunBatch(INPUT_FILE* pIn)
 
 		}
 
-		/* the line we read was a void line */
-		if (Dos9_GetLine(lpLine, pIn))
-			continue;
+		if (Dos9_GetLine(lpLine, pContext->pIn))
+			continue; /* skip if eof was encoutered */
 
-		lpCh=Dos9_EsToChar(lpLine);
+		lpCh=Dos9_SkipBlanks(Dos9_EsToChar(lpLine));
 
-		while (*lpCh==' '
-		       || *lpCh=='\t'
-		       || *lpCh==';')
-			lpCh++;
 
-		if (*(pIn->lpFileName)!='\0'
-		    && bEchoOn
-		    && *lpCh!='@') {
+        if (*(pContext->pIn->lpFileName)!='\0' /* taking commands from file */
+		    && (pContext->iMode & DOS9_CONTEXT_ECHO_ON) /* echo is enabled */
+		    && *lpCh!='@' /* there is no @ sign */
+		    ) {
 
-			Dos9_SetConsoleTextColor(DOS9_FOREGROUND_IGREEN | DOS9_GET_BACKGROUND(colColor));
+			Dos9_SetConsoleTextColor(DOS9_FOREGROUND_IGREEN
+                                    | DOS9_GET_BACKGROUND(colColor));
 			printf("\nDOS9 ");
 			Dos9_SetConsoleTextColor(colColor);
 
-			printf("%s>%s", lpCurrentDir, Dos9_EsToChar(lpLine));
+			printf("%s>%s", pContext->lpCurrentDir, Dos9_EsToChar(lpLine));
 
 		}
 
+        /* replace variables in the line. Only '%' signs will be expanded
+           even if delayed expansion is enabled. Delayed expansion is
+           executed when taking arguments from command line. */
 		Dos9_ReplaceVars(lpLine);
 
-		bAbortCommand=FALSE;
-
+        /* exec the line */
 		Dos9_RunLine(lpLine);
 
-		if (bAbortCommand == -1)
+        /* If a goto was executed */
+		if (pContext->iMode & DOS9_CONTEXT_ABORT_FILE);
 			break;
 
 		DOS9_DBG("\t[*] Line run.\n");
@@ -105,112 +103,18 @@ int Dos9_RunBatch(INPUT_FILE* pIn)
 	}
 
 	DOS9_DBG("*** Input ends here  ***\n");
-
+    /* returns */
 	return 0;
 
 }
 
-int Dos9_ExecOperators(PARSED_STREAM* lppsStream)
-{
-
-	lppsStreamStack=Dos9_Pipe(lppsStreamStack);
-
-	if (lppsStream==NULL)
-		return 0;
-
-	//fprintf(stderr, "Stream Status: cNodeType=%d\n", lppsStream->cNodeType);
-	//Dos9_DumpStreamStack(lppsStreamStack);
-
-	if (lppsStream->lppsNode != NULL) {
-
-		if (lppsStream->lppsNode->cNodeType
-		    == PARSED_STREAM_NODE_PIPE)
-			Dos9_OpenPipe(lppsStreamStack);
-	}
-
-	//Dos9_DumpStreamStack(lppsStreamStack);
-
-	//while (getchar()!='\n');
-
-	switch (lppsStream->cNodeType) {
-
-	case PARSED_STREAM_NODE_PIPE:
-	case PARSED_STREAM_NODE_NONE :
-		/* this condition is alwais true */
-		return TRUE;
-
-	case PARSED_STREAM_NODE_NOT :
-		/* this condition is true when the instruction
-		   before failed */
-		return iErrorLevel;
-
-	case PARSED_STREAM_NODE_YES:
-		return !iErrorLevel;
-
-	}
-
-	return FALSE;
-
-}
-
-int Dos9_ExecOutput(PARSED_STREAM_START* lppssStart)
-{
-
-	DOS9_DBG("lppssStart->lpInputFile=%s\n"
-	         "          ->lpOutputFile=%s\n"
-	         "          ->cOutputMode=%d\n"
-	         "lppssStart->cOutputMode & ~PARSED_STREAM_START_MODE_TRUNCATE=%d\n"
-	         "lppssStart->cOutputMode & PARSED_STREAM_START_MODE_TRUNCATE=%d\n"
-	         "STDOUT_FILENO=%d\n",
-	         lppssStart->lpInputFile,
-	         lppssStart->lpOutputFile,
-	         lppssStart->cOutputMode,
-	         lppssStart->cOutputMode & ~PARSED_STREAM_START_MODE_TRUNCATE,
-	         lppssStart->cOutputMode & PARSED_STREAM_START_MODE_TRUNCATE,
-	         STDOUT_FILENO
-	        );
-
-	if (!(lppssStart->lpInputFile)
-	    && !(lppssStart->lpOutputFile)) {
-
-		/* nothing to be done, just return, now */
-		return 0;
-
-	}
-
-
-
-	/* open the redirections */
-
-	lppsStreamStack=Dos9_PushStreamStack(lppsStreamStack);
-
-	if (lppssStart->cOutputMode
-	    && lppssStart->lpOutputFile )
-		Dos9_OpenOutput(lppsStreamStack,
-		                lppssStart->lpOutputFile,
-		                lppssStart->cOutputMode & ~PARSED_STREAM_START_MODE_TRUNCATE,
-		                lppssStart->cOutputMode & PARSED_STREAM_START_MODE_TRUNCATE
-		               );
-
-
-	if (lppssStart->lpInputFile)
-		Dos9_OpenOutput(lppsStreamStack,
-		                lppssStart->lpInputFile,
-		                DOS9_STDIN,
-		                0
-		               );
-
-	return 0;
-}
-
-int Dos9_RunLine(ESTR* lpLine)
+int Dos9_RunLine(DOS9CONTEXT* pContext, ESTR* lpLine)
 {
 	PARSED_STREAM_START* lppssStreamStart;
 	PARSED_STREAM* lppsStream;
 
-#ifdef DOS9_DBG_MODE
-	STREAMSTACK* lpStack;
-#endif
+    int loop=TRUE,
+        ret;
 
 	Dos9_RmTrailingNl(Dos9_EsToChar(lpLine));
 
@@ -221,7 +125,8 @@ int Dos9_RunLine(ESTR* lpLine)
 		return -1;
 	}
 
-	Dos9_ExecOutput(lppssStreamStart);
+	if (Dos9_OpenOutput(pContext->pStack, lppssStreamStart))
+        return -1;
 
 	DOS9_DBG("\t[*] Global streams set.\n");
 
@@ -229,17 +134,40 @@ int Dos9_RunLine(ESTR* lpLine)
 
 	do {
 
-		if (Dos9_ExecOperators(lppsStream)==FALSE || bAbortCommand)
-			break;
+        if (lppsStream->cNodeType != PARSED_STREAM_NODE_PIPE) {
 
-		Dos9_RunCommand(lppsStream->lpCmdLine);
+            /* If we do not encountered a pipe, this is quite simple
+                to handle, just run commands sequentially */
+            ret = Dos9_RunCommand(pContext, lppsStream->lpCmdLine);
 
-	} while ((lppsStream=lppsStream->lppsNode));
+            switch(lppsStream->cNodeType) {
 
-	/* deal with the remaining pipe operator */
-	Dos9_ExecOperators(NULL);
+                case PARSED_STREAM_NODE_YES:
+                    loop = !ret;
+                    break;
 
-	lppsStreamStack=Dos9_PopStreamStack(lppsStreamStack);
+                case PARSED_STREAM_NODE_NOT:
+                    loop = ret;
+                    break;
+
+                case PARSED_STREAM_NODE_NONE:
+                    /* if we arrived here, loop is obviously TRUE */
+
+            }
+
+        } else {
+
+            /* not implemented : run piped commands simultaneously */
+
+        }
+
+
+        if (pContext->iMode & DOS9_CONTEXT_ABORT)
+                loop = 0;
+
+	} while ((lppsStream=lppsStream->lppsNode) && loop);
+
+    pContext->pStack=Dos9_PopStreamStack(pContext->pStack);
 
 	Dos9_FreeLine(lppssStreamStart);
 
@@ -250,14 +178,17 @@ int Dos9_RunLine(ESTR* lpLine)
 	return 0;
 }
 
-int Dos9_RunCommand(ESTR* lpCommand)
+int Dos9_RunCommand(DOS9CONTEXT* pContext, ESTR* lpCommand)
 {
 
-	int (*lpProc)(char*);
-	char lpErrorlevel[]="-3000000000";
+	int (*lpProc)(DOS9CONTEXT*,char*),
+        iFlag,
+        iErrorlevel;
+
+	char lpErrorlevel[]="-3000000000",
+         *lpCmdLine;
+
 	static int lastErrorLevel=0;
-	char *lpCmdLine;
-	int iFlag;
 
 RestartSearch:
 
@@ -265,11 +196,11 @@ RestartSearch:
 
 	lpCmdLine=Dos9_SkipAllBlanks(lpCmdLine);
 
-	switch((iFlag=Dos9_GetCommandProc(lpCmdLine, lpclCommands, (void**)&lpProc))) {
+	switch((iFlag=Dos9_GetCommandProc(lpCmdLine, pContext->pCommands, (void**)&lpProc))) {
 
 	case -1:
 BackTrackExternalCommand:
-
+        /* we shall run an external command */
 		iErrorLevel=Dos9_RunExternalCommand(lpCmdLine);
 		break;
 
@@ -281,8 +212,8 @@ BackTrackExternalCommand:
 			goto BackTrackExternalCommand;
 
 		if (iFlag & DOS9_ALIAS_FLAG) {
-			/* this is an alias */
 
+			/* We encountered an alias, expand it and loop again */
 			Dos9_ExpandAlias(lpCommand,
 			                 lpCmdLine + (iFlag & ~DOS9_ALIAS_FLAG),
 			                 (char*)lpProc
@@ -292,22 +223,25 @@ BackTrackExternalCommand:
 
 		}
 
-		iErrorLevel=lpProc(lpCmdLine);
+		iErrorLevel=lpProc(pContext, lpCmdLine);
 
 	}
 
-	if (iErrorLevel!=lastErrorLevel) {
+	if (iErrorLevel!=pContext->iLastErrorLevel) {
 
 		snprintf(lpErrorlevel, sizeof(lpErrorlevel), "%d", iErrorLevel);
-		Dos9_setenv("ERRORLEVEL",lpErrorlevel);
-		lastErrorLevel=iErrorLevel;
+		Dos9_SetEnv(pContext->pEnv, "ERRORLEVEL",lpErrorlevel);
+		pContext->iLastErrorLevel=iErrorLevel;
+
 	}
 
-	return 0;
+	pContext->iErrorLevel = iErrorLevel;
+
+	return iErrorLevel;
 }
 
 
-int Dos9_RunBlock(BLOCKINFO* lpbkInfo)
+int Dos9_RunBlock(DOS9CONTEXT* pContext, BLOCKINFO* lpbkInfo)
 {
 
 	ESTR *lpEsLine=Dos9_EsInit();
@@ -324,8 +258,8 @@ int Dos9_RunBlock(BLOCKINFO* lpbkInfo)
 
 	/* Save old lock state and lock the
 	   level, definitely */
-	iOldState=Dos9_GetStreamStackLockState(lppsStreamStack);
-	Dos9_SetStreamStackLockState(lppsStreamStack, TRUE);
+	iOldState=Dos9_GetStreamStackLockState(pContext->pStack);
+	Dos9_SetStreamStackLockState(pContext->pStack, TRUE);
 
 	DOS9_DBG("Block_b=\"%s\"\n"
 	         "Block_e=\"%s\"\n",
@@ -387,17 +321,17 @@ int Dos9_RunBlock(BLOCKINFO* lpbkInfo)
 
 		lpToken=lpBlockEnd;
 
-		Dos9_RunLine(lpEsLine);
+		Dos9_RunLine(pContext, lpEsLine);
 
 		/* if we are asked to abort the command */
-		if (bAbortCommand)
+		if (pContext->iMode & DOS9_CONTEXT_ABORT)
 			break;
 
 
 	}
 
 	/* releases the lock */
-	Dos9_SetStreamStackLockState(lppsStreamStack, iOldState);
+	Dos9_SetStreamStackLockState(pContext->pStack, iOldState);
 
 	Dos9_EsFree(lpEsLine);
 

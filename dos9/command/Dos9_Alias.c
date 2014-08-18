@@ -30,143 +30,145 @@
 #include "../errors/Dos9_Errors.h"
 #include "../lang/Dos9_ShowHelp.h"
 
-int Dos9_CmdAlias(char* lpLine)
+int Dos9_CmdAlias(DOS9CONTEXT* pContext, char* lpLine)
 {
 
-	ESTR* lpEsParam=Dos9_EsInit();
-	COMMANDLIST* lpclNewCommands;
-	COMMANDINFO  ciCommand;
+    ESTR* lpEsParam=Dos9_EsInit();
+    COMMANDLIST* lpclNewCommands;
+    COMMANDINFO  ciCommand;
 
-	int iReplace=FALSE;
+    int iReplace=FALSE;
 
-	COMMANDFLAG iRet;
+    COMMANDFLAG iRet;
 
-	void* pVoid;
+    void* pVoid;
 
-	char* lpCh;
+    char* lpCh;
 
-	lpLine+=5;
+    lpLine+=5;
 
-	while ((lpCh=Dos9_GetNextParameterEs(lpLine, lpEsParam))) {
+    while ((lpCh=Dos9_GetNextParameterEs(pContext, lpLine, lpEsParam))) {
 
-		if (!strcmp("/?", Dos9_EsToChar(lpEsParam))) {
+        if (!strcmp("/?", Dos9_EsToChar(lpEsParam))) {
 
-			Dos9_ShowInternalHelp(DOS9_HELP_ALIAS);
+            Dos9_ShowInternalHelp(pContext, DOS9_HELP_ALIAS);
 
-			goto error;
+            goto error;
 
-		} else if (!stricmp("/f", Dos9_EsToChar(lpEsParam))) {
+        } else if (!stricmp("/f", Dos9_EsToChar(lpEsParam))) {
 
-			iReplace=TRUE;
+            iReplace=TRUE;
 
-		} else {
+        } else {
 
-			Dos9_GetEndOfLine(lpLine, lpEsParam);
-			lpLine=Dos9_EsToChar(lpEsParam);
+            Dos9_GetEndOfLine(pContext, lpLine, lpEsParam);
+            lpLine=Dos9_EsToChar(lpEsParam);
 
-			lpLine=Dos9_SkipAllBlanks(lpLine);
+            lpLine=Dos9_SkipAllBlanks(lpLine);
 
-			break;
+            break;
 
-		}
+        }
 
-		lpLine=lpCh;
+        lpLine=lpCh;
 
-	}
+    }
 
-	if (!(lpCh=Dos9_SearchChar(lpLine, '='))) {
+    if (!(lpCh=Dos9_SearchChar(lpLine, '='))) {
 
-		Dos9_ShowErrorMessage(DOS9_UNEXPECTED_ELEMENT,
-		                      lpLine,
-		                      FALSE
-							 );
+        Dos9_ShowErrorMessageX(pContext,
+                               DOS9_UNEXPECTED_ELEMENT,
+                               lpLine);
 
-		goto error;
+        goto error;
 
-	}
+    }
 
-	*lpCh='\0';
-	lpCh++;
+    Dos9_AdjustVarName(lpLine); /* remove the extra tabs and lines
+                                   at the end of line */
 
-	ciCommand.cfFlag=strlen(lpLine) | DOS9_ALIAS_FLAG;
-	ciCommand.ptrCommandName=lpLine;
+    *lpCh='\0';
+    lpCh++;
 
-	ciCommand.lpCommandProc=lpCh;
+    ciCommand.cfFlag=strlen(lpLine) | DOS9_ALIAS_FLAG;
+    ciCommand.ptrCommandName=lpLine;
 
-	iRet=Dos9_GetCommandProc(lpLine, lpclCommands, &pVoid);
+    ciCommand.lpCommandProc=lpCh;
 
-	if (iReplace && (iRet!=-1)) {
+    iRet=Dos9_GetCommandProc(lpLine, pContext->pCommands, &pVoid);
 
-		/* it is possible to reassign Dos9 internal commands. I decided
-		   to allow this because it may be a funny trick to hack arround for
-		   example, if some batch requires some uncompatible features it
-		   allows to redifine those commands in order to get compatibility */
+    if (iReplace && (iRet!=-1)) {
 
-		if ((Dos9_ReplaceCommand(&ciCommand, lpclCommands))) {
+        /* it is possible to reassign Dos9 internal commands. I decided
+           to allow this because it may be a funny trick to hack arround. for
+           example, if some batch requires some uncompatible features it
+           allows to redifine these commands in order to get compatibility */
 
-			/* if we fail to reasign command, print an error message */
+        if ((Dos9_ReplaceCommand(&ciCommand, pContext->pCommands))) {
 
-			Dos9_ShowErrorMessage(DOS9_UNABLE_REPLACE_COMMAND,
-								  lpLine,
-								  FALSE
-								 );
+            /* if we fail to reasign command, print an error message */
 
-			goto error;
+            Dos9_ShowErrorMessageX(pContext,
+                                   DOS9_UNABLE_REPLACE_COMMAND,
+                                   lpLine
+                                  );
+
+            goto error;
 
 
-		}
+        }
 
-		Dos9_EsFree(lpEsParam);
+        Dos9_EsFree(lpEsParam);
 
-		return 0;
+        return 0;
 
-	}
+    }
 
-	if (iRet!=-1) {
+    if (iRet!=-1) {
 
-		/* the command name is not allowed since it is already used */
+        /* the command name is not allowed since it is already used */
 
-		Dos9_ShowErrorMessage(DOS9_TRY_REDEFINE_COMMAND,
-							  lpLine,
-							  FALSE
-							 );
+        Dos9_ShowErrorMessageX(pContext,
+                               DOS9_TRY_REDEFINE_COMMAND,
+                               lpLine
+                              );
 
-		goto error;
+        goto error;
 
-	}
+    }
 
-	if ((Dos9_AddCommandDynamic(&ciCommand, &lpclCommands))) {
+    if ((Dos9_AddCommandDynamic(&ciCommand, &(pContext->pCommands)))) {
 
-		Dos9_ShowErrorMessage(DOS9_UNABLE_ADD_COMMAND,
-		                      lpLine,
-		                      FALSE
-		                     );
+        Dos9_ShowErrorMessage(pContext,
+                              DOS9_UNABLE_ADD_COMMAND,
+                              lpLine
+                              );
 
-		goto error;
+        goto error;
 
-	}
+    }
 
-	if (!(lpclNewCommands=Dos9_ReMapCommandInfo(lpclCommands))) {
+    if (!(lpclNewCommands=Dos9_ReMapCommandInfo(pContext->pCommands))) {
 
-		Dos9_ShowErrorMessage(DOS9_UNABLE_REMAP_COMMANDS,
-		                      __FILE__ "/Dos9_CmdAlias()",
-		                      FALSE
-		                     );
+        Dos9_ShowErrorMessageX(pContext,
+                               DOS9_UNABLE_REMAP_COMMANDS,
+                               __FILE__ "/Dos9_CmdAlias()",
+                              );
 
-		goto error;
+        goto error;
 
-	}
+    }
 
-	Dos9_FreeCommandList(lpclCommands);
+    Dos9_FreeCommandList(pContext->pCommands);
 
-	lpclCommands=lpclNewCommands;
+    pContext->pCommands=lpclNewCommands;
 
-	Dos9_EsFree(lpEsParam);
+    Dos9_EsFree(lpEsParam);
 
-	return 0;
+    return 0;
 
 error:
-	Dos9_EsFree(lpEsParam);
-	return 0;
+    Dos9_EsFree(lpEsParam);
+    return 0;
 
 }

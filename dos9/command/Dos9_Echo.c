@@ -43,7 +43,7 @@
 
 #include "../errors/Dos9_Errors.h"
 
-int Dos9_CmdEcho(char* lpLine)
+int Dos9_CmdEcho(DOS9CONTEXT pContext, char* lpLine)
 {
 
 	ESTR* lpEsParameter;
@@ -54,7 +54,9 @@ int Dos9_CmdEcho(char* lpLine)
 	    && !ispunct(*lpLine)
 	    && *lpLine!='\0') {
 
-		Dos9_ShowErrorMessage(DOS9_COMMAND_ERROR, lpLine-4, FALSE);
+		Dos9_ShowErrorMessageX(pContext,
+                                DOS9_COMMAND_ERROR,
+                                lpLine-4);
 		return -1;
 
 	}
@@ -63,8 +65,9 @@ int Dos9_CmdEcho(char* lpLine)
 
 	if (ispunct(*lpLine)) {
 
-		Dos9_GetEndOfLine(lpLine+1, lpEsParameter);
-		puts(Dos9_EsToChar(lpEsParameter));
+		Dos9_GetEndOfLine(pContext, lpLine+1, lpEsParameter);
+
+		fputs(Dos9_EsToChar(lpEsParameter), pContext->pStack->out);
 
 
 	} else if (Dos9_GetNextParameterEs(lpLine, lpEsParameter)) {
@@ -79,20 +82,22 @@ int Dos9_CmdEcho(char* lpLine)
 
 		} else if (!strcmp(Dos9_EsToChar(lpEsParameter), "/?")) {
 
-			Dos9_ShowInternalHelp(DOS9_HELP_ECHO);
+			Dos9_ShowInternalHelp(pContext, DOS9_HELP_ECHO);
 
 		} else {
 
-			Dos9_GetEndOfLine(lpLine+1, lpEsParameter);
-			puts(Dos9_EsToChar(lpEsParameter));
+			Dos9_GetEndOfLine(pContext,lpLine+1, lpEsParameter);
+			fputs(Dos9_EsToChar(lpEsParameter), pContext->pStack->out);
 
 		}
 
 	} else {
 
 		/* si rien n'est entré on affiche l'état de la commannd echo */
-		if (bEchoOn) puts(lpMsgEchoOn);
-		else puts(lpMsgEchoOff);
+		if (bEchoOn)
+            fputs(lpMsgEchoOn, pContext->pStack->out);
+		else
+            fputs(lpMsgEchoOff, pContext->pStack->out);
 
 	}
 

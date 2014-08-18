@@ -44,12 +44,15 @@
 
 #include "Dos9_Dir.h"
 
-static int iDirNb,
-    iFileNb;
-static short wAttr;
-static char bSimple;
+typedef struct DIRCONTEXT {
+    DOS9CONTEXT pContext;
+    int iDirNb;
+    int iFileNb;
+    char bSimple;
+    short wAttr;
+} DIRCONTEXT;
 
-void Dos9_CmdDirShow(FILELIST* lpElement)
+void Dos9_CmdDirShow(FILELIST* lpElement, DIRCONTEXT* pDir)
 {
 	char lpType[]="D RHSA ",
 	              lpSize[16];
@@ -59,20 +62,21 @@ void Dos9_CmdDirShow(FILELIST* lpElement)
 	/* This structures get only one argument at a time,
 	   thus ``lpElement->lpNext'' is inconsistent */
 
-	if (Dos9_CheckFileAttributes(wAttr, lpElement)) {
+	if (Dos9_CheckFileAttributes(pDir->wAttr, lpElement)) {
 
 		/* if the file has right attributes */
 
-		if (!bSimple) {
+		if (!pDir->bSimple) {
 
 			strcpy(lpType, "       ");
 			if (Dos9_GetFileMode(lpElement) & DOS9_FILE_DIR) {
+
 				lpType[0]='D';
-				iDirNb++;
+				pDir->iDirNb++;
 
 			} else {
 
-				iFileNb++;
+				pDir->iFileNb++;
 
 			}
 
@@ -89,21 +93,32 @@ void Dos9_CmdDirShow(FILELIST* lpElement)
 
 			lTime=localtime(&Dos9_GetModifTime(lpElement));
 
-			printf("%02d/%02d/%02d %02d:%02d\t%s\t%s\t%s\n",lTime->tm_mday , lTime->tm_mon+1, 1900+lTime->tm_year, lTime->tm_hour, lTime->tm_min, lpSize, lpType, lpElement->lpFileName);
+			fprintf(pDir->pContext->pStack->out,
+                    "%02d/%02d/%02d %02d:%02d\t%s\t%s\t%s\n",
+                    lTime->tm_mday,
+                    lTime->tm_mon+1,
+                    1900+lTime->tm_year,
+                    lTime->tm_hour,
+                    lTime->tm_min,
+                    lpSize, lpType,
+                    lpElement->lpFileName);
 
 		} else {
 
-			printf("%s\n", lpElement->lpFileName);
+			fprintf(pContext->pStack->in "%s\n", lpElement->lpFileName);
 
 		}
 	}
 }
 
-int Dos9_CmdDir(char* lpLine)
+int Dos9_CmdDir(DOS9CONTEXT* pContext, char* lpLine)
 {
 	char *lpNext,
 	     *lpToken,
-	     lpFileName[FILENAME_MAX]= {0};
+	     lpFileName[FILENAME_MAX]= {0},
+	     bSimple=0;
+
+    short wAttr=0;
 
 	int iFlag=DOS9_SEARCH_DEFAULT | DOS9_SEARCH_DIR_MODE;
 
@@ -115,20 +130,29 @@ int Dos9_CmdDir(char* lpLine)
 	wAttr=DOS9_CMD_ATTR_ALL;
 	bSimple=FALSE;
 
-	while ((lpNext=Dos9_GetNextParameterEs(lpNext, lpParam))) {
+	DIRCONTEXT dir_context;
+
+    dir_context.iDirNb = 0;
+    dir_context.iFileNb = 0;
+	dir_context.pContext = pContext;
+
+	while ((lpNext=Dos9_GetNextParameterEs(pContext, lpNext, lpParam))) {
 
 		lpToken=Dos9_EsToChar(lpParam);
 
 		if (!strcmp(lpToken, "/?")) {
 
-			Dos9_ShowInternalHelp(DOS9_HELP_DIR);
+			Dos9_ShowInternalHelp(pContext, DOS9_HELP_DIR);
 			return 0;
 
 		} else if (!stricmp("/b", lpToken)) {
 
 			/* use the simple dir output */
 			bSimple=TRUE;
-			if (!wAttr) iFlag|=DOS9_SEARCH_NO_STAT;
+
+			if (!wAttr)
+                iFlag|=DOS9_SEARCH_NO_STAT;
+
 			iFlag|=DOS9_SEARCH_NO_PSEUDO_DIR;
 
 		} else if (!stricmp("/s", lpToken)) {
@@ -140,25 +164,35 @@ int Dos9_CmdDir(char* lpLine)
 
 			/* uses the attributes command */
 			lpToken+=2;
-			if (*lpToken==':') lpToken++;
+
+            if (*lpToken==':')
+                lpToken++;
+
 			wAttr=Dos9_MakeFileAttributes(lpToken);
 			iFlag&=~DOS9_SEARCH_NO_STAT;
 
 		} else {
 
 			if (*lpFileName) {
-				Dos9_ShowErrorMessage(DOS9_UNEXPECTED_ELEMENT, lpToken, FALSE);
+				Dos9_ShowErrorMessageX(pContext,
+                                        DOS9_UNEXPECTED_ELEMENT,
+                                        lpToken
+                                        );
 				Dos9_EsFree(lpParam);
+
 				return -1;
+
 			}
-			strncpy(lpFileName, lpToken, FILENAME_MAX);
+
+			snprintf(lpFileName, FILENAME_MAX, "%s", lpToken);
 
 		}
 	}
 
 	if (!*lpFileName) {
+
 		/* if no file or directory name have been specified
-		   the put a correct value on it */
+		   the put a correct value in it */
 
 		*lpFileName='*';
 		lpFileName[1]='\0';
@@ -167,18 +201,23 @@ int Dos9_CmdDir(char* lpLine)
 
 	/* do a little global variable setup before
 	   starting file research */
-	iDirNb=0;
-	iFileNb=0;
 
-	if (!bSimple) puts(lpDirListTitle);
+	if (!bSimple)
+        fputs(lpDirListTitle, pContext->pStack->out);
+
+    dir_context.wAttr = wAttr;
+    dir_context.bSimple = bSimple
 
 	/* Get a list of file and directories matching to the
 	   current filename and options set */
-	if (!(Dos9_GetMatchFileCallback(lpFileName, iFlag, Dos9_CmdDirShow))
+	if (!(Dos9_GetMatchFileCallback(lpFileName, iFlag,
+                                Dos9_CmdDirShow, &dir_context))
 	    && !bSimple)
-		puts(lpDirNoFileFound);
+		fputs(lpDirNoFileFound, pContext->pStack->out);
 
-	if (!bSimple) printf(lpDirFileDirNb, iFileNb, iDirNb);
+	if (!bSimple)
+        fprintf(pContext->pStack->out,
+                    lpDirFileDirNb, dir_context.iFileNb, dir_context.iDirNb);
 
 	Dos9_EsFree(lpParam);
 

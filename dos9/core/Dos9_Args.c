@@ -78,7 +78,8 @@ int Dos9_GetParameterPointers(char** lpPBegin, char** lpPEnd, const char* lpDeli
 
 }
 
-char* Dos9_GetNextParameter(char* lpLine, char* lpResponseBuffer, int iLength)
+char* Dos9_GetNextParameter(DOS9CONTEXT* pContext, char* lpLine,
+                        char* lpResponseBuffer, int iLength)
 /* determines wheter a paramater follows the position lpLine.
  *
  * lpLine : A pointer to where to seek a parameter
@@ -91,7 +92,7 @@ char* Dos9_GetNextParameter(char* lpLine, char* lpResponseBuffer, int iLength)
 {
 	ESTR* lpParameter=Dos9_EsInit();
 
-	lpLine=Dos9_GetNextParameterEs(lpLine, lpParameter);
+	lpLine=Dos9_GetNextParameterEs(pContext, lpLine, lpParameter);
 	strncpy(lpResponseBuffer, Dos9_EsToChar(lpParameter), iLength);
 	lpResponseBuffer[iLength-1]='\0';
 
@@ -146,7 +147,7 @@ char* Dos9_GetNextBlockEs(char* lpLine, ESTR* lpReturn)
 	Dos9_EsCpyN(lpReturn, bkInfo.lpBegin, iNbBytes);
 
 	/* replace delayed expansion */
-	Dos9_DelayedExpand(lpReturn, bDelayedExpansion);
+	Dos9_DelayedExpand(pContent, lpReturn);
 
 	/* remove escape characters */
 	Dos9_UnEscape(Dos9_EsToChar(lpReturn));
@@ -155,8 +156,8 @@ char* Dos9_GetNextBlockEs(char* lpLine, ESTR* lpReturn)
 
 }
 
-char* Dos9_GetNextParameterEsD(char* lpLine, ESTR* lpReturn, const
-				char* lpDelims)
+char* Dos9_GetNextParameterEsD(DOS9CONTEXT* pContext,
+        char* lpLine, ESTR* lpReturn, const char* lpDelims)
 /* This function returns the next parameter available on the
    command-line.
 
@@ -237,7 +238,7 @@ char* Dos9_GetNextParameterEsD(char* lpLine, ESTR* lpReturn, const
 	}
 
 	/* expand delayed expand variable */
-	Dos9_DelayedExpand(lpReturn, bDelayedExpansion);
+	Dos9_DelayedExpand(pContext, pReturn);
 
 	/* remove escape characters */
 	Dos9_UnEscape(Dos9_EsToChar(lpReturn));
@@ -264,7 +265,9 @@ int   Dos9_GetParamArrayEs(char* lpLine, ESTR** lpArray, size_t iLenght)
 			/* if the first character are '"', then
 			   report it back in the command arguments,
 			   since some microsoft commands would not
-			   work without these */
+			   work without these. Stupid, yeah ? Of course,
+			   we are waiting for a replacement of the find
+			   command. */
 
 			Dos9_EsCpy(lpTemp, "\"");
 			Dos9_EsCatE(lpTemp, lpParam);
@@ -277,7 +280,7 @@ int   Dos9_GetParamArrayEs(char* lpLine, ESTR** lpArray, size_t iLenght)
 
 		lpArray[iIndex]=lpParam;
 
-		Dos9_DelayedExpand(lpParam, bDelayedExpansion);
+		Dos9_DelayedExpand(pContext, lpParam);
 
 		lpParam=Dos9_EsInit();
 
@@ -301,12 +304,13 @@ int   Dos9_GetParamArrayEs(char* lpLine, ESTR** lpArray, size_t iLenght)
 	return 0;
 }
 
-LIBDOS9 char* Dos9_GetEndOfLine(char* lpLine, ESTR* lpReturn)
+LIBDOS9 char* Dos9_GetEndOfLine(DOS9CONTEXT* pContext,char* lpLine, ESTR* lpReturn)
 /* this returns fully expanded line from the lpLine Buffer */
 {
 
-	Dos9_EsCpy(lpReturn, lpLine); /* Copy the content of the line in the buffer */
-	Dos9_DelayedExpand(lpReturn, bDelayedExpansion); /* Expands the content of the specified  line */
+	Dos9_EsCpy(lpReturn, lpLine);
+
+	Dos9_DelayedExpand(pContext, lpReturn);
 
 	Dos9_UnEscape(Dos9_EsToChar(lpReturn));
 

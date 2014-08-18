@@ -32,14 +32,7 @@ int bCmdlyCorrect=FALSE;
 
 int bAbortCommand=FALSE;
 LPCOMMANDLIST lpclCommands;
-LOCAL_VAR_BLOCK* lpvLocalVars;
-LPSTREAMSTACK lppsStreamStack;
 COLOR colColor;
-
-int iInputD=0,
-    iOutputD=0;
-
-INPUT_FILE ifIn;
 
 void(*pErrorHandler)(void)=NULL;
 

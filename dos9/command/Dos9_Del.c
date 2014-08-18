@@ -49,10 +49,11 @@
 /* TODO : Make extended test and decide wether deleting
    files should really be enabled */
 
-int Dos9_CmdDel(char* lpLine)
+int Dos9_CmdDel(DOS9CONTEXT* pContext, char* lpLine)
 {
 	char *lpNextToken,
 	     *lpToken;
+
 	ESTR* lpEstr=Dos9_EsInit();
 
 	char  bParam=0,
@@ -65,12 +66,20 @@ int Dos9_CmdDel(char* lpLine)
 	int iFlag=DOS9_SEARCH_DEFAULT,
 	    iChoice;
 
-	FILELIST* lpFileList, *lpSaveList;
+	FILELIST *lpFileList,
+	         *lpSaveList;
 
-	if (!(lpLine=strchr(lpLine, ' '))) {
+	while (*lpLine!=' ' && *lpLine!='\t' && *lpLine!=',' && *lpLine!=';')
+        lpLine++;
 
-		Dos9_ShowErrorMessage(DOS9_EXPECTED_MORE, "DEL / ERASE", FALSE);
+	if (!*lpLine) {
+
+		Dos9_ShowErrorMessageX(pContext,
+                                DOS9_EXPECTED_MORE,
+                                "DEL / ERASE"
+                                );
 		Dos9_EsFree(lpEstr);
+
 		return -1;
 
 	}
@@ -221,6 +230,7 @@ int Dos9_CmdDel(char* lpLine)
 	}
 
 	Dos9_EsFree(lpEstr);
+
 	return 0;
 }
 

@@ -230,9 +230,6 @@ void Dos9_ShowErrorMessage(unsigned int iErrorNumber,
 
 		Dos9_SetConsoleTextColor(DOS9_COLOR_DEFAULT);
 
-		if (pErrorHandler)
-			pErrorHandler();
-
 		puts(lpQuitMessage);
 
 		getch();

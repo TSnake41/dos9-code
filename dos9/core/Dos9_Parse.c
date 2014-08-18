@@ -49,6 +49,7 @@ PARSED_STREAM_START* Dos9_ParseLine(ESTR* lpesLine)
 	return lppssReturn;
 }
 
+/* Get the '>' and '<' style redirections */
 PARSED_STREAM_START* Dos9_ParseOutput(ESTR* lpesLine)
 {
 
@@ -60,6 +61,8 @@ PARSED_STREAM_START* Dos9_ParseOutput(ESTR* lpesLine)
 	char lpCorrect[]="1";
 
 	char cChar;
+
+	int   fd, fd2;
 
 	ESTR *lpesFinal=Dos9_EsInit(),
 	      *lpesParam=Dos9_EsInit();
@@ -78,8 +81,11 @@ PARSED_STREAM_START* Dos9_ParseOutput(ESTR* lpesLine)
 	lpSearchBegin=lpCh;
 	lpNextBlock=Dos9_GetNextBlockBegin(lpCh);
 
-	while ((lpNextToken=Dos9_SearchToken_OutQuotes(lpSearchBegin, "12<>"))) {
+    /* seek any '>' and '<' operators out of quotes and blocks */
+	while ((lpNextToken=Dos9_SearchToken_OutQuotes(lpSearchBegin, "<>"))) {
 
+
+        /* Jump over the blocks to ignore them */
 		if ((lpNextToken >= lpNextBlock)
 		    && (lpNextBlock!=NULL)) {
 
@@ -102,150 +108,164 @@ PARSED_STREAM_START* Dos9_ParseOutput(ESTR* lpesLine)
 
 		}
 
-		cChar=*lpNextToken;
-
-		*lpNextToken='\0';
+		cChar = *lpNextToken;
+		*lpNextToken = '\0';
 
 		Dos9_EsCat(lpesFinal, lpCh);
 
-		lpNextToken++;
+		switch (cChar) {
 
-		switch(cChar) {
+            case '>':
+                /* handling output is more difficult, because it may be :
 
-		case '2':
-			/* test wether this is the beginning of the token
-			   '2>&1'
-			*/
+                        n>&m
+                        n> file
 
-			if (!strncmp(lpNextToken, ">&1", 3)) {
+                 */
+                fd = Dos9_GetDescriptor(lpNextToken, Dos9_EsToChar(lpesLine));
 
-				/* redirect stderr in stdout */
-				lppssStart->cOutputMode|=(PARSED_STREAM_START_MODE_ERROR
-				                          | PARSED_STREAM_START_MODE_OUT );
+                lpNextToken++;
 
-				lpCh=lpNextToken+3;
+                if (*lpNextToken == '&') {
+                    /* we are redirecting a file descriptor into another file
+                       descriptor */
 
-				break;
+                    fd2 = strtol(++ lpNextToken, &lpCh, 10); /* accept only decimal
+                        numbers */
 
-			}
+                    if ((fd2 == STDOUT_FILENO) && (fd == STDERR_FILENO)) {
 
-		case '1':
+                        lppssStart->cOutputMode |= PSTREAMSTART_REDIR_OUT;
 
-			if (*lpNextToken!='>') {
+                    } else if ((fd2 == STDERR_FILENO)
+                                && (fd == STDOUT_FILENO)) {
 
-				lpCorrect[0]=cChar;
+                        lppssStart->cOutputMode |= PSTREAMSTART_REDIR_ERR;
 
-				Dos9_EsCat(lpesFinal, lpCorrect);
+                    }
 
-				lpCh=lpNextToken;
+                    if ((lppssStart->cOutputMode & PSTREAMSTART_REDIR_ERR)
+                        && (lppssStart->cOutputMode & PSTREAMSTART_REDIR_OUT)) {
 
-				break;
+                        /* Prevent user from creating a circular file redirection
+                           with stdout refferring to stderr, and stderr refferring
+                           to stdout */
 
-			}
+                        Dos9_ShowErrorMessage(DOS9_INVALID_REDIRECTION,
+                                                NULL,
+                                                FALSE
+                                                );
 
-			lpNextToken++;
+                        goto error:
 
-		case '>' :
-			/* this is ouput */
+                    }
 
-			if (lppssStart->lpOutputFile) {
+                } else {
 
-				Dos9_FreeLine(lppssStart);
+                    if (!(lpCh =
+                        Dos9_GetNextParameterEs(lpNextToken+1, lpesParam))) {
 
-				Dos9_ShowErrorMessage(DOS9_ALREADY_REDIRECTED, lpNextToken, FALSE);
+                        Dos9_ShowErrorMessage(DOS9_INVALID_REDIRECTION,
+                                                NULL,
+                                                FALSE);
 
-				goto error;
+                        goto error;
 
+                    }
 
-			}
+                    if (((fd == STDOUT_FILENO) && !(lppssStart->lpOutputFile))
+                        || ((fd == STDERR_FILENO)
+                                && !(lppssStart->lpErrorFile))) {
 
-			if (*lpNextToken!='>') {
+                        Dos9_ShowErrorMessage(DOS9_ALREADY_REDIRECTED,
+                                               (fd == STDOUT_FILENO) ?
+                                                    lppssStart->lpOutputFile : lppssStart->lpErrorFile,
+                                                FALSE);
 
-				lppssStart->cOutputMode|=PARSED_STREAM_START_MODE_TRUNCATE;
-
-			} else {
-
-				lpNextToken++;
-
-			}
-
-			if (!(lpCh=Dos9_GetNextParameterEs(lpNextToken, lpesParam))) {
-
-				Dos9_FreeLine(lppssStart);
-
-				Dos9_ShowErrorMessage(DOS9_INVALID_REDIRECTION, lpNextToken, FALSE);
-
-				goto error;
-
-			}
-
-			/* determine redirection type */
-			if (cChar=='2') {
-
-				lppssStart->cOutputMode|=
-				    (lppssStart->cOutputMode | PARSED_STREAM_START_MODE_ERROR)
-				    & ~PARSED_STREAM_START_MODE_OUT;
-
-			} else {
-
-				lppssStart->cOutputMode|=PARSED_STREAM_START_MODE_OUT;
-
-			}
-
-			if (!(lppssStart->lpOutputFile=strdup(Dos9_EsToChar(lpesParam)))) {
-
-				Dos9_FreeLine(lppssStart);
-
-				Dos9_ShowErrorMessage(DOS9_FAILED_ALLOCATION | DOS9_PRINT_C_ERROR,
-				                      __FILE__ "/ParseOutput()",
-				                      -1);
-
-				goto error;
-
-			}
+                        goto error;
 
 
-			break;
+                    }
 
-		case '<' :
-			/* this is input */
+                    switch (fd) {
 
-			if (lppssStart->lpInputFile) {
+                    case STDOUT_FILENO:
 
-				Dos9_FreeLine(lppssStart);
+                        if (!(lppssStart->lpOutputFile =
+                                strdup(Dos9_EsToChar(lpesParam)))) {
 
-				Dos9_ShowErrorMessage(DOS9_ALREADY_REDIRECTED, lpNextToken, FALSE);
+                            Dos9_ShowErrorMessage(DOS9_FAILED_ALLOCATION
+                                                | DOS9_PRINT_C_ERROR,
+                                            __FILE__ "/Dos9_ParseOutput()",
+                                            FALSE);
 
-				goto error;
+                            goto error;
+
+                        }
+
+                        break;
+
+                    case STDERR_FILENO:
+
+                        if (!(lppssStart->lpErrorFile =
+                                strdup(Dos9_EsToChar(lpesParam)))) {
+
+                            Dos9_ShowErrorMessage(DOS9_FAILED_ALLOCATION
+                                                | DOS9_PRINT_C_ERROR,
+                                            __FILE__ "/Dos9_ParseOutput()",
+                                            FALSE);
+
+                            goto error;
+
+                        }
 
 
-			}
+                    }
 
-			if (!(lpCh=Dos9_GetNextParameterEs(lpNextToken, lpesParam))) {
+                }
 
-				Dos9_FreeParsedStreamStart(lppssStart);
+                break;
 
-				Dos9_ShowErrorMessage(DOS9_INVALID_REDIRECTION, lpNextToken, FALSE);
+            case '<':
+                /* handling input is quite simple, because it only needs to
+                   get the next parameter */
 
-				goto error;
+                if (!(lpCh = Dos9_GetNextParameterEs(lpNextToken+1, lpesParam))) {
 
-			}
+                    Dos9_ShowErrorMessage(DOS9_INVALID_REDIRECTION,
+                                            NULL,
+                                            FALSE);
 
-			if (!(lppssStart->lpInputFile=strdup(Dos9_EsToChar(lpesParam)))) {
+                    goto error;
 
-				Dos9_FreeLine(lppssStart);
+                }
 
-				Dos9_ShowErrorMessage(DOS9_FAILED_ALLOCATION | DOS9_PRINT_C_ERROR,
-				                      __FILE__ "/ParseOutput()",
-				                      -1);
+                if (lppssStart->lpInputFile) {
 
-				goto error;
+                    Dos9_ShowErrorMessage(DOS9_ALREADY_REDIRECTED,
+                                            lppssStart->lpInputFile,
+                                            FALSE);
 
-			}
+                }
+
+                /* get the string back */
+                if (!(lppssStart->lpInputFile =
+                        strdup(Dos9_EsToChar(lpesParam)))) {
+
+                    Dos9_ShowErrorMessage(DOS9_FAILED_ALLOCATION
+                                                | DOS9_PRINT_C_ERROR,
+                                            __FILE__ "/Dos9_ParseOutput()",
+                                            TRUE
+                                            );
+
+
+                    goto error;
+
+                }
 
 		}
 
-		lpSearchBegin=lpCh;
+		lpSearchBegin = lpCh;
 
 	}
 
@@ -259,7 +279,10 @@ PARSED_STREAM_START* Dos9_ParseOutput(ESTR* lpesLine)
 
 error:
 	/* if some fail happened, free memory. However, the
-	   origin string will be useless */
+	   origin string will be useless.
+
+	   Note: Therre is memory that can not be free'd, so the
+	   only thing to do is to exit in order to clean up memory*/
 	Dos9_EsFree(lpesFinal);
 	Dos9_EsFree(lpesParam);
 	return NULL;
@@ -448,5 +471,29 @@ void Dos9_FreeParsedStream(PARSED_STREAM* lppsStream)
 	if (lppsLast) free(lppsLast);
 }
 
+int Dos9_GetDescriptor(const char* current, const char* begin)
+{
 
+    int fd=0, multiplier=1;
+
+    while ((current >= begin) && (*current==' ' || *current=='\t'))
+        current --;
+
+    if ((--current) <= begin)
+        return STDOUT_FILENO;
+
+
+    while ((current >= begin) && (*current>= '0') && (current <= '9')) {
+
+        fd=fd+(*(current --) - '0')*multiplier;
+        multiplier*=10;
+
+    }
+
+    if (!fd)
+        return STDOUT_FILENO;
+
+    return fd;
+
+}
 

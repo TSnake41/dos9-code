@@ -200,7 +200,7 @@ LIBDOS9 int             Dos9_AddCommandDynamic(LPCOMMANDINFO lpciCommandInfo, LP
 LIBDOS9 int				Dos9_ReplaceCommand(LPCOMMANDINFO lpciCommand, LPCOMMANDLIST lpclCommandList);
 LIBDOS9 int             Dos9_FreeCommandList(LPCOMMANDLIST lpclList);
 LIBDOS9 COMMANDFLAG     Dos9_GetCommandProc(char* lpCommandLine, LPCOMMANDLIST lpclCommandList,void** lpcpCommandProcedure);
-
+LIBDOS9 COMMANDFLAG     Dos9_DuplicateCommandList(LPCOMMANDLIST lpclList);
 
 #define DOS9_CURSOR_SHOW 1
 #define DOS9_CURSOR_HIDE 1
@@ -352,9 +352,6 @@ LIBDOS9 int Dos9_GetConsoleEncoding(char* lpEnc, size_t iSize);
 
 LIBDOS9 int Dos9_FileExists(const char* lpPath);
 LIBDOS9 int Dos9_DirExists(const char* lpPath);
-LIBDOS9 int Dos9_UpdateCurrentDir(void);
-LIBDOS9 int Dos9_SetCurrentDir(const char* lpPath);
-LIBDOS9 char* Dos9_GetCurrentDir(void);
 LIBDOS9 int Dos9_GetExePath(char* lpBuf, size_t iBufSize);
 
 LIBDOS9 char* Dos9_SkipBlanks(const char* lpCh);

@@ -43,38 +43,50 @@
 
 #include "../errors/Dos9_Errors.h"
 
-int Dos9_CmdExit(char* lpLine)
+int Dos9_CmdExit(DOS9CONTEXT* pContext, char* lpLine)
 {
 	char lpArg[]="-3000000000";
 	char* lpNextToken;
 
-	if ((lpNextToken=Dos9_GetNextParameter(lpLine+4, lpArg, 11))) {
+    int status=0;
+
+	if ((lpNextToken=Dos9_GetNextParameter(pContext, lpLine+4, lpArg,
+                                                        sizeof(lpArg)))) {
 
 		if (!stricmp(lpArg, "/?")) {
 
-			Dos9_ShowInternalHelp(DOS9_HELP_EXIT);
+			Dos9_ShowInternalHelp(pContext, DOS9_HELP_EXIT);
 			return 0;
 
 		} else if (!stricmp(lpArg, "/b")) {
 
-			if ((lpNextToken=Dos9_GetNextParameter(lpNextToken, lpArg, 11))) {
+			if ((lpNextToken=Dos9_GetNextParameter(pContext, lpNextToken,
+                                                    lpArg, sizeof(lpArg)))) {
 
-				exit(atoi(lpArg));
+				exit(strtol(lpArg, NULL, 0));
 
 			} else {
 
-				Dos9_ShowErrorMessage(DOS9_UNEXPECTED_ELEMENT, "/b", FALSE);
+				Dos9_ShowErrorMessageX(pContext,
+                                        DOS9_UNEXPECTED_ELEMENT,
+                                        "/b");
 				return 1;
 
 			}
 
 		} else {
 
-			Dos9_ShowErrorMessage(DOS9_UNEXPECTED_ELEMENT, lpArg, FALSE);
+			Dos9_ShowErrorMessageX(pContext,
+                                    DOS9_UNEXPECTED_ELEMENT,
+                                    lpArg);
+
 			return 1;
 
 		}
 	}
+
+    /* On a multi-threaded optic, do not free anything, this is
+       the signal that we should end up with this mess :D */
 	exit(0);
 	return 0;
 }

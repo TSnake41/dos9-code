@@ -43,20 +43,23 @@
 
 #include "../errors/Dos9_Errors.h"
 
-int Dos9_CmdCls(char* lpLine)
+int Dos9_CmdCls(DOS9CONTEXT* pContext, char* lpLine)
 {
 	char lpArg[4];
 
-	if (Dos9_GetNextParameter(lpLine+3, lpArg, 4)) {
+	if (Dos9_GetNextParameter(pContext, lpLine+3, lpArg, 4)) {
 
 		if (!strcmp(lpArg, "/?")) {
 
-			Dos9_ShowInternalHelp(DOS9_HELP_CLS);
+			Dos9_ShowInternalHelp(pContext, DOS9_HELP_CLS);
 			return 0;
 
 		} else {
 
-			Dos9_ShowErrorMessage(DOS9_UNEXPECTED_ELEMENT, lpArg, FALSE);
+			Dos9_ShowErrorMessageX(pContext,
+                                    DOS9_UNEXPECTED_ELEMENT,
+                                    lpArg
+                                    );
 			return -1;
 
 		}

@@ -43,26 +43,37 @@
 
 #include "../errors/Dos9_Errors.h"
 
-int Dos9_CmdBlock(char* lpLine)
+/* Handle a top-level block
+
+     ( code )
+
+    Code that may mix redirections
+
+ */
+
+int Dos9_CmdBlock(DOS9CONTEXT* pContext, char* lpLine)
 {
 	BLOCKINFO bkCode;
 	char* lpToken;
-	ESTR* lpNextBlock=Dos9_EsInit();
-
-	Dos9_GetNextBlockEs(lpLine, lpNextBlock);
 
 	lpToken=Dos9_GetNextBlock(lpLine, &bkCode);
 
 	if (!lpToken) {
 
-		Dos9_ShowErrorMessage(DOS9_INVALID_TOP_BLOCK, lpLine, FALSE);
+		Dos9_ShowErrorMessageX(pContext,
+                                DOS9_INVALID_TOP_BLOCK,
+                                lpLine
+                                );
 		return -1;
 
 	}
 
 	if (*lpToken!=')') {
 
-		Dos9_ShowErrorMessage(DOS9_INVALID_TOP_BLOCK, lpLine, FALSE);
+		Dos9_ShowErrorMessageX(pContext,
+                                DOS9_INVALID_TOP_BLOCK,
+                                lpLine
+                                );
 		return -1;
 
 	}
@@ -74,12 +85,15 @@ int Dos9_CmdBlock(char* lpLine)
 
 	if (*lpToken) {
 
-		Dos9_ShowErrorMessage(DOS9_INVALID_TOP_BLOCK, lpLine, FALSE);
+		Dos9_ShowErrorMessageX(pContext,
+                                DOS9_INVALID_TOP_BLOCK,
+                                lpLine
+                                );
 		return -1;
 
 	}
 
-	Dos9_RunBlock(&bkCode);
+	Dos9_RunBlock(pContext, &bkCode);
 
 	return iErrorLevel;
 }

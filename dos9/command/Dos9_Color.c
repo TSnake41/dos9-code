@@ -46,7 +46,7 @@ int Dos9_CmdColor(char* lpLine)
 {
 	char lpArg[4];
 
-	if (Dos9_GetNextParameter(lpLine+5, lpArg, 4)) {
+	if (Dos9_GetNextParameter(pContext, lpLine+5, lpArg, 4)) {
 
 		if (!strcmp(lpArg, "/?")) {
 

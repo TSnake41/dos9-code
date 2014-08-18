@@ -38,16 +38,16 @@
 #include "Dos9_Core.h"
 
 /* applies redirections */
-int Dos9_ExecOutput(PARSED_STREAM_START* lppssStart);
+int Dos9_ExecOutput(DOS9CONTEXT pContext, PARSED_STREAM_START* lppssStart);
 
 /* applies conditional operators */
-int Dos9_ExecOperators(PARSED_STREAM* lppsStream);
+int Dos9_ExecOperators(DOS9CONTEXT* pContext, PARSED_STREAM* lppsStream);
 
-int Dos9_RunCommand(ESTR* lpCommand); // the fucbtions that run every command
-int Dos9_RunLine(ESTR* lpLine);
-int Dos9_RunBlock(BLOCKINFO* lpbkInfo); // the function that run blocks
-int Dos9_RunBatch(INPUT_FILE* pIn); // the function that runs the batch
-int Dos9_RunExternalCommand(char* lpCommandLine);
+int Dos9_RunCommand(DOS9CONTEXT* pContext, ESTR* lpCommand); // the fucbtions that run every command
+int Dos9_RunLine(DOS9CONTEXT* pContext, ESTR* lpLine);
+int Dos9_RunBlock(DOS9CONTEXT* pContext, BLOCKINFO* lpbkInfo); // the function that run blocks
+int Dos9_RunBatch(DOS9CONTEXT* pContext); // the function that runs the batch
+int Dos9_RunExternalCommand(DOS9CONTEXT* pContext, char* lpCommandLine);
 int Dos9_RunExternalFile(char* lpFileName, char** lpArguments);
 
 #endif

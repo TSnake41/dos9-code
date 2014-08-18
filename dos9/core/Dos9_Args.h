@@ -33,20 +33,22 @@ typedef struct BLOCKINFO {
 int   Dos9_GetParameterPointers(char** lpPBegin, char** lpPEnd,
 				 const char* lpDelims, const char* lpLine);
 
-#define Dos9_GetNextParameterEs(lpLine, lpReturn) \
-    Dos9_GetNextParameterEsD(lpLine, lpReturn, " ;,\t\"")
+#define Dos9_GetNextParameterEs(pContextlpLine, lpReturn) \
+    Dos9_GetNextParameterEsD(pContext,lpLine, lpReturn, " ;,\t\"")
 
-char* Dos9_GetNextParameterEsD(char* lpLine, ESTR* lpReturn, const
-					char* lpDelims);
+char* Dos9_GetNextParameterEsD(DOS9CONTEXT* pContext, char* lpLine,
+                                ESTR* lpReturn, constchar* lpDelims);
 
-char* Dos9_GetNextParameter(char* lpLine, char* lpResponseBuffer, int iLength);
+char* Dos9_GetNextParameter(DOS9CONTEXT* pContent,
+                    char* lpLine, char* lpResponseBuffer, int iLength);
 
-int   Dos9_GetParamArrayEs(char* lpLine, ESTR** lpArray, size_t iLenght);
+int   Dos9_GetParamArrayEs(DOS9CONTEXT* pContext, char* lpLine,
+                                ESTR** lpArray, size_t iLenght);
 
 char* Dos9_GetNextBlockEs(char* lpLine, ESTR* lpReturn);
 
 char* Dos9_GetNextBlock(char* lpLine, BLOCKINFO* lpbkInfo);
 
-char* Dos9_GetEndOfLine(char* lpLine, ESTR* lpReturn);
+char* Dos9_GetEndOfLine(DOS9CONTEXT* pContext, char* lpLine, ESTR* lpReturn);
 
 #endif // DOS9_ARGS_H

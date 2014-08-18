@@ -390,3 +390,33 @@ LPCOMMANDINFO _Dos9_FillInfoFromList(LPCOMMANDINFO lpCommandInfo, LPCOMMANDLIST 
     return lpCommandInfo;
 
 }
+
+LIBDOS9 COMMANDFLAG     Dos9_DuplicateCommandList(LPCOMMANDLIST lpclList)
+{
+    COMMANDLIST* lpclNew;
+
+    if (lpclList == NULL)
+        return NULL;
+
+    /* Allocate the node and copy the string */
+    if (!(lpclNew = malloc(sizeof(COMMANDLIST))))
+        return NULL;
+
+    if (!(lpclNew->ptrCommandName = strdup(lpclList->ptrCommandName))) {
+
+        free(lpclNew);
+        return NULL;
+
+    }
+
+    lpclNew->iLenght = lpclList->iLenght;
+    lpclNew->cfFlag = lpclList->cfFlag;
+    lpclNew->lpCommandProc = lpclList->lpCommandProc;
+
+    /* duplicate subnodes */
+    lpclNew->lpclLeftRoot = Dos9_DuplicateCommandList(lpclList->lpclLeftRoot);
+    lpclNew->lpclRightRoot=Dos9_DuplicateCommandList(lpclList->lpclRightRoot);
+
+    return lpclNew;
+
+}

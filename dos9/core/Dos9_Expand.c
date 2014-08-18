@@ -1,10 +1,21 @@
-/* Dos9_Expand.c - Dos9 copyleft (c) DarkBatcher 2012 - Some rights reserved
-
-   The following file contain definition of funtions that are used for expansion of vars
-   (including delayed expansion) and some functions used for parsing these variable.
-
+/*
+ *
+ *   Dos9 - A Free, Cross-platform command prompt - The Dos9 project
+ *   Copyright (C) 2010-2014 DarkBatcher
+ *
+ *   This program is free software: you can redistribute it and/or modify
+ *   it under the terms of the GNU General Public License as published by
+ *   the Free Software Foundation, either version 3 of the License, or
+ *   (at your option) any later version.
+ *
+ *   This program is distributed in the hope that it will be useful,
+ *   but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *   GNU General Public License for more details.
+ *
+ *   You should have received a copy of the GNU General Public License
+ *   along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <ctype.h>
@@ -16,7 +27,7 @@
 //#define DOS9_DBG_MODE
 #include "Dos9_Debug.h"
 
-void Dos9_ExpandSpecialVar(ESTR* ptrCommandLine)
+void Dos9_ExpandSpecialVar(DOS9CONTEXT* pContext, ESTR* ptrCommandLine)
 {
 
 	ESTR* lpVarContent=Dos9_EsInit();
@@ -31,7 +42,8 @@ void Dos9_ExpandSpecialVar(ESTR* ptrCommandLine)
 
 		lpTokenBegin=lpNextToken+1;
 
-		if ((lpTokenBegin=Dos9_GetLocalVar(lpvLocalVars, lpTokenBegin, lpVarContent))) {
+		if ((lpTokenBegin=Dos9_GetLocalVar(pContext->pLocalVars,
+                                    lpTokenBegin, lpVarContent))) {
 
 			/* si la variable est bien définie */
 			*lpNextToken='\0';
@@ -62,7 +74,7 @@ void Dos9_ExpandSpecialVar(ESTR* ptrCommandLine)
 
 }
 
-void Dos9_ExpandVar(ESTR* ptrCommandLine, char cDelimiter)
+void Dos9_ExpandVar(DOS9CONTEXT* pContext, ESTR* ptrCommandLine, char cDelimiter)
 {
 
 	ESTR* lpExpanded=Dos9_EsInit();
@@ -114,7 +126,7 @@ void Dos9_ExpandVar(ESTR* ptrCommandLine, char cDelimiter)
 
 			Dos9_EsCat(lpExpanded, ptrToken);
 
-			if ((Dos9_GetVar(ptrNextToken, lpVarContent))) {
+			if ((Dos9_GetVar(pContext, ptrNextToken, lpVarContent))) {
 
 				/* add the content of the variable only if
 				   it is really defined */
@@ -151,13 +163,13 @@ void Dos9_ExpandVar(ESTR* ptrCommandLine, char cDelimiter)
 
 }
 
-void Dos9_DelayedExpand(ESTR* ptrCommandLine, char cEnableDelayedExpansion)
+void Dos9_DelayedExpand(DOS9CONTEXT* pContext, ESTR* ptrCommandLine)
 {
-	Dos9_ExpandSpecialVar(ptrCommandLine);
+	Dos9_ExpandSpecialVar(pContext, ptrCommandLine);
 
-	if (cEnableDelayedExpansion) {
+	if (pContext->iMode & DOS9_CONTEXT_DELAYED_EXPANSION) {
 
-		Dos9_ExpandVar(ptrCommandLine, '!');
+		Dos9_ExpandVar(pContext, ptrCommandLine, '!');
 
 	}
 }

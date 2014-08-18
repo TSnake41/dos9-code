@@ -11,8 +11,6 @@
 
 #include <sys/stat.h>
 
-static char lpCurrentDir[FILENAME_MAX+3]="CD=";
-
 int Dos9_GetExePath(char* lpBuf, size_t iBufSize)
 {
     char* lpDelim;
@@ -48,23 +46,6 @@ int Dos9_DirExists(const char *ptrName)
 
     return S_ISDIR(sStat.st_mode);
 
-}
-
-int Dos9_UpdateCurrentDir(void)
-{
-    putenv(lpCurrentDir);
-    return (int)getcwd(lpCurrentDir+3, FILENAME_MAX);
-}
-
-int Dos9_SetCurrentDir(const char* lpPath)
-{
-    chdir(lpPath);
-    return (int)getcwd(lpCurrentDir+3, FILENAME_MAX);
-}
-
-char* Dos9_GetCurrentDir(void)
-{
-    return lpCurrentDir+3;
 }
 
 int Dos9_FileExists(const char* ptrName)

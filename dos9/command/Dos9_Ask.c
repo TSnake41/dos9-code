@@ -5,10 +5,12 @@
 
 #include <libDos9.h>
 
+#include "../core/Dos9_Core.h"
 #include "Dos9_Ask.h"
 #include "../lang/Dos9_Lang.h"
 
-int Dos9_AskConfirmation(int iFlags, const char* lpMsg, ...)
+int Dos9_AskConfirmation(DOS9CONTEXT* pContext, int iFlags,
+                                        const char* lpMsg, ...)
 {
 	va_list vaArgs;
 	const char *lpChoices=NULL;
@@ -78,11 +80,11 @@ int Dos9_AskConfirmation(int iFlags, const char* lpMsg, ...)
 
 	do {
 
-		vfprintf(stderr, lpMsg, vaArgs);
+		vfprintf(pContext->pStack->err, lpMsg, vaArgs);
 
-		fputs(lpChoices, stderr);
+		fputs(lpChoices, pContext->pStack->err);
 
-		Dos9_EsGet(lpInput, stdin);
+		Dos9_EsGet(lpInput, pContext->pStack->in);
 
 		if ((lpLf=strchr(Dos9_EsToChar(lpInput), '\n')))
 			*lpLf='\0';
@@ -119,7 +121,7 @@ int Dos9_AskConfirmation(int iFlags, const char* lpMsg, ...)
 
 			} else {
 
-				fputs(lpAskInvalid, stderr);
+				fputs(lpAskInvalid, pContext->pStack->err);
 
 			}
 
