@@ -33,7 +33,7 @@ typedef struct ENVBUF {
     ENVVAR** envbuf;
 } ENVBUF;
 
-ENVVAR**  Dos9_ReAllocEnvBuf(int* nb, ENVAR* envbuf);
+ENVVAR**  Dos9_ReAllocEnvBuf(int* nb, ENVVAR* envbuf);
 ENVVAR*   Dos9_AllocEnvVar(const char* name, const char* content);
 
 void     Dos9_AdjustVarName(char* name);

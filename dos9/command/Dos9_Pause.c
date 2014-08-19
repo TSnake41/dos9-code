@@ -43,15 +43,15 @@
 
 #include "../errors/Dos9_Errors.h"
 
-int Dos9_CmdPause(char* lpLine)
+int Dos9_CmdPause(DOS9CONTEXT* pContext, char* lpLine)
 {
 	if (!strcmp(lpLine+6, "/? ")) {
 
-		Dos9_ShowInternalHelp(DOS9_HELP_PAUSE);
+		Dos9_ShowInternalHelp(pContext, DOS9_HELP_PAUSE);
 		return 0;
 	}
 
-	puts(lpMsgPause);
+	fputs(lpMsgPause, pContext->pStack->out);
 	getch();
 
 	return 0;

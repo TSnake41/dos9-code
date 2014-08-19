@@ -26,28 +26,7 @@
 extern char** environ;
 #endif
 
-extern int bAbortCommand;
-extern int bDelayedExpansion;
-extern int bUseFloats;
-
-#if !defined(DOS9_STATIC_CMDLYCORRECT)
-extern int bCmdlyCorrect;
-#else
-#define bCmdlyCorrect DOS9_STATIC_CMDLYCORRECT
-#endif
-
-extern int bEchoOn;
-extern int iErrorLevel;
-extern LPCOMMANDLIST lpclCommands;
-extern LOCAL_VAR_BLOCK* lpvLocalVars;
-extern LPSTREAMSTACK lppsStreamStack;
 extern COLOR colColor;
-extern INPUT_FILE ifIn;
-
 extern char* lpInitVar[];
-
-extern int iInputD,
-       iOutputD;
-extern void(*pErrorHandler)(void);
 
 #endif

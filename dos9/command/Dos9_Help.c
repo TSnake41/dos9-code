@@ -48,7 +48,7 @@
    effectively called by the executable. Some may argue that it is not safe to
    do so, but, it's actually what is done by cmd.exe */
 
-int Dos9_CmdHelp(char* lpLine)
+int Dos9_CmdHelp(DOS9CONTEXT* pContext, char* lpLine)
 {
 
 	puts(lpHlpDeprecated);

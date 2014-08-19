@@ -45,51 +45,42 @@
 
 #include "../../config.h"
 
-int Dos9_CmdSetLocal(char* lpLine)
+int Dos9_CmdSetLocal(DOS9CONTEXT* pContext, char* lpLine)
 {
 	char lpName[FILENAME_MAX];
 	char* lpNext=lpLine+8;
 
-	while ((lpNext=Dos9_GetNextParameter(lpNext, lpName, FILENAME_MAX))) {
+	while ((lpNext=Dos9_GetNextParameter(pContext, lpNext,
+                                        lpName, FILENAME_MAX))) {
 
 		if (!strcmp(lpName, "/?")) {
 
-			Dos9_ShowInternalHelp(DOS9_HELP_SETLOCAL);
+			Dos9_ShowInternalHelp(pContext, DOS9_HELP_SETLOCAL);
 			return 0;
 
 		} else if (!stricmp(lpName, "ENABLEDELAYEDEXPANSION")) {
 
-			bDelayedExpansion=TRUE;
+			pContext->iMode |= DOS9_CONTEXT_DELAYED_EXPANSION;
 
 		} else if (!stricmp(lpName, "ENABLEFLOATS")) {
 
-			bUseFloats=TRUE;
+			pContext->iMode |= DOS9_CONTEXT_USE_FLOATS;
 
 		} else if (!stricmp(lpName, "CMDLYCORRECT")) {
 
-#if !defined(DOS9_STATIC_CMDLYCORRECT)
-			bCmdlyCorrect=TRUE;
-#else
-			Dos9_ShowErrorMessage(DOS9_UNABLE_SET_OPTION,
-						"CMDLYCORRECT",
-						FALSE
-						);			
-#endif 
+            pContext->iMode |= DOS9_CONTEXT_CMDLYCORRECT;
+
 		} else if (!stricmp(lpName, "CMDLYINCORRECT")) {
-#if !defined(DOS9_STATIC_CMDLYCORRECT)
-			bCmdlyCorrect=FALSE;
-#else
-			Dos9_ShowErrorMessage(DOS9_UNABLE_SET_OPTION,
-						"CMDLYINCORRECT",
-						FALSE);
-#endif
+
+            pContext->iMode &= ~DOS9_CONTEXT_CMDLYCORRECT;
+
 		} else if (!stricmp(lpName, "DISABLEFLOATS")) {
 
-			bUseFloats=FALSE;
+			pContext->iMode &= ~DOS9_CONTEXT_USE_FLOATS;
 
 		} else if (!stricmp(lpName, "DISABLEDELAYEDEXPANSION")) {
 
-			bDelayedExpansion=FALSE;
+			pContext->iMode &= ~DOS9_CONTEXT_USE_FLOATS;
 
 		} else if (!stricmp(lpName, "ENABLEEXTENSIONS") || !stricmp(lpName, "DISABLEEXTENSION")) {
 
@@ -102,7 +93,10 @@ int Dos9_CmdSetLocal(char* lpLine)
 
 		} else {
 
-			Dos9_ShowErrorMessage(DOS9_UNEXPECTED_ELEMENT, lpName, FALSE);
+			Dos9_ShowErrorMessageX(pContext,
+                                    DOS9_UNEXPECTED_ELEMENT,
+                                    lpName
+                                    );
 			return 1;
 
 		}

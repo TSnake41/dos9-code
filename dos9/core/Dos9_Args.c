@@ -93,6 +93,7 @@ char* Dos9_GetNextParameter(DOS9CONTEXT* pContext, char* lpLine,
 	ESTR* lpParameter=Dos9_EsInit();
 
 	lpLine=Dos9_GetNextParameterEs(pContext, lpLine, lpParameter);
+
 	strncpy(lpResponseBuffer, Dos9_EsToChar(lpParameter), iLength);
 	lpResponseBuffer[iLength-1]='\0';
 
@@ -134,7 +135,7 @@ char* Dos9_GetNextBlock(char* lpLine, BLOCKINFO* lpbkInfo)
 
 }
 
-char* Dos9_GetNextBlockEs(char* lpLine, ESTR* lpReturn)
+char* Dos9_GetNextBlockEs(DOS9CONTEXT* pContext, char* lpLine, ESTR* lpReturn)
 {
 	char* lpNext;
 	BLOCKINFO bkInfo;
@@ -147,7 +148,7 @@ char* Dos9_GetNextBlockEs(char* lpLine, ESTR* lpReturn)
 	Dos9_EsCpyN(lpReturn, bkInfo.lpBegin, iNbBytes);
 
 	/* replace delayed expansion */
-	Dos9_DelayedExpand(pContent, lpReturn);
+	Dos9_DelayedExpand(pContext, lpReturn);
 
 	/* remove escape characters */
 	Dos9_UnEscape(Dos9_EsToChar(lpReturn));
@@ -187,7 +188,7 @@ char* Dos9_GetNextParameterEsD(DOS9CONTEXT* pContext,
 
 				if (*(lpLine+1)=='\0') {
 
-					iSize=lpLine-lpBegin;
+                    iSize=lpLine-lpBegin;
 					Dos9_EsCpyN(lpReturn, lpBegin, iSize);
 
 				} else {
@@ -238,7 +239,7 @@ char* Dos9_GetNextParameterEsD(DOS9CONTEXT* pContext,
 	}
 
 	/* expand delayed expand variable */
-	Dos9_DelayedExpand(pContext, pReturn);
+	Dos9_DelayedExpand(pContext, lpReturn);
 
 	/* remove escape characters */
 	Dos9_UnEscape(Dos9_EsToChar(lpReturn));
@@ -246,7 +247,7 @@ char* Dos9_GetNextParameterEsD(DOS9CONTEXT* pContext,
 	return lpEnd;
 }
 
-int   Dos9_GetParamArrayEs(char* lpLine, ESTR** lpArray, size_t iLenght)
+int   Dos9_GetParamArrayEs(DOS9CONTEXT* pContext, char* lpLine, ESTR** lpArray, size_t iLenght)
 /*
     gets command-line argument in an array of extended string
 */
@@ -256,7 +257,8 @@ int   Dos9_GetParamArrayEs(char* lpLine, ESTR** lpArray, size_t iLenght)
 	ESTR* lpTemp=Dos9_EsInit();
 	char* lpNext;
 
-	while ((iIndex < iLenght) && (lpNext = Dos9_GetNextParameterEs(lpLine, lpParam))) {
+	while ((iIndex < iLenght)
+            && (lpNext = Dos9_GetNextParameterEs(pContext, lpLine, lpParam))) {
 
 		while (*lpLine=='\t' || *lpLine==' ') lpLine++;
 

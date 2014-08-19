@@ -53,22 +53,22 @@
    should print all text files in the current directory
 */
 
-int Dos9_CmdType(char* lpLine)
+int Dos9_CmdType(DOS9CONTEXT* pContext, char* lpLine)
 {
 	char lpFileName[FILENAME_MAX];
 	FILE* pFile;
 
-	if (Dos9_GetNextParameter(lpLine+4, lpFileName, FILENAME_MAX)) {
+	while (lpLine=Dos9_GetNextParameter(pContext, lpLine+4, lpFileName, FILENAME_MAX)) {
 
 		if (!strcmp(lpFileName, "/?")) {
 
-			Dos9_ShowInternalHelp(DOS9_HELP_TYPE);
+			Dos9_ShowInternalHelp(pContext, DOS9_HELP_TYPE);
 			return 0;
 
 		} else if ((pFile=fopen(lpFileName, "r"))) {
 
 			while (fgets(lpFileName, FILENAME_MAX, pFile))
-				printf("%s", lpFileName);
+				fprintf(pContext->pStack->out, "%s", lpFileName);
 
 			fclose(pFile);
 
@@ -78,7 +78,10 @@ int Dos9_CmdType(char* lpLine)
 
 	}
 
-	Dos9_ShowErrorMessage(DOS9_FILE_ERROR, lpFileName, FALSE);
+	Dos9_ShowErrorMessageX(pContext,
+                            DOS9_FILE_ERROR,
+                            lpFileName
+                            );
 	return -1;
 
 }

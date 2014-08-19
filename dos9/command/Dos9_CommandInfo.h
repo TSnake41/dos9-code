@@ -28,7 +28,6 @@
 
 #define STRLEN(str) (sizeof(str)-1)
 
-
 /* the flag paramater detemines wether a space should be
    searched */
 

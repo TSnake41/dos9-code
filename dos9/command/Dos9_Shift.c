@@ -53,7 +53,7 @@
 
 */
 
-int Dos9_CmdShift(char* lpLine)
+int Dos9_CmdShift(DOS9CONTEXT* pContext, char* lpLine)
 {
 	ESTR* lpEsArg=Dos9_EsInit();
 	char *lpToken;
@@ -62,7 +62,7 @@ int Dos9_CmdShift(char* lpLine)
 
 	lpLine+=5;
 
-	while (lpLine=Dos9_GetNextParameterEs(lpLine, lpEsArg)) {
+	while (lpLine=Dos9_GetNextParameterEs(pContext, lpLine, lpEsArg)) {
 
 		lpToken=Dos9_EsToChar(lpEsArg);
 
@@ -94,9 +94,10 @@ int Dos9_CmdShift(char* lpLine)
 
 					if (!(*lpToken>='0' && *lpToken<='9')) {
 
-						Dos9_ShowErrorMessage(DOS9_UNEXPECTED_ELEMENT,
-						                      lpToken,
-						                      FALSE);
+						Dos9_ShowErrorMessageX(pContext,
+                                                DOS9_UNEXPECTED_ELEMENT,
+                                                lpToken
+                                                );
 
 						goto error;
 
@@ -107,9 +108,10 @@ int Dos9_CmdShift(char* lpLine)
 
 					if (*lpToken) {
 
-						Dos9_ShowErrorMessage(DOS9_UNEXPECTED_ELEMENT,
-						                      lpToken,
-						                      FALSE);
+						Dos9_ShowErrorMessageX(pContext,
+                                                DOS9_UNEXPECTED_ELEMENT,
+                                                lpToken
+                                                );
 
 						goto error;
 
@@ -126,9 +128,10 @@ int Dos9_CmdShift(char* lpLine)
 
 					if (!(*lpToken>='0' && *lpToken<='9')) {
 
-						Dos9_ShowErrorMessage(DOS9_UNEXPECTED_ELEMENT,
-						                      lpToken,
-						                      FALSE);
+						Dos9_ShowErrorMessageX(pContext,
+                                                DOS9_UNEXPECTED_ELEMENT,
+                                                lpToken
+                                                );
 
 						goto error;
 
@@ -139,9 +142,10 @@ int Dos9_CmdShift(char* lpLine)
 
 					if (*lpToken) {
 
-						Dos9_ShowErrorMessage(DOS9_UNEXPECTED_ELEMENT,
-						                      lpToken,
-						                      FALSE);
+						Dos9_ShowErrorMessageX(pContext,
+                                                DOS9_UNEXPECTED_ELEMENT,
+                                                lpToken
+                                                );
 
 						goto error;
 
@@ -151,14 +155,14 @@ int Dos9_CmdShift(char* lpLine)
 					break;
 
 				case '?':
-					Dos9_ShowInternalHelp(DOS9_HELP_SHIFT);
+					Dos9_ShowInternalHelp(pContext, DOS9_HELP_SHIFT);
 					goto error;
 
 				default:
-					Dos9_ShowErrorMessage(DOS9_UNEXPECTED_ELEMENT,
-					                      lpToken,
-					                      FALSE
-					                     );
+					Dos9_ShowErrorMessageX(pContext,
+                                            DOS9_UNEXPECTED_ELEMENT,
+                                            lpToken
+                                            );
 
 					goto error;
 
@@ -167,9 +171,10 @@ int Dos9_CmdShift(char* lpLine)
 
 		} else {
 
-			Dos9_ShowErrorMessage(DOS9_UNEXPECTED_ELEMENT,
-			                      lpToken,
-			                      FALSE);
+			Dos9_ShowErrorMessageX(pContext,
+                                    DOS9_UNEXPECTED_ELEMENT,
+                                    lpToken
+                                    );
 
 			goto error;
 
@@ -180,9 +185,9 @@ int Dos9_CmdShift(char* lpLine)
 	/* Displace command-line arguments */
 	while ((iBegin+iDisplacement) < 10) {
 
-		Dos9_SetLocalVar(lpvLocalVars,
+		Dos9_SetLocalVar(pContext->pLocalVars,
 		                 '0'+iBegin,
-		                 Dos9_GetLocalVarPointer(lpvLocalVars,
+		                 Dos9_GetLocalVarPointer(pContext->pLocalVars,
 		                         '0'+iBegin+iDisplacement
 		                                        )
 		                );
@@ -194,7 +199,7 @@ int Dos9_CmdShift(char* lpLine)
 	/* empty the remaining arguments */
 	while (iBegin < 10) {
 
-		Dos9_SetLocalVar(lpvLocalVars, '0'+iBegin, "");
+		Dos9_SetLocalVar(pContext->pLocalVars, '0'+iBegin, "");
 
 		iBegin++;
 

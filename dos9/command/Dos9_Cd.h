@@ -21,6 +21,6 @@
 #ifndef DOS9_CMD_CD_H
 #define DOS9_CMD_CD_H
 
-int Dos9_CmdCd(char* lpLine);
+int Dos9_CmdCd(DOS9CONTEXT* pContext, char* lpLine);
 
 #endif // DOS9_CMD_ECHO_H

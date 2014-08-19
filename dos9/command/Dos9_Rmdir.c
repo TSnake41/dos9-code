@@ -56,25 +56,32 @@
 
    */
 
-int Dos9_CmdRmdir(char* lpLine)
+int Dos9_CmdRmdir(DOS9CONTEXT* pContext, char* lpLine)
 {
 	ESTR* lpEstr=Dos9_EsInit();
+
+	char  dirname[FILENAME_MAX];
+
 	int	bQuiet=FALSE,
 		bRecursive=FALSE,
 		iChoice;
 
-	if (!(lpLine=Dos9_GetNextParameterEs(lpLine, lpEstr))) {
+	if (!(lpLine=Dos9_GetNextParameterEs(pContext,
+                                            lpLine, lpEstr))) {
 
-		Dos9_ShowErrorMessage(DOS9_EXPECTED_MORE, "RD/RMDIR", FALSE);
+		Dos9_ShowErrorMessageX(pContext,
+                                DOS9_EXPECTED_MORE,
+                                "RD/RMDIR"
+                                );
 		goto error;
 
 	}
 
-	while ((lpLine=Dos9_GetNextParameterEs(lpLine, lpEstr))) {
+	while ((lpLine=Dos9_GetNextParameterEs(pContext, lpLine, lpEstr))) {
 
 		if (!strcmp(Dos9_EsToChar(lpEstr), "/?")) {
 
-			Dos9_ShowInternalHelp(DOS9_HELP_RD);
+			Dos9_ShowInternalHelp(pContext, DOS9_HELP_RD);
 			break;
 
 		} else if (!stricmp(Dos9_EsToChar(lpEstr),"/S")) {
@@ -92,9 +99,10 @@ int Dos9_CmdRmdir(char* lpLine)
 
 			if (!bQuiet && bRecursive) {
 
-				iChoice=Dos9_AskConfirmation(DOS9_ASK_YNA
-												| DOS9_ASK_INVALID_REASK
-												| DOS9_ASK_DEFAULT_Y,
+				iChoice=Dos9_AskConfirmation(pContext,
+                                                DOS9_ASK_YNA
+                                                    | DOS9_ASK_INVALID_REASK
+                                                    | DOS9_ASK_DEFAULT_Y,
 												lpRmdirConfirm,
 												Dos9_EsToChar(lpEstr));
 
@@ -112,11 +120,18 @@ int Dos9_CmdRmdir(char* lpLine)
 
 			}
 
-			if (rmdir(Dos9_EsToChar(lpEstr))) {
+			Dos9_AbsolutePath(dirname,
+                                sizeof(dirname),
+                                pContext->lpCurrentDir,
+                                Dos9_EsToChar(lpEstr),
+                                );
 
-				Dos9_ShowErrorMessage(DOS9_RMDIR_ERROR | DOS9_PRINT_C_ERROR,
-										Dos9_EsToChar(lpEstr),
-										FALSE);
+			if (rmdir(dirname)) {
+
+				Dos9_ShowErrorMessageX(pContext,
+                                        DOS9_RMDIR_ERROR | DOS9_PRINT_C_ERROR,
+										Dos9_EsToChar(lpEstr)
+										);
 				goto error;
 
 			}

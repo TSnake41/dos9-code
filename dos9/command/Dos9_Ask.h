@@ -22,7 +22,7 @@
 #define DOS9_ASK_H
 
 #define DOS9_ASK_YN             (0x00)
-/* The use can choose either YES or NO */
+/* The user can choose either YES or NO */
 
 #define DOS9_ASK_YNA            (0x08)
 /* the user can choose either YES, NO or ALL */
@@ -47,6 +47,6 @@ return DOS9_ASK_ALL */
 #define DOS9_ASK_ALL            (4)
 #define DOS9_ASK_INVALID        (-1)
 
-int Dos9_AskConfirmation(int iFlags, const char* lpMsg, ...);
+int Dos9_AskConfirmation(DOS9CONTEXT* pContext, int iFlags, const char* lpMsg, ...);
 
 #endif // DOS9_ASK_H

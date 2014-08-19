@@ -43,7 +43,7 @@
 
 #include "../errors/Dos9_Errors.h"
 
-int Dos9_CmdRem(char* lpLine)
+int Dos9_CmdRem(DOS9CONTEXT* pContext, char* lpLine)
 {
 	/* Well, a help message for this function is included, however, is it
 	   really usefull, because, logically,

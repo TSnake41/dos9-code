@@ -21,6 +21,6 @@
 #ifndef DOS9_CMD_MOVE_H
 #define DOS9_CMD_MOVE_H
 
-int Dos9_CmdMove(char* lpLine);
+int Dos9_CmdMove(DOS9CONTEXT* pContext, char* lpLine);
 
 #endif // DOS9_CMD_ECHO_H

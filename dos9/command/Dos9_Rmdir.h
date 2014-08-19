@@ -21,6 +21,6 @@
 #ifndef DOS9_CMD_RMDIR_H
 #define DOS9_CMD_RMDIR_H
 
-int Dos9_CmdRmdir(char* lpLine);
+int Dos9_CmdRmdir(DOS9CONTEXT* pContext, char* lpLine);
 
 #endif // DOS9_CMD_ECHO_H

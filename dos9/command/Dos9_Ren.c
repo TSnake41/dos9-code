@@ -46,35 +46,42 @@
 
 #include "Dos9_Ask.h"
 
-int Dos9_CmdRen(char* lpLine)
+/* Rename a file
+
+    REN origin dest
+
+        origin : a pointer
+
+*/
+
+int Dos9_CmdRen(DOS9CONTEXT* pContext, char* lpLine)
 {
 	ESTR* lpEstr=Dos9_EsInit();
-	char lpFileName[FILENAME_MAX]= {0}, lpFileDest[FILENAME_MAX]= {0};
+	char lpFileName[FILENAME_MAX],
+         lpDir[FILENAME_MAX],
+         lpFileDest[FILENAME_MAX];
+
 	char* lpToken;
 
-	if (!(lpLine=strchr(lpLine, ' '))) {
+    lpLine +=3;
 
-		Dos9_ShowErrorMessage(DOS9_EXPECTED_MORE, "DEL / ERASE", FALSE);
-		Dos9_EsFree(lpEstr);
+	if (*lpLine=='a' || *lpLine=='A')
+        lpLine +=3;
 
-		return -1;
+	if ((lpLine=Dos9_GetNextParameterEs(pContext, lpLine, lpEstr))) {
 
-	}
+        Dos9_AbsolutePath(lpFileName,
+                            sizeof(lpFileName),
+                            pContext->lpCurrentDir,
+                            Dos9_EsToChar(lpEstr));
 
-	if ((lpLine=Dos9_GetNextParameterEs(lpLine, lpEstr))) {
-
-		strncpy(lpFileName, Dos9_EsToChar(lpEstr), FILENAME_MAX);
-		lpFileName[FILENAME_MAX-1]='\0';
-		/* can't assume that what was buffered is NULL-terminated
-		   see the C-89,99,11 standards for further informations */
-
-		strcpy(lpFileDest, lpFileName);
+		strcpy(lpDir, lpFileName);
 
 		if ((lpLine=Dos9_GetNextParameterEs(lpLine, lpEstr))) {
 
 			/* removing old filename */
-			lpLine=strrchr(lpFileDest, '\\');
-			lpToken=strrchr(lpFileDest, '/');
+			lpLine=strrchr(lpDir, '\\');
+			lpToken=strrchr(lpDir, '/'); /* retrieve the original path */
 
 			if (lpToken>lpLine) {
 				lpLine=lpToken;
@@ -85,14 +92,19 @@ int Dos9_CmdRen(char* lpLine)
 				*lpLine='\0';
 			}
 
+			Dos9_AbsolutePath(lpFileDest,
+                                sizeof(lpFileDest),
+                                lpDir,
+                                Dos9_EsToChar(lpEstr)
+                                );
+
 			/* cat with new name */
-			strncat(lpFileDest, Dos9_EsToChar(lpEstr), FILENAME_MAX-strlen(lpFileDest));
-			lpFileDest[FILENAME_MAX-1]='\0';
-			/* can't assume that what was buffered is NULL-terminated
-			   see the C-89,99,11 standards for further informations */
 			if (!printf("<DEBUG> renaming `%s` to `%s`\n", lpFileName, lpFileDest)) {
 
-				Dos9_ShowErrorMessage(DOS9_UNABLE_RENAME, lpFileName, FALSE);
+				Dos9_ShowErrorMessageX(pContext,
+                                        DOS9_UNABLE_RENAME,
+                                        lpFileName);
+
 				Dos9_EsFree(lpEstr);
 				return -1;
 
@@ -102,7 +114,10 @@ int Dos9_CmdRen(char* lpLine)
 		}
 	}
 
-	Dos9_ShowErrorMessage(DOS9_EXPECTED_MORE, "REN / RENAME", FALSE);
+	Dos9_ShowErrorMessage(pContext,
+                            DOS9_EXPECTED_MORE,
+                            "REN / RENAME"
+                            );
 	Dos9_EsFree(lpEstr);
 
 	return -1;

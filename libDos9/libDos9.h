@@ -353,6 +353,8 @@ LIBDOS9 int Dos9_GetConsoleEncoding(char* lpEnc, size_t iSize);
 LIBDOS9 int Dos9_FileExists(const char* lpPath);
 LIBDOS9 int Dos9_DirExists(const char* lpPath);
 LIBDOS9 int Dos9_GetExePath(char* lpBuf, size_t iBufSize);
+LIBDOS9 int Dos9_AbsolutePath(char* buf, size_t bufsiz, char* currdir, char* reldir);
+LIBDOS9 int Dos9_IsAbsolute(const char* name);
 
 LIBDOS9 char* Dos9_SkipBlanks(const char* lpCh);
 LIBDOS9 char* Dos9_SkipAllBlanks(const char* lpCh);

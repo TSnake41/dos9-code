@@ -21,6 +21,6 @@
 #ifndef DOS9_CMD_EXIT_H
 #define DOS9_CMD_EXIT_H
 
-int Dos9_CmdExit(char* lpLine);
+int Dos9_CmdExit(DOS9CONTEXT* pContext, char* lpLine);
 
 #endif // DOS9_CMD_ECHO_H

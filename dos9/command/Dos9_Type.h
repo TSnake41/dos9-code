@@ -21,6 +21,6 @@
 #ifndef DOS9_CMD_TYPE_H
 #define DOS9_CMD_TYPE_H
 
-int Dos9_CmdType(char* lpLine);
+int Dos9_CmdType(DOS9CONTEXT* pContext, char* lpLine);
 
 #endif // DOS9_CMD_ECHO_H

@@ -44,23 +44,33 @@
 
 #include "Dos9_Mkdir.h"
 
-int Dos9_CmdMkdir(char* lpLine)
+int Dos9_CmdMkdir(DOS9CONTEXT* pContext, char* lpLine)
 {
 	ESTR* lpEstr=Dos9_EsInit();
+	char  filename[FILENAME_MAX];
 
-	if (!(lpLine=Dos9_GetNextParameterEs(lpLine, lpEstr))) {
+	if (!(lpLine=Dos9_GetNextParameterEs(pContext, lpLine, lpEstr))) {
 
-		Dos9_ShowErrorMessage(DOS9_EXPECTED_MORE, "MD/MKDIR", FALSE);
+		Dos9_ShowErrorMessageX(pContext,
+                                DOS9_EXPECTED_MORE,
+                                "MD/MKDIR"
+                                );
 		goto error;
 
 	}
 
-	if ((lpLine=Dos9_GetNextParameterEs(lpLine, lpEstr))) {
+	if ((lpLine=Dos9_GetNextParameterEs(pContext, lpLine, lpEstr))) {
 		if (!strcmp(Dos9_EsToChar(lpEstr), "/?")) {
 
-			Dos9_ShowInternalHelp(DOS9_HELP_MD);
+			Dos9_ShowInternalHelp(pContext, DOS9_HELP_MD);
 
 		} else {
+
+            Dos9_AbsolutePath(filename,
+                                sizeof(filename),
+                                pContext->lpCurrentDir,
+                                Dos9_EsToChar(lpEstr)
+                                );
 
 			#if defined(_POSIX_C_SOURCE)
 
@@ -70,17 +80,20 @@ int Dos9_CmdMkdir(char* lpLine)
 
 			/* use POSIX-Conforming mkdir function */
 
-			if (mkdir(Dos9_EsToChar(lpEstr), 0777)) {
+			if (mkdir(filename, 0777)) {
 
 			#elif defined(WIN32)
 
 			/* use WINDOWS mkdir function */
 
-			if (mkdir(Dos9_EsToChar(lpEstr))) {
+			if (mkdir(filename) {
 
 			#endif // defined _POSIX_C_SOURCE
 
-				Dos9_ShowErrorMessage(DOS9_MKDIR_ERROR, Dos9_EsToChar(lpEstr), FALSE);
+				Dos9_ShowErrorMessageX(pContext,
+                                        DOS9_MKDIR_ERROR,
+                                        Dos9_EsToChar(lpEstr)
+                                        );
 				goto error;
 
 			}

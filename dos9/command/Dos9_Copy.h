@@ -21,6 +21,6 @@
 #ifndef DOS9_CMD_COPY_H
 #define DOS9_CMD_COPY_H
 
-int Dos9_CmdCopy(char* lpLine);
+int Dos9_CmdCopy(DOS9CONTEXT* pContext, char* lpLine);
 
 #endif // DOS9_CMD_ECHO_H

@@ -47,22 +47,22 @@
 
    Change console title to 'title' */
 
-int Dos9_CmdTitle(char* lpLine)
+int Dos9_CmdTitle(DOS9CONTEXT* pContext, char* lpLine)
 {
 	char lpArg[3];
 	ESTR* lpEsTitle=Dos9_EsInit();
 
 	lpLine+=5;
 
-	if (Dos9_GetNextParameter(lpLine, lpArg, 3)) {
+	if (Dos9_GetNextParameter(pContext, lpLine, lpArg, 3)) {
 
 		if (!strcmp(lpArg, "/?")) {
 
-			Dos9_ShowInternalHelp(DOS9_HELP_TITLE);
+			Dos9_ShowInternalHelp(pContext, DOS9_HELP_TITLE);
 
 		} else {
 
-			Dos9_GetEndOfLine(lpLine, lpEsTitle);
+			Dos9_GetEndOfLine(pContext, lpLine, lpEsTitle);
 			Dos9_SetConsoleTitle(Dos9_EsToChar(lpEsTitle));
 
 		}

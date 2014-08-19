@@ -21,6 +21,6 @@
 #ifndef DOS9_CMD_TITLE_H
 #define DOS9_CMD_TITLE_H
 
-int Dos9_CmdTitle(char* lpLine);
+int Dos9_CmdTitle(DOS9CONTEXT* pContext, char* lpLine);
 
 #endif // DOS9_CMD_ECHO_H

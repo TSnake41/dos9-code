@@ -27,6 +27,153 @@
 //#define DOS9_DBG_MODE
 #include "Dos9_Debug.h"
 
+
+int Dos9_InitVar(DOS9CONTEXT* pContext, char* lpArray[])
+{
+	int i;
+
+	for (i=0; lpArray[i] && lpArray[i+1]; i+=2) {
+
+		Dos9_SetEnv(pContext->pEnv, lpArray[i], lpArray[i+1]);
+
+	}
+	return 0;
+}
+
+int Dos9_GetVar(DOS9CONTEXT* pContext, char* lpName, ESTR* lpRecieve)
+{
+	char        *lpVarContent, /* a pointer to the environment var string */
+	            *lpToken, /* a pointer used to tokenize vars like %var:a=b% */
+	            *lpNextToken=NULL, /* a pointer used to tokenize '=' or ',' in vars like %var:a=b% */
+	             *lpNameCpy, /* a pointer used to duplicate lpName (because function should avoid bordering effect)*/
+	             *lpZeroPos=NULL;; /* a pointer to the zero put in the environment string */
+
+	char        lpBuf[12];
+	int         iVarState=0, /* the status of the var interpreter 1 means replace, 2 means cut */
+	            iTotalLen,
+	            iBegin=0, /* the start position */
+	            iLen=0; /* the lenght to be cut */
+
+	char        cCharSave=0; /* the backup of the character replaced by '\0' */;
+	struct tm* lTime;
+	time_t iTime;
+
+	/* empty the line */
+	Dos9_EsCpy(lpRecieve, "");
+
+	if (!(lpNameCpy=strdup(lpName)))
+		return FALSE;
+
+	if ((lpToken=strchr(lpNameCpy, ':'))) {
+		if ((lpNextToken=strchr(lpToken, '='))) {
+
+			/* char are about to be replaced */
+			*lpToken='\0';
+			lpToken++;
+			*lpNextToken='\0';
+			lpNextToken++;
+			iVarState=1;
+
+		} else if (*(lpToken+1)=='~') {
+			/* string is about to be truncated */
+			*lpToken='\0';
+			lpToken+=2;
+			if ((lpNextToken=strchr(lpToken, ','))) {
+				*lpNextToken='\0';
+				lpNextToken++;
+				iLen=atol(lpNextToken);
+			}
+			iBegin=atol(lpToken);
+			iVarState=2;
+		}
+
+	} if (!(stricmp(lpNameCpy, "RANDOM"))) {
+
+		/* requested RANDOM */
+		lpVarContent=lpBuf;
+		sprintf(lpBuf, "%d", rand());
+
+	} else if (!(stricmp(lpNameCpy, "DATE"))) {
+
+		iTime=time(NULL);
+		lTime=localtime(&iTime);
+		lpVarContent=lpBuf;
+		sprintf(lpBuf, "%02d/%02d/%02d", lTime->tm_mday, lTime->tm_mon+1, lTime->tm_year+1900);
+
+	} else if (!(stricmp(lpNameCpy, "TIME"))) {
+
+		iTime=time(NULL);
+		lTime=localtime(&iTime);
+		lpVarContent=lpBuf;
+		sprintf(lpBuf, "%02d:%02d:%02d,00", lTime->tm_hour, lTime->tm_min, lTime->tm_sec);
+
+	} else if (!(lpVarContent=Dos9_GetEnv(pContext->pEnv, lpNameCpy))) {
+
+		free(lpNameCpy);
+		return FALSE;
+
+	}
+
+	iTotalLen=strlen(lpVarContent);
+
+	if (iVarState==2) {
+
+		if (iBegin<0 || iBegin>= iTotalLen) {
+
+			/* skip because these values are not valid
+			    indeed iBegin must not be negative and
+			    must not overflow the buffer */
+
+		} else if (iLen>=0) {
+
+			if ((iBegin+iLen)<= iTotalLen) {
+				/* if the strings is right */
+
+				lpZeroPos=lpVarContent+iBegin+iLen;
+				cCharSave=*lpZeroPos;
+				*lpZeroPos='\0';
+				lpVarContent+=iBegin;
+
+			}
+
+		} else if (iLen < 0) {
+
+			if (abs(iLen) <= iTotalLen-iBegin) {
+
+				/* if the string is right too
+				   but the lenght given is negative, such as -3
+				   (ie. truncate 3 characters before the end of
+				   the string)
+				*/
+
+				lpZeroPos=lpVarContent+iTotalLen+iLen;
+				cCharSave=*lpZeroPos;
+				*lpZeroPos='\0';
+				lpVarContent+=iBegin;
+
+			}
+
+		}
+	}
+
+	Dos9_EsCpy(lpRecieve, lpVarContent);
+
+	if (iVarState==1) {
+
+		/* FIXME : This should be case insensitive */
+		Dos9_EsReplace(lpRecieve, lpToken, lpNextToken);
+
+	}
+
+	if (iVarState==2) {
+		*lpZeroPos=cCharSave;
+	}
+
+	free(lpNameCpy);
+
+	return TRUE;
+}
+
 void Dos9_ExpandSpecialVar(DOS9CONTEXT* pContext, ESTR* ptrCommandLine)
 {
 

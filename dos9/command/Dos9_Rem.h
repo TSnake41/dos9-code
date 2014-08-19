@@ -21,6 +21,6 @@
 #ifndef DOS9_CMD_REM_H
 #define DOS9_CMD_REM_H
 
-int Dos9_CmdRem(char* lpLine);
+int Dos9_CmdRem(DOS9CONTEXT* pContext, char* lpLine);
 
 #endif // DOS9_CMD_ECHO_H

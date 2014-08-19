@@ -21,6 +21,6 @@
 #ifndef DOS9_CMD_COLOR_H
 #define DOS9_CMD_COLOR_H
 
-int Dos9_CmdColor(char* lpLine);
+int Dos9_CmdColor(DOS9CONTEXT* pContext, char* lpLine);
 
 #endif // DOS9_CMD_ECHO_H

@@ -23,10 +23,10 @@
 
 #include <libDos9.h>
 
-int Dos9_CmdSet(char *lpLine);
-int Dos9_CmdSetS(char* lpLine);
-int Dos9_CmdSetP(char* lpLine);
-int Dos9_CmdSetA(char* lpLine, int bFloats);
+int Dos9_CmdSet(DOS9CONTEXT* pContext, char *lpLine);
+int Dos9_CmdSetS(DOS9CONTEXT* pContext, char* lpLine);
+int Dos9_CmdSetP(DOS9CONTEXT* pContext, char* lpLine);
+int Dos9_CmdSetA(DOS9CONTEXT* pContext, char* lpLine, int bFloats);
 int Dos9_CmdSetEvalFloat(ESTR* lpExpression);
 int Dos9_CmdSetEvalInt(ESTR* lpExpression);
 

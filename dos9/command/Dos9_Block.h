@@ -21,6 +21,6 @@
 #ifndef DOS9_CMD_BLOCK_H
 #define DOS9_CMD_BLOCK_H
 
-int Dos9_CmdBlock(char* lpLine);
+int Dos9_CmdBlock(DOS9CONTEXT* pContext, char* lpLine);
 
 #endif // DOS9_CMD_ECHO_H

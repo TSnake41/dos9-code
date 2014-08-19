@@ -38,8 +38,9 @@
 #define CMP_LESSER_OR_EQUAL 6
 #define CMP_FLOAT_COMP 0x10
 
-int Dos9_PerformExtendedTest(const char* lpCmp, const char* lpParam1, const char* lpParam2, int iFlag);
+int Dos9_PerformExtendedTest(const char* lpCmp, const char* lpParam1,
+                                    const char* lpParam2, int iFlag);
 
-int Dos9_CmdIf(char* lpParam); // function to support if
+int Dos9_CmdIf(DOS9CONTEXT* pContext, char* lpParam); // function to support if
 
 #endif // DOS9_CMD_CONDITION_H

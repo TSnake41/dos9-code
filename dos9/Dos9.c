@@ -160,7 +160,9 @@ int main(int argc, char *argv[])
 
 				case 'Q':
 					bQuiet=TRUE; // run silently
-					break;
+                    break;
+
+                #if 0
 
 				case 'I':
 					if (!argv[++i]) {
@@ -181,6 +183,8 @@ int main(int argc, char *argv[])
 
 					iOutputD=atoi(argv[i]); // select input descriptor
 					break;
+
+                #endif
 
 				case '?':
 					puts("DOS9 [" DOS9_VERSION "] (" DOS9_HOST ") - " DOS9_BUILDDATE "\n"
@@ -237,8 +241,21 @@ int main(int argc, char *argv[])
 	colColor=DOS9_COLOR_DEFAULT;
 	/* messages affichés */
 
-    pContext = Dos9_InitContext(lpCmdInfo, sizeof(lpCmdInfo)/sizeof(COMMANDINFO));
+    pContext = Dos9_InitContext(lpCmdInfo, sizeof(lpCmdInfo)/sizeof(COMMANDINFO), environ);
     pContext->iMode = iMode;
+
+    DOS9_DBG("Getting current executable name ...\n");
+	Dos9_GetExePath(lpTitle, FILENAME_MAX);
+    DOS9_DBG("\tGot \"%s\" as name ...\n", lpTitle);
+
+    lpInitVar[4]="DOS9_PATH";
+	lpInitVar[5]=lpTitle;
+
+	DOS9_DBG("Initializing variables ...\n");
+
+	Dos9_InitVar(pContext, lpInitVar);
+    Dos9_SetEnv(pContext->pEnv, "ERRORLEVEL", "0");
+
 
 	DOS9_DBG("Setting introduction and DOS9_IS_SCRIPT ...\n");
 
@@ -266,28 +283,9 @@ int main(int argc, char *argv[])
 
 	}
 
-	DOS9_DBG("Getting current executable name ...\n");
-
-	Dos9_GetExePath(lpTitle, FILENAME_MAX);
-
-	DOS9_DBG("\tGot \"%s\" as name ...\n", lpTitle);
-
-    pContext = Dos9_InitContext(lpCmdInfo, sizeof(lpCmdInfo)/sizeof(COMMANDINFO));
-
-	lpInitVar[4]="DOS9_PATH";
-	lpInitVar[5]=lpTitle;
-
-
-	DOS9_DBG("Initializing variables ...\n");
-
-	Dos9_InitVar(pContext, lpInitVar);
-    Dos9_SetEnv(pContext->pEnv, "ERRORLEVEL", "0");
-
-	DOS9_DBG("Mapping commands ... \n");
-
-
 	/* getting input intialised (if they are specified) */
 
+    #if 0
 	if (iInputD) {
 
 		Dos9_OpenOutputD(lppsStreamStack, iInputD, DOS9_STDIN);
@@ -299,6 +297,7 @@ int main(int argc, char *argv[])
 		Dos9_OpenOutputD(lppsStreamStack, iOutputD, DOS9_STDOUT);
 
 	}
+	#endif
 
 	/* running auto batch initialisation */
 
@@ -316,7 +315,7 @@ int main(int argc, char *argv[])
 
 		/* generates real path if the path is uncomplete */
 
-		if (Dos9_GetFilePath(lpFileAbs, lpFileName, sizeof(lpFileAbs))==-1)
+		if (Dos9_GetFilePath(pContext, lpFileAbs, lpFileName, sizeof(lpFileAbs))==-1)
 			Dos9_ShowErrorMessage(DOS9_FILE_ERROR, lpFileName, -1);
 
 		if (*lpFileAbs

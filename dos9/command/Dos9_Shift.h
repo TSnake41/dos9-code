@@ -21,6 +21,6 @@
 #ifndef DOS9_CMD_SHIFT_H
 #define DOS9_CMD_SHIFT_H
 
-int Dos9_CmdShift(char* lpLine);
+int Dos9_CmdShift(DOS9CONTEXT* pContext, char* lpLine);
 
 #endif // DOS9_CMD_ECHO_H

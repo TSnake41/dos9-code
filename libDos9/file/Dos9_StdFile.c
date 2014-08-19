@@ -60,3 +60,45 @@ int Dos9_FileExists(const char* ptrName)
 }
 
 #endif
+
+LIBDOS9 int Dos9_AbsolutePath(char* buf, size_t bufsiz,
+                                    const char* currdir, const char* reldir)
+{
+
+        if (*reldir == '/'
+        #if defined(WIN32)
+            || (*reldir /* this string is not null terminated */
+                && *(reldir+1) == ':'
+                && (*(reldir+2) == '/'
+                    || *(reldir+2) == '\\'))
+        #endif
+            ) {
+
+            /* This path is absolute */
+
+            snprintf(buf, bufsiz, "%s", reldir);
+
+        } else if (!*reldir) {
+
+            snprintf(buf, bufsiz, "%s", currdir);
+
+        } else {
+
+            snprintf(buf, bufsiz, "%s/%s", currdir, reldir);
+
+        }
+
+}
+
+LIBDOS9 int Dos9_IsAbsolute(const char* path)
+{
+
+    return (*path == '/'
+    #if defined(WIN32)
+        || (*path
+            && *(path+1) == ':'
+            && (*(path+2) == '\\'
+                || *(path+2) == '/'))
+    #endif
+    );
+}

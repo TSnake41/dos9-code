@@ -21,6 +21,6 @@
 #ifndef DOS9_CMD_SETLOCAL_H
 #define DOS9_CMD_SETLOCAL_H
 
-int Dos9_CmdSetLocal(char* lpLine);
+int Dos9_CmdSetLocal(DOS9CONTEXT* pContext, char* lpLine);
 
 #endif // DOS9_CMD_ECHO_H

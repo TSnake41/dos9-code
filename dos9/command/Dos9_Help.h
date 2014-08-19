@@ -21,6 +21,6 @@
 #ifndef DOS9_CMD_HELP_H
 #define DOS9_CMD_HELP_H
 
-int Dos9_CmdHelp(char* lpLine);
+int Dos9_CmdHelp(DOS9CONTEXT* pContext, char* lpLine);
 
 #endif // DOS9_CMD_ECHO_H

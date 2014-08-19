@@ -31,9 +31,14 @@
 #include "../errors/Dos9_Errors.h"
 #include "../core/Dos9_Core.h"
 
-int Dos9_CmdIf(char* lpParam)
+int Dos9_CmdIf(DOS9CONTEXT* pContext, char* lpParam)
 {
-	char lpArgument[FILENAME_MAX], *lpNext, *lpToken, *lpEnd;
+	char lpArgument[FILENAME_MAX],
+         lpDir[FILENAME_MAX];
+         *lpNext,
+         *lpToken,
+         *lpEnd;
+
 	int iFlag=0,
 	    iResult;
 
@@ -51,7 +56,7 @@ int Dos9_CmdIf(char* lpParam)
 
 	lpParam+=2;
 
-	if ((lpNext=Dos9_GetNextParameter(lpParam, lpArgument, 11))) {
+	if ((lpNext=Dos9_GetNextParameter(pContext, lpParam, lpArgument, 11))) {
 
 		if (!strcmp(lpArgument, "/?")) {
 
@@ -66,10 +71,14 @@ int Dos9_CmdIf(char* lpParam)
 			iFlag|=DOS9_IF_CASE_UNSENSITIVE;
 			lpParam=lpNext;
 
-			if (!(lpNext=Dos9_GetNextParameter(lpNext, lpArgument, 11))) {
+			if (!(lpNext=Dos9_GetNextParameter(pContext, lpNext,
+                                                    lpArgument, 11))) {
 
-				Dos9_ShowErrorMessage(DOS9_EXPECTED_MORE, "IF", FALSE);
-				return 0;
+				Dos9_ShowErrorMessageX(pContext,
+                                        DOS9_EXPECTED_MORE,
+                                        "IF"
+                                        );
+				return -1;
 
 			}
 
@@ -83,7 +92,11 @@ int Dos9_CmdIf(char* lpParam)
 
 			if (!(lpNext=Dos9_GetNextParameter(lpNext, lpArgument, 11))) {
 
-				Dos9_ShowErrorMessage(DOS9_EXPECTED_MORE, "IF", FALSE);
+				Dos9_ShowErrorMessageX(pContext,
+                                        DOS9_EXPECTED_MORE,
+                                        "IF"
+                                        );
+
 				return 0;
 
 			}
@@ -105,10 +118,15 @@ int Dos9_CmdIf(char* lpParam)
 		}
 
 		if ((iFlag & DOS9_IF_CASE_UNSENSITIVE)
-		    && (iFlag & (DOS9_IF_ERRORLEVEL | DOS9_IF_EXIST | DOS9_IF_DEFINED))
+		    && (iFlag &
+                    (DOS9_IF_ERRORLEVEL | DOS9_IF_EXIST | DOS9_IF_DEFINED))
 		   ) {
 
-			Dos9_ShowErrorMessage(DOS9_INCOMPATIBLE_ARGS, "'/i' (DEFINED, EXIST, ERRORLEVEL)", FALSE);
+			Dos9_ShowErrorMessageX(pContext,
+                                    DOS9_INCOMPATIBLE_ARGS,
+                                    "'/i' (DEFINED, EXIST, ERRORLEVEL)"
+                                    );
+
 			return 0;
 
 		}
@@ -121,14 +139,19 @@ int Dos9_CmdIf(char* lpParam)
 	if (iFlag & DOS9_IF_ERRORLEVEL) {
 
 		/* the script used 'ERRORLEVEL' Keyword */
-		if (!(lpNext=Dos9_GetNextParameter(lpParam, lpArgument, FILENAME_MAX))) {
+		if (!(lpNext=Dos9_GetNextParameter(pContext, lpParam,
+                                                lpArgument, FILENAME_MAX))) {
 
-			Dos9_ShowErrorMessage(DOS9_EXPECTED_MORE, "IF", FALSE);
+			Dos9_ShowErrorMessageX(pContext,
+                                    DOS9_EXPECTED_MORE,
+                                    "IF"
+                                    );
 			return -1;
 
 		}
 
-		iResult=!strcmp(getenv("ERRORLEVEL"), lpArgument);
+		iResult=!strcmp(Dos9_GetEnv(pContext->pEnv, "ERRORLEVEL"),
+                        lpArgument);
 
 		if (iFlag & DOS9_IF_NEGATION)
 			iResult=!iResult;
@@ -139,14 +162,27 @@ int Dos9_CmdIf(char* lpParam)
 	} else if (iFlag & DOS9_IF_EXIST) {
 
 		/* the script used 'EXIST' keyWord */
-		if (!(lpNext=Dos9_GetNextParameter(lpParam, lpArgument, FILENAME_MAX))) {
+		if (!(lpNext=Dos9_GetNextParameter(pContext,lpParam,
+                                            lpArgument, FILENAME_MAX))) {
 
-			Dos9_ShowErrorMessage(DOS9_EXPECTED_MORE, "IF", FALSE);
+			Dos9_ShowErrorMessageX(pContext,
+                                    DOS9_EXPECTED_MORE,
+                                    "IF"
+                                    );
 			return -1;
 
 		}
 
-		lpflFileList=Dos9_GetMatchFileList(lpArgument, DOS9_SEARCH_DEFAULT);
+        /* We should take account of the current directory yeah ? */
+        Dos9_AbsolutePath(lpDir,
+                            sizeof(lpDir),
+                            pContext->lpCurrentDir,
+                            lpArgument);
+
+		lpflFileList=Dos9_GetMatchFileList(lpDir,
+                                           DOS9_SEARCH_DEFAULT
+                                                | DOS9_SEARCH_GET_FIRST_MATCH
+                                            );
 
 		iResult=(lpflFileList == NULL) ? FALSE : TRUE;
 
@@ -170,7 +206,8 @@ int Dos9_CmdIf(char* lpParam)
 
 		/* avoid errors from conversion from 64 bits to
 		   32 bits */
-		iResult=(getenv(lpArgument) == NULL) ? FALSE : TRUE;
+		iResult=(Dos9_GetEnv(pContext->pEnv, lpArgument) == NULL)
+                                                    ? FALSE : TRUE;
 
 		if (iFlag & DOS9_IF_NEGATION)
 			iResult=!iResult;
@@ -178,19 +215,24 @@ int Dos9_CmdIf(char* lpParam)
 		lpParam=lpNext;
 
 	} else {
-
 		/* the script uses normal comparisons */
 		lpComparison=Dos9_EsInit();
 
-		if ((lpNext=Dos9_GetNextParameterEs(lpParam, lpComparison))) {
+		if ((lpNext=Dos9_GetNextParameterEs(pContext, lpParam, lpComparison))){
 
 			if ((lpToken=strstr(Dos9_EsToChar(lpComparison), "=="))) {
 				/* if scipt uses old c-style comparison */
 				*lpToken='\0';
 				lpToken+=2;
 
-				if (iFlag & DOS9_IF_CASE_UNSENSITIVE) iResult=!stricmp(Dos9_EsToChar(lpComparison), lpToken);
-				else iResult=!strcmp(Dos9_EsToChar(lpComparison), lpToken);
+				if (iFlag & DOS9_IF_CASE_UNSENSITIVE) {
+
+                    iResult=!stricmp(Dos9_EsToChar(lpComparison), lpToken);
+
+                } else  {
+                    iResult=!strcmp(Dos9_EsToChar(lpComparison), lpToken);
+
+                }
 
 				if (iFlag & DOS9_IF_NEGATION) iResult=!iResult;
 
@@ -198,18 +240,27 @@ int Dos9_CmdIf(char* lpParam)
 			} else {
 				/* if script uses new basic-like comparison (e.g. EQU, NEQ ...) */
 
-				if (!(lpNext=Dos9_GetNextParameter(lpNext, lpArgument, 11))) {
+				if (!(lpNext=Dos9_GetNextParameter(pContext, lpNext,
+                                                        lpArgument, 11))) {
 
-					Dos9_ShowErrorMessage(DOS9_EXPECTED_MORE, "IF", FALSE);
+					Dos9_ShowErrorMessageX(pContext,
+                                            DOS9_EXPECTED_MORE,
+                                            "IF"
+                                            );
+
 					return -1;
 
 				}
 
                 lpOtherPart=Dos9_EsInit();
 
-				if (!(lpNext=Dos9_GetNextParameterEs(lpNext, lpOtherPart))) {
+				if (!(lpNext=Dos9_GetNextParameterEs(pContext, lpNext,
+                                                           lpOtherPart))) {
 
-					Dos9_ShowErrorMessage(DOS9_EXPECTED_MORE, "IF", TRUE);
+					Dos9_ShowErrorMessageX(pContext,
+                                            DOS9_EXPECTED_MORE,
+                                            "IF"
+                                            );
 					return -1;
 
 				}
@@ -218,8 +269,6 @@ int Dos9_CmdIf(char* lpParam)
                                                     Dos9_EsToChar(lpComparison),
                                                     Dos9_EsToChar(lpOtherPart),
                                                     iFlag);
-
-                printf("Result=%d\n", iResult);
 
                 Dos9_EsFree(lpOtherPart);
 
@@ -232,9 +281,12 @@ int Dos9_CmdIf(char* lpParam)
 
 
 			}
+
 		} else {
 
-			Dos9_ShowErrorMessage(DOS9_EXPECTED_MORE, "IF", FALSE);
+			Dos9_ShowErrorMessageX(pContext,
+                                    DOS9_EXPECTED_MORE,
+                                    "IF");
 			Dos9_EsFree(lpComparison);
 			return -1;
 
@@ -249,7 +301,7 @@ int Dos9_CmdIf(char* lpParam)
 
 		if (iResult) {
 
-			Dos9_RunBlock(&bkInfo);
+			Dos9_RunBlock(pContext, &bkInfo);
 
 		} else {
 
@@ -270,7 +322,10 @@ int Dos9_CmdIf(char* lpParam)
 
 				} else {
 
-					Dos9_ShowErrorMessage(DOS9_EXPECTED_MORE, "IF", FALSE);
+					Dos9_ShowErrorMessageX(pContext,
+                                            DOS9_EXPECTED_MORE,
+                                            "IF"
+                                            );
 
 				}
 			}
@@ -278,7 +333,10 @@ int Dos9_CmdIf(char* lpParam)
 
 	} else {
 
-		Dos9_ShowErrorMessage(DOS9_EXPECTED_MORE, "IF", FALSE);
+		Dos9_ShowErrorMessage(pContext,
+                                DOS9_EXPECTED_MORE,
+                                "IF"
+                                );
 		return -1;
 
 	}

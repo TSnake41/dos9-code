@@ -45,7 +45,7 @@
 typedef struct DOS9CONTEXT {
     STREAMSTACK* pStack; /* redirection stack */
     LOCAL_VAR_BLOCK* pLocalVars; /* array for local variables */
-    INPUT_FILE*  pIn; /* information on the loaded file */
+    INPUT_FILE* pIn; /* information on the loaded file */
     COMMANDLIST* pCommands; /* information about the command available*/
     ENVBUF* pEnv; /* information about environment variable */
     char lpCurrentDir[FILENAME_MAX];

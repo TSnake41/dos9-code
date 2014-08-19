@@ -101,14 +101,16 @@ typedef struct INPUTINFO {
 } INPUTINFO;
 
 
-int Dos9_CmdFor(char* lpCommand);
+int Dos9_CmdFor(DOS9CONTEXT* pContext, char* lpCommand);
 /* This is the function used for running
    ``for'' loops */
 
-int Dos9_CmdForSimple(ESTR* lpInput, BLOCKINFO* lpbkCommand, char cVarName, char* lpDelimiters);
+int Dos9_CmdForSimple(DOS9CONTEXT* pContext, ESTR* lpInput,
+                BLOCKINFO* lpbkCommand, char cVarName, char* lpDelimiters);
 /* this handles simple ``for'' loops */
 
-int Dos9_CmdForF(ESTR* lpInput, BLOCKINFO* lpbkCommand, FORINFO* lpfrInfo);
+int Dos9_CmdForF(DOS9CONTEXT* pContext, ESTR* lpInput, BLOCKINFO* lpbkCommand,
+                                            FORINFO* lpfrInfo);
 /* this handles more comple ``for'' loops
    ie. For /F
 */
@@ -117,11 +119,13 @@ int Dos9_CmdForF(ESTR* lpInput, BLOCKINFO* lpbkCommand, FORINFO* lpfrInfo);
 #define DOS9_FORL_INC   1
 #define DOS9_FORL_END   2
 
-int Dos9_CmdForL(ESTR* lpInput, BLOCKINFO* lpbkCommand, char cVarName);
+int Dos9_CmdForL(DOS9CONTEXT* pContext, ESTR* lpInput, BLOCKINFO* lpbkCommand,
+                                char cVarName);
 /* this handle the ``for /L'' loop */
 
 
-int Dos9_ForMakeInfo(char* lpOptions, FORINFO* lpfrInfo);
+int Dos9_ForMakeInfo(DOS9CONTEXT* pContext, char* lpOptions,
+                                                FORINFO* lpfrInfo);
 /* this makes token from a parameter command
    i.e. from a string like "tokens=1,3,4 delims=, "
 */
@@ -129,32 +133,37 @@ int Dos9_ForMakeInfo(char* lpOptions, FORINFO* lpfrInfo);
 void Dos9_ForAdjustParameter(char* lpOptions, ESTR* lpParam);
 /* Adjust parametrt for for loops */
 
-int  Dos9_ForMakeTokens(char* lpToken, FORINFO* lpfrInfo);
+int  Dos9_ForMakeTokens(DOS9CONTEXT* pContext, char* lpToken,
+                                                    FORINFO* lpfrInfo);
 /* Make token descriptions on the for loop */
 
-void Dos9_ForSplitTokens(ESTR* lpContent, FORINFO* lpfrInfo);
+void Dos9_ForSplitTokens(DOS9CONTEXT* pContext, ESTR* lpContent,
+                                                    FORINFO* lpfrInfo);
 /*
    this split a line into different tokens
    for parsing with tokens
 
 */
 
-void Dos9_ForGetToken(ESTR* lpContent, FORINFO* lpfrInfo, int iPos, ESTR* lpReturn);
+void Dos9_ForGetToken(ESTR* lpContent, FORINFO* lpfrInfo, int iPos,
+                                                            ESTR* lpReturn);
 /*
     gets token from lpContent, and in
     the order of iRange.
 */
 
 
-int Dos9_ForMakeInputInfo(ESTR* lpInput, INPUTINFO* lpipInfo, FORINFO* lpfrInfo);
+int Dos9_ForMakeInputInfo(DOS9CONTEXT* pContext,
+                    ESTR* lpInput, INPUTINFO* lpipInfo, FORINFO* lpfrInfo);
 /* Creates an inputinfo struct from a input, and a FORINFO struct */
 
-int Dos9_ForAdjustInput(char* lpInput);
+int Dos9_ForAdjustInput(DOS9CONTEXT* pContext, char* lpInput);
 /* Adjusts the input */
 
 int Dos9_ForInputParseFileList(FILE_LIST_T* lpList, ESTR* lpInput);
 
-int Dos9_ForInputProcess(ESTR* lpInput, INPUTINFO* lpipInfo, int* iPipeFdIn, int* iPipeFdOut);
+int Dos9_ForInputProcess(ESTR* lpInput, INPUTINFO* lpipInfo, int* iPipeFdIn,
+                                                            int* iPipeFdOut);
 /* Start a new process for command input */
 
 int Dos9_ForGetInputLine(ESTR* lpReturn, INPUTINFO* lpipInfo);
@@ -166,14 +175,15 @@ void Dos9_ForCloseInputInfo(INPUTINFO* lpipInfo);
 int Dos9_ForGetStringInput(ESTR* lpReturn, STRINGINFO* lpsiInfo);
 /* Get an input line for string inputs */
 
-void Dos9_ForVarUnassign(FORINFO* lpfrInfo);
+void Dos9_ForVarUnassign(DOS9CONTEXT* pContext, FORINFO* lpfrInfo);
 /* Unassign all local variable that have been set by the for loop */
 
-int  Dos9_ForVarCheckAssignment(FORINFO* lpfrInfo);
+int  Dos9_ForVarCheckAssignment(DOS9CONTEXT* pContext, FORINFO* lpfrInfo);
 /* Check wether variables or ranges of variables are already assigned in order
    to prevent overlaping variables in for loop */
 
-int  Dos9_CmdForDeprecatedWrapper(ESTR* lpMask, ESTR* lpDir, char* lpAttribute, BLOCKINFO* lpbkCode, char cVarName);
+int  Dos9_CmdForDeprecatedWrapper(DOS9CONTEXT* pContext, ESTR* lpMask,
+    ESTR* lpDir, char* lpAttribute, BLOCKINFO* lpbkCode, char cVarName);
 
 
 #endif /* DOS9_FOR_H */

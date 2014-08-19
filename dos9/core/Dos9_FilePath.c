@@ -30,33 +30,42 @@
 
 #include "Dos9_FilePath.h"
 
-int Dos9_GetFilePath(char* lpFullPath, const char* lpPartial, size_t iBufSize)
+int Dos9_GetFilePath(DOS9CONTEXT* pContext, char* lpFullPath,
+                                        const char* lpPartial, size_t iBufSize)
 {
 	ESTR* lpEsTmp=Dos9_EsInit();
 	ESTR* lpEsPart=Dos9_EsInit();
 	ESTR* lpEsFinalPath=Dos9_EsInit();
 
-	char *lpPathToken=getenv("PATH");
+	char *lpPathToken=Dos9_GetEnv(pContext->pEnv, "PATH");
 
 	int   bFirstLoop=TRUE;
 
 #ifdef WIN32
 
 	char *lpPathExtToken,
-	     *lpPathExtBegin=getenv("PATHEXT");
+	     *lpPathExtBegin=Dos9_GetEnv(pContext->pEnv, "PATHEXT");
 	int bFirstSubLoop;
 
 #endif // WIN32
 
 	DOS9_DBG("[Dos9_GetFilePath()]*** Start research of file : \"%s\"\n\n", lpPartial);
-	DOS9_DBG("[Dos9_GetFilePath()] PATH variable content=[\n%s\n]\n\n", getenv("PATH"));
-	DOS9_DBG("[Dos9_GetFilePath()] PATHEXT variable content=[\n%s\n]\n\n", getenv("PATHEXT"));
+
+	if (Dos9_IsAbsolute(lpPartial)) {
+
+
+        /* an obsolute path has no need to be resolved */
+        snprintf(lpFullPath, iBufSize, "%s", lpPartial);
+
+        return 0;
+
+	}
 
 	do {
 
 		if (bFirstLoop) {
 
-			Dos9_EsCpy(lpEsTmp, lpPartial);
+			Dos9_MakePath(lpEsTmp, 2, pContext->lpCurrentDir, lpPartial);
 			bFirstLoop=FALSE;
 
 		} else {

@@ -21,6 +21,6 @@
 #ifndef DOS9_CMD_DIR_H
 #define DOS9_CMD_DIR_H
 
-int Dos9_CmdDir(char* lpLine);
+int Dos9_CmdDir(DOS9CONTEXT* pContext, char* lpLine);
 
 #endif // DOS9_CMD_ECHO_H

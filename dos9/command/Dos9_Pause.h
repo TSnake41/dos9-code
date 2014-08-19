@@ -21,6 +21,6 @@
 #ifndef DOS9_CMD_PAUSE_H
 #define DOS9_CMD_PAUSE_H
 
-int Dos9_CmdPause(char* lpLine);
+int Dos9_CmdPause(DOS9CONTEXT* pContext, char* lpLine);
 
 #endif // DOS9_CMD_ECHO_H

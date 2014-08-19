@@ -21,6 +21,6 @@
 #ifndef DOS9_CMD_GOTO_H
 #define DOS9_CMD_GOTO_H
 
-int Dos9_CmdGoto(char* lpLine);
+int Dos9_CmdGoto(DOS9CONTEXT* pContext, char* lpLine);
 
 #endif // DOS9_CMD_ECHO_H

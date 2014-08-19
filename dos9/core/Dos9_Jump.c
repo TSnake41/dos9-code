@@ -4,7 +4,8 @@
 #include <errno.h>
 #include <string.h>
 
-int Dos9_JumpToLabel(char* lpLabelName, char* lpFileName)
+int Dos9_JumpToLabel(DOS9CONTEXT* pContext,
+                        char* lpLabelName, char* lpFileName)
 {
 	size_t iSize=strlen(lpLabelName);
 	char* lpName=lpFileName;
@@ -13,7 +14,7 @@ int Dos9_JumpToLabel(char* lpLabelName, char* lpFileName)
 
 
 	if ((lpFileName==NULL)) {
-		lpName=ifIn.lpFileName;
+		lpName=pContext->pIn->lpFileName;
 	}
 
 
@@ -40,16 +41,18 @@ int Dos9_JumpToLabel(char* lpLabelName, char* lpFileName)
 				    || !strncmp(":\\", lpFileName+1, 2)) {
 
 					/* the path is absolute */
-					strncpy(ifIn.lpFileName, lpFileName, sizeof(ifIn.lpFileName));
-					ifIn.lpFileName[FILENAME_MAX-1]='\0';
+					strncpy(pContext->pIn->lpFileName, lpFileName,
+                                            sizeof(pContext->pIn->lpFileName));
+
+					pContext->pIn->lpFileName[FILENAME_MAX-1]='\0';
 
 				} else {
 
 					/* the path is relative */
-					snprintf(ifIn.lpFileName,
-					         sizeof(ifIn.lpFileName),
+					snprintf(pContext->pIn->lpFileName,
+					         sizeof(pContext->pIn->lpFileName),
 					         "%s/%s",
-					         Dos9_GetCurrentDir(),
+					         pContext->lpCurrentDir,
 					         lpFileName
 					        );
 
@@ -57,8 +60,8 @@ int Dos9_JumpToLabel(char* lpLabelName, char* lpFileName)
 
 			}
 
-			ifIn.iPos=ftell(pFile);
-			ifIn.bEof=feof(pFile);
+			pContext->pIn->iPos=ftell(pFile);
+			pContext->pIn->bEof=feof(pFile);
 
 
 			DEBUG("Freeing data");

@@ -20,32 +20,33 @@
 #ifndef DOS9_CORE_H_INCLUDED
 #define DOS9_CORE_H_INCLUDED
 
-#include <libDos9.h>
-#include "../errors/Dos9_Errors.h"
+#include <libDos9.h> /* include COMMANDLIST definition */
+
+#include "Dos9_Parse.h"
+
+#include "Dos9_Var.h" /* include LOCAL_VAR_BLOCK definition */
+#include "Dos9_Read.h" /* include INPUT_FILE definition*/
+#include "Dos9_Stream.h" /* include STREAMSTACK definition */
+#include "Dos9_Env.h" /* include ENVBUF definition */
 
 #include "Dos9_Context.h"
 
-#include "Dos9_Var.h"
 #include "Dos9_Expand.h"
-
 #include "Dos9_Args.h"
 #include "Dos9_Jump.h"
 #include "Dos9_VersionInfo.h"
 #include "Dos9_ShowIntro.h"
 #include "Dos9_FilePath.h"
-#include "Dos9_Parse.h"
-#include "Dos9_Read.h"
-#include "Dos9_Stream.h"
+
 #include "Dos9_Run.h"
 #include "Dos9_Expand.h"
 #include "Dos9_SplitPath.h"
 #include "Dos9_ParseBlock.h"
 #include "Dos9_ExpandAlias.h"
-
-
 #include "Dos9_Globals.h"
-
 #include "Dos9_ExitInt.h"
+
+#include "../errors/Dos9_Errors.h"
 
 #ifdef WIN32
 

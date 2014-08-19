@@ -43,7 +43,7 @@
 
 #include "../errors/Dos9_Errors.h"
 
-int Dos9_CmdGoto(char* lpLine)
+int Dos9_CmdGoto(DOS9CONTEXT* pContext, char* lpLine)
 {
 	char lpLabelName[FILENAME_MAX];
 	char lpFileName[FILENAME_MAX];
@@ -56,7 +56,8 @@ int Dos9_CmdGoto(char* lpLine)
 	if (*(lpLine+1)==':')
 		lpLine++;
 
-	if ((lpLine=Dos9_GetNextParameter(lpLine, lpLabelName, FILENAME_MAX))) {
+	if ((lpLine=Dos9_GetNextParameter(pContext,
+                                        lpLine, lpLabelName, FILENAME_MAX))) {
 
 		if (!strcmp(lpLabelName, ":/?")) {
 
@@ -82,7 +83,10 @@ int Dos9_CmdGoto(char* lpLine)
 				/* if the user has set the CMDLYCORRECT flag, the capabilities of
 				   calling another file's label is prohibited */
 
-				Dos9_ShowErrorMessage(DOS9_EXTENSION_DISABLED_ERROR, NULL, FALSE);
+				Dos9_ShowErrorMessageX(pContext,
+                                        DOS9_EXTENSION_DISABLED_ERROR,
+                                        NULL
+                                        );
 
 				return -1;
 
@@ -105,14 +109,17 @@ int Dos9_CmdGoto(char* lpLine)
 			/* do not even look for ``:EOF'', just
 			   abort the command */
 
-			bAbortCommand=-1;
+			pContext->iMode |= DOS9_CONTEXT_ABORT_FILE;
 
 			return 0;
 
-		} else if (Dos9_JumpToLabel(lpLabelName, lpFile)==-1) {
+		} else if (Dos9_JumpToLabel(pContext, lpLabelName, lpFile)==-1) {
 
 			if (!bEchoError)
-				Dos9_ShowErrorMessage(DOS9_LABEL_ERROR, lpLabelName, FALSE);
+				Dos9_ShowErrorMessageX(pContext,
+                                        DOS9_LABEL_ERROR,
+                                        lpLabelName
+                                        );
 
 			return -1;
 
@@ -123,7 +130,7 @@ int Dos9_CmdGoto(char* lpLine)
 
 	/* let's set a this global variable to let the other functions
 	   know that they should reload an entire line */
-	bAbortCommand=TRUE;
+	pContext->iMode |= DOS9_CONTEXT_ABORT_COMMAND;
 
 
 	return 0;

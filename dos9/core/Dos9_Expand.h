@@ -27,9 +27,12 @@
 
 void Dos9_ExpandSpecialVar(DOS9CONTEXT* pContext, ESTR* ptrCommandLine);
 void Dos9_ExpandVar(DOS9CONTEXT* pContext, ESTR* ptrCommandLine, char cDelimiter);
-void Dos9_DelayedExpand(DOS9CONTEXT* pContext, ESTR* ptrCommandLine, char cEnableDelayedExpansion);
+void Dos9_DelayedExpand(DOS9CONTEXT* pContext, ESTR* ptrCommandLine);
 
 void  Dos9_RemoveEscapeChar(char* lpLine);
 char* Dos9_StrToken(char* lpString, char cToken);
+
+int              Dos9_InitVar(DOS9CONTEXT* pContext, char* lpArray[]);
+int              Dos9_GetVar(DOS9CONTEXT* pContext, char* lpName, ESTR* lpRecieve);
 
 #endif
