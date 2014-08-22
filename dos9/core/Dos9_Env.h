@@ -19,19 +19,10 @@
 #ifndef DOS9_ENV_H
 #define DOS9_ENV_H
 
+#include "Dos9_Types.h"
+
 /*  Dos9 also provide functions for environment variables, to be able to
     run various threads */
-
-typedef struct ENVVAR {
-    char* name;
-    char* content;
-} ENVVAR;
-
-typedef struct ENVBUF {
-    int nb; /* number of elements of the environment buffer */
-    int index;
-    ENVVAR** envbuf;
-} ENVBUF;
 
 ENVVAR**  Dos9_ReAllocEnvBuf(int* nb, ENVVAR* envbuf);
 ENVVAR*   Dos9_AllocEnvVar(const char* name, const char* content);

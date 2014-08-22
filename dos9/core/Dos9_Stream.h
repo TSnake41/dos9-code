@@ -51,33 +51,6 @@
 #define STREAMSTACK_REDIRECT_FILE (0)
 #define STREAMSTACK_REDIRECT_FD   (1)
 
-#define STREAMSTACK_BUFSIZ         10
-#define STREAMSTACK_FREE_BUFSIZ   (STREAMSTACK_BUFSIZ+3)
-
-union _STREAMSTACK_REDIRECT_DEST {
-    int fd;
-    FILE* file;
-};
-
-struct _STREAMSTACK_REDIRECT {
-    char type; /* The redirection type (to file or to fd) */
-    int fromFd; /* The original fd */
-    union _STREAMSTACK_REDIRECT_DEST to; /* the destination of the
-                    redirection */
-};
-
-typedef struct STREAMSTACK {
-    FILE* in; /* the current stdin file */
-    FILE* out; /* the current stdout file */
-    FILE* err; /* the current error file */
-    FILE* tofree[STREAMSTACK_FREE_BUFSIZ]; /* file pointers to be free */
-    int   freeindex;
-    int   lock; /* a lock that prevent current redirection level to be poped */
-    int   index;
-    struct _STREAMSTACK_REDIRECT redir[STREAMSTACK_BUFSIZ]; /* not implemented yet */
-    struct STREAMSTACK *next; /* a pointer to the previous element */
-} STREAMSTACK;
-
 /* pushes or pop the stream stack */
 STREAMSTACK* Dos9_PushStreamStack(STREAMSTACK* lpssStreamStack);
 STREAMSTACK* Dos9_PopStreamStack(STREAMSTACK* lpssStreamStack);

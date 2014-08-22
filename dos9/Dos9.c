@@ -313,23 +313,9 @@ int main(int argc, char *argv[])
 
 	if (*lpFileName!='\0') {
 
-		/* generates real path if the path is uncomplete */
-
+		/* Gets absolute path */
 		if (Dos9_GetFilePath(pContext, lpFileAbs, lpFileName, sizeof(lpFileAbs))==-1)
 			Dos9_ShowErrorMessage(DOS9_FILE_ERROR, lpFileName, -1);
-
-		if (*lpFileAbs
-			&& strncmp(lpFileAbs+1, ":\\", 2)
-            && strncmp(lpFileAbs+1, ":/", 2)
-            && *lpFileAbs!='/'
-            ) {
-
-            /* if the file path is relative */
-
-            snprintf(lpTmp, sizeof(lpFileAbs), "%s/%s", pContext->lpCurrentDir, lpFileAbs);
-            strcpy(lpFileAbs, lpTmp);
-
-		}
 
 		lpFileName=lpFileAbs;
 	}

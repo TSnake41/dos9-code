@@ -30,24 +30,6 @@
  * - Blocks of commands : blocks of commands defined by using braces
  */
 
-struct PARSED_STREAM {
-	ESTR* lpCmdLine;
-	char cNodeType;
-	struct PARSED_STREAM* lppsNode;
-};
-
-struct PARSED_STREAM_START {
-	struct PARSED_STREAM* lppsStream;
-	char cOutputMode;
-	char* lpOutputFile;
-	char* lpInputFile;
-	char* lpErrorFile;
-};
-
-typedef struct PARSED_STREAM PARSED_STREAM,*LPPARSED_STREAM;
-typedef struct PARSED_STREAM_START
-    PARSED_STREAM_START,*LPPARSED_STREAM_START;
-
 #define PARSED_STREAM_NODE_NONE 0x00
 #define PARSED_STREAM_NODE_YES 0x01
 #define PARSED_STREAM_NODE_NOT 0x02
@@ -61,10 +43,10 @@ typedef struct PARSED_STREAM_START
 #define PSTREAMSTART_REDIR_OUT  (0x10) /* redirect out in err */
 
 
-PARSED_STREAM_START* Dos9_ParseLine(ESTR* lpLine);
+PARSED_STREAM_START* Dos9_ParseLine(DOS9CONTEXT* pContext, ESTR* lpLine);
 
 PARSED_STREAM_START* Dos9_ParseOutput(ESTR* lpesLine);
-PARSED_STREAM*       Dos9_ParseOperators(ESTR* lpesLine);
+PARSED_STREAM*       Dos9_ParseOperators(DOS9CONTEXT* pContext, ESTR* lpesLine);
 
 PARSED_STREAM_START* Dos9_AllocParsedStreamStart(void);
 PARSED_STREAM*       Dos9_AllocParsedStream(PARSED_STREAM* lppsStream);

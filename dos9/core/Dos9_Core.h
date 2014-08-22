@@ -22,6 +22,8 @@
 
 #include <libDos9.h> /* include COMMANDLIST definition */
 
+#include "Dos9_Types.h"
+
 #include "Dos9_Parse.h"
 
 #include "Dos9_Var.h" /* include LOCAL_VAR_BLOCK definition */

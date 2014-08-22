@@ -21,20 +21,21 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
+#include <unistd.h>
 
 #include <libDos9.h>
 
 #include "Dos9_Core.h"
 #include "../errors/Dos9_Errors.h"
 
-PARSED_STREAM_START* Dos9_ParseLine(ESTR* lpesLine)
+PARSED_STREAM_START* Dos9_ParseLine(DOS9CONTEXT* pContext, ESTR* lpesLine)
 {
 	PARSED_STREAM_START* lppssReturn; /* a pointer to the structure to be
                                          returned */
 
 	PARSED_STREAM* lppsStream;
 
-	if (!(lppssReturn=Dos9_ParseOutput(lpesLine)))
+	if (!(lppssReturn=Dos9_ParseOutput(pContext, lpesLine)))
 		return NULL;
 
 	if (!(lppsStream=Dos9_ParseOperators(lpesLine))) {
@@ -50,7 +51,7 @@ PARSED_STREAM_START* Dos9_ParseLine(ESTR* lpesLine)
 }
 
 /* Get the '>' and '<' style redirections */
-PARSED_STREAM_START* Dos9_ParseOutput(ESTR* lpesLine)
+PARSED_STREAM_START* Dos9_ParseOutput(DOS9CONTEXT* pContext, ESTR* lpesLine)
 {
 
 	char *lpCh=Dos9_EsToChar(lpesLine),
@@ -156,14 +157,15 @@ PARSED_STREAM_START* Dos9_ParseOutput(ESTR* lpesLine)
                                                 FALSE
                                                 );
 
-                        goto error:
+                        goto error;
 
                     }
 
                 } else {
 
                     if (!(lpCh =
-                        Dos9_GetNextParameterEs(lpNextToken+1, lpesParam))) {
+                        Dos9_GetNextParameterEs(pContext, lpNextToken+1,
+                                                                lpesParam))) {
 
                         Dos9_ShowErrorMessage(DOS9_INVALID_REDIRECTION,
                                                 NULL,
@@ -230,7 +232,8 @@ PARSED_STREAM_START* Dos9_ParseOutput(ESTR* lpesLine)
                 /* handling input is quite simple, because it only needs to
                    get the next parameter */
 
-                if (!(lpCh = Dos9_GetNextParameterEs(lpNextToken+1, lpesParam))) {
+                if (!(lpCh = Dos9_GetNextParameterEs(pContext, lpNextToken+1,
+                                                                lpesParam))) {
 
                     Dos9_ShowErrorMessage(DOS9_INVALID_REDIRECTION,
                                             NULL,
@@ -483,7 +486,7 @@ int Dos9_GetDescriptor(const char* current, const char* begin)
         return STDOUT_FILENO;
 
 
-    while ((current >= begin) && (*current>= '0') && (current <= '9')) {
+    while ((current >= begin) && (*current>= '0') && (*current <= '9')) {
 
         fd=fd+(*(current --) - '0')*multiplier;
         multiplier*=10;

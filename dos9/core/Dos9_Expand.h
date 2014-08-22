@@ -23,7 +23,7 @@
 #include <libDos9.h>
 #include "Dos9_Core.h"
 
-#define Dos9_ReplaceVars(lpEsStr) Dos9_ExpandVar(lpEsStr, '%')
+#define Dos9_ReplaceVars(pContext, lpEsStr) Dos9_ExpandVar(pContext, lpEsStr, '%')
 
 void Dos9_ExpandSpecialVar(DOS9CONTEXT* pContext, ESTR* ptrCommandLine);
 void Dos9_ExpandVar(DOS9CONTEXT* pContext, ESTR* ptrCommandLine, char cDelimiter);

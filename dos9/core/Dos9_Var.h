@@ -46,9 +46,6 @@ int Dos9_setenv(const char* name, const char* content);
 #define Dos9_GetLocalBlock() (LOCAL_VAR_BLOCK*)calloc(LOCAL_VAR_BLOCK_SIZE, sizeof(LOCAL_VAR_BLOCK))
 #define Dos9_FreeLocalBlock(lpBlock) free(lpBlock)
 
-
-typedef char* LOCAL_VAR_BLOCK;
-
 int              Dos9_SetLocalVar(LOCAL_VAR_BLOCK* lpvBlock, char cVarName, char* cVarContent);
 char*            Dos9_GetLocalVar(LOCAL_VAR_BLOCK* lpvBlock, char* lpName, ESTR* lpRecieve);
 char*            Dos9_GetLocalVarPointer(LOCAL_VAR_BLOCK* lpvBlock, char cVarName);

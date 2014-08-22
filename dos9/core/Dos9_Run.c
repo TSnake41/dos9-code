@@ -62,7 +62,7 @@ int Dos9_RunBatch(DOS9CONTEXT* pContext)
 
 			Dos9_SetConsoleTextColor(colColor);
 
-			printf("%s>", lpCurrentDir);
+			printf("%s>", pContext->lpCurrentDir);
 
 		}
 
@@ -89,10 +89,10 @@ int Dos9_RunBatch(DOS9CONTEXT* pContext)
         /* replace variables in the line. Only '%' signs will be expanded
            even if delayed expansion is enabled. Delayed expansion is
            executed when taking arguments from command line. */
-		Dos9_ReplaceVars(lpLine);
+		Dos9_ReplaceVars(pContext, lpLine);
 
         /* exec the line */
-		Dos9_RunLine(lpLine);
+		Dos9_RunLine(pContext, lpLine);
 
         /* If a goto was executed */
 		if (pContext->iMode & DOS9_CONTEXT_ABORT_FILE);
@@ -118,7 +118,7 @@ int Dos9_RunLine(DOS9CONTEXT* pContext, ESTR* lpLine)
 
 	Dos9_RmTrailingNl(Dos9_EsToChar(lpLine));
 
-	lppssStreamStart=Dos9_ParseLine(lpLine);
+	lppssStreamStart=Dos9_ParseLine(pContext, lpLine);
 
 	if (!lppssStreamStart) {
 		DOS9_DBG("!!! Can't parse line : \"%s\".\n", strerror(errno));
@@ -150,8 +150,8 @@ int Dos9_RunLine(DOS9CONTEXT* pContext, ESTR* lpLine)
                     loop = ret;
                     break;
 
-                case PARSED_STREAM_NODE_NONE:
-                    /* if we arrived here, loop is obviously TRUE */
+                /* case PARSED_STREAM_NODE_NONE:
+                     if we arrived here, loop is obviously TRUE */
 
             }
 
@@ -183,7 +183,7 @@ int Dos9_RunCommand(DOS9CONTEXT* pContext, ESTR* lpCommand)
 
 	int (*lpProc)(DOS9CONTEXT*,char*),
         iFlag,
-        iErrorlevel;
+        iErrorLevel;
 
 	char lpErrorlevel[]="-3000000000",
          *lpCmdLine;
@@ -201,7 +201,7 @@ RestartSearch:
 	case -1:
 BackTrackExternalCommand:
         /* we shall run an external command */
-		iErrorLevel=Dos9_RunExternalCommand(lpCmdLine);
+		iErrorLevel=Dos9_RunExternalCommand(pContext, lpCmdLine);
 		break;
 
 	default:
@@ -338,7 +338,7 @@ int Dos9_RunBlock(DOS9CONTEXT* pContext, BLOCKINFO* lpbkInfo)
 	return 0;
 }
 
-int Dos9_RunExternalCommand(char* lpCommandLine)
+int Dos9_RunExternalCommand(DOS9CONTEXT* pContext, char* lpCommandLine)
 {
 
 	char *lpArguments[FILENAME_MAX],
@@ -352,7 +352,7 @@ int Dos9_RunExternalCommand(char* lpCommandLine)
 	int i=0;
 
 
-	Dos9_GetParamArrayEs(lpCommandLine, lpEstr, FILENAME_MAX);
+	Dos9_GetParamArrayEs(pContext, lpCommandLine, lpEstr, FILENAME_MAX);
 
 	if (!lpEstr[0])
 		return 0;
@@ -367,7 +367,7 @@ int Dos9_RunExternalCommand(char* lpCommandLine)
 
 	/* check if the program exist */
 
-	if (Dos9_GetFilePath(lpFileName, lpArguments[0], sizeof(lpFileName))==-1) {
+	if (Dos9_GetFilePath(pContext, lpFileName, lpArguments[0], sizeof(lpFileName))==-1) {
 
 		Dos9_ShowErrorMessage(DOS9_COMMAND_ERROR,
 		                      lpArguments[0],
