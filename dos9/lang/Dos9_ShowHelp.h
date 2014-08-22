@@ -20,6 +20,8 @@
 
 #ifndef DOS9_HELP_H
 
+#include "../core/Dos9_Types.h"
+
 #define DOS9_HELP_ECHO      0
 #define DOS9_HELP_SET       1
 #define DOS9_HELP_GOTO      2
@@ -51,6 +53,6 @@
    help, to provide simple syntax help if no other
    help is availiable */
 void Dos9_LoadInternalHelp(void);
-void Dos9_ShowInternalHelp(int cmdId);
+void Dos9_ShowInternalHelp(DOS9CONTEXT* pContext, int cmdId);
 
 #endif // DOS9_HELP_H

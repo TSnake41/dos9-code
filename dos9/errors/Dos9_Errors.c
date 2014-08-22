@@ -226,19 +226,34 @@ void Dos9_ShowErrorMessage(unsigned int iErrorNumber,
 
 	}
 
-	if (iExitCode) {
+    puts(lpQuitMessage);
 
-		Dos9_SetConsoleTextColor(DOS9_COLOR_DEFAULT);
+    getch();
 
-		puts(lpQuitMessage);
+    exit(iExitCode);
 
-		getch();
+}
 
-		exit(iExitCode);
 
-	} else {
 
-		Dos9_SetConsoleTextColor(DOS9_COLOR_DEFAULT);
+void Dos9_ShowErrorMessageX(DOS9CONTEXT* pContext,
+                            int error,
+                            const char* complement)
+{
+
+
+	if ((error & ~DOS9_PRINT_C_ERROR) < sizeof(lpErrorMsg))
+		fprintf(pContext->pStack->err,
+		        lpErrorMsg[error & ~DOS9_PRINT_C_ERROR],
+		        complement
+		       );
+
+	if (error & DOS9_PRINT_C_ERROR) {
+
+		fprintf(pContext->pStack->err,
+				"Returned error : \"%s\"\n",
+				strerror(errno)
+				);
 
 	}
 

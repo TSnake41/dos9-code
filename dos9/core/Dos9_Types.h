@@ -94,6 +94,15 @@ typedef struct STREAMSTACK {
     struct STREAMSTACK *next; /* a pointer to the previous element */
 } STREAMSTACK;
 
+/* Definiton of the structure that reprensents the file that is being
+   read */
+typedef struct INPUT_FILE {
+	char  lpFileName[FILENAME_MAX]; /* The file name */
+	int   iPos; /* The position of where we read next line */
+	int   bEof; /* An indicator to check wether we reached end of file */
+} INPUT_FILE;
+
+
 /* This structure is designed in order to make Dos9 more
    flexible and to make it possible to have something
    *actually* thread safe.

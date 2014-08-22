@@ -95,6 +95,6 @@ int Dos9_CmdBlock(DOS9CONTEXT* pContext, char* lpLine)
 
 	Dos9_RunBlock(pContext, &bkCode);
 
-	return iErrorLevel;
+	return pContext->iErrorLevel;
 }
 

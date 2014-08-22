@@ -45,8 +45,8 @@
 
 PARSED_STREAM_START* Dos9_ParseLine(DOS9CONTEXT* pContext, ESTR* lpLine);
 
-PARSED_STREAM_START* Dos9_ParseOutput(ESTR* lpesLine);
-PARSED_STREAM*       Dos9_ParseOperators(DOS9CONTEXT* pContext, ESTR* lpesLine);
+PARSED_STREAM_START* Dos9_ParseOutput(DOS9CONTEXT* pContext, ESTR* lpesLine);
+PARSED_STREAM*       Dos9_ParseOperators(ESTR* lpesLine);
 
 PARSED_STREAM_START* Dos9_AllocParsedStreamStart(void);
 PARSED_STREAM*       Dos9_AllocParsedStream(PARSED_STREAM* lppsStream);

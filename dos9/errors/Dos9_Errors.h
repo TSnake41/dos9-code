@@ -20,7 +20,7 @@
 #ifndef DOS9_MESSAGES_H
 #define DOS9_MESSAGES_H
 
-
+#include "../core/Dos9_Types.h"
 
 #ifdef DOS9_DEBUG_MODE
 
@@ -36,7 +36,11 @@
 
 #endif
 
-void Dos9_ShowErrorMessage(unsigned int iErrorNumber, const char* lpComplement, int iExitCode);
+void Dos9_ShowErrorMessage(unsigned int iErrorNumber,
+                                const char* lpComplement, int iExitCode);
+void Dos9_ShowErrorMessageX(DOS9CONTEXT* pContext, int error,
+                                                 const char* complement);
+
 void Dos9_LoadErrors(void);
 
 #define DOS9_FILE_ERROR                      0

@@ -50,7 +50,7 @@ STREAMSTACK* Dos9_PushStreamStack(STREAMSTACK* lpssStreamStack)
         memcpy(ret, lpssStreamStack, sizeof(STREAMSTACK));
 
         /* initialize the content of the tofree and lock to 0 */
-        memset(&(ret->tofree), NULL, STREAMSTACK_FREE_BUFSIZ*sizeof(FILE*));
+        memset(&(ret->tofree), 0, STREAMSTACK_FREE_BUFSIZ*sizeof(FILE*));
 
         /* This could be done through the previous call, but we
            should not rely on the hope that struct will not change.
@@ -58,7 +58,7 @@ STREAMSTACK* Dos9_PushStreamStack(STREAMSTACK* lpssStreamStack)
         ret->freeindex = 0;
         ret->lock =0;
 
-        ret->next = lppsStreamStack;
+        ret->next = lpssStreamStack;
 
     } else {
 
@@ -113,7 +113,7 @@ int     Dos9_OpenOutput(STREAMSTACK* lpssStreamStack,
             return 0;
 
     /* pushes the stack */
-    if (!(lpssStreamStack=Dos9_PushStreamStack(lppsStreamStack))
+    if (!(lpssStreamStack=Dos9_PushStreamStack(lpssStreamStack)))
         return -1;
 
     if (lpssStart->lpInputFile) {
@@ -203,7 +203,7 @@ int     Dos9_OpenPipe(STREAMSTACK* lpssStreamStack)
     lpssStreamStack->in = pFile;
     lpssStreamStack->tofree[lpssStreamStack->freeindex ++] = pFile;
 
-    if (!(lpssStreamStack=Dos9_PushStreamStack(lpssStreamStack)) {
+    if (!(lpssStreamStack=Dos9_PushStreamStack(lpssStreamStack))) {
 
         close(fd[1]);
         return -1;
@@ -225,7 +225,7 @@ int     Dos9_OpenPipe(STREAMSTACK* lpssStreamStack)
 
 int     Dos9_RedirectStreams(STREAMSTACK* lpssStack)
 {
-    dup2(fileno(lpssStreamStack->in), STDIN_FILENO);
-    dup2(fileno(lpssStreamStack->out), STDOUT_FILENO);
-    dup2(fileno(lpssStreamStack->err), STDERR_FILENO);
+    dup2(fileno(lpssStack->in), STDIN_FILENO);
+    dup2(fileno(lpssStack->out), STDOUT_FILENO);
+    dup2(fileno(lpssStack->err), STDERR_FILENO);
 }

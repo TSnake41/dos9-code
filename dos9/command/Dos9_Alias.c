@@ -139,10 +139,10 @@ int Dos9_CmdAlias(DOS9CONTEXT* pContext, char* lpLine)
 
     if ((Dos9_AddCommandDynamic(&ciCommand, &(pContext->pCommands)))) {
 
-        Dos9_ShowErrorMessage(pContext,
-                              DOS9_UNABLE_ADD_COMMAND,
-                              lpLine
-                              );
+        Dos9_ShowErrorMessageX(pContext,
+                                DOS9_UNABLE_ADD_COMMAND,
+                                lpLine
+                                );
 
         goto error;
 
@@ -152,7 +152,7 @@ int Dos9_CmdAlias(DOS9CONTEXT* pContext, char* lpLine)
 
         Dos9_ShowErrorMessageX(pContext,
                                DOS9_UNABLE_REMAP_COMMANDS,
-                               __FILE__ "/Dos9_CmdAlias()",
+                               __FILE__ "/Dos9_CmdAlias()"
                               );
 
         goto error;

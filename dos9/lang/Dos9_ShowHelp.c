@@ -163,14 +163,16 @@ void Dos9_LoadInternalHelp(void)
 }
 
 
-void Dos9_ShowInternalHelp(int cmdId)
+void Dos9_ShowInternalHelp(DOS9CONTEXT* pContext, int cmdId)
 {
 
 	if ((cmdId >= 0)
 	    && (cmdId < DOS9_HELP_ARRAY_SIZE)) {
 
-		puts(lpInternalHelp[cmdId]);
-		puts(lpExternalMsg);
+		fprintf(pContext->pStack->out,"%s\n%s\n",
+                lpInternalHelp[cmdId],
+                lpExternalMsg
+        );
 
 	}
 
