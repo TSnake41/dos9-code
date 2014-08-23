@@ -123,7 +123,7 @@ int Dos9_CmdRmdir(DOS9CONTEXT* pContext, char* lpLine)
 			Dos9_AbsolutePath(dirname,
                                 sizeof(dirname),
                                 pContext->lpCurrentDir,
-                                Dos9_EsToChar(lpEstr),
+                                Dos9_EsToChar(lpEstr)
                                 );
 
 			if (rmdir(dirname)) {

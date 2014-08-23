@@ -25,16 +25,16 @@
 
 #include <libDos9.h>
 
-#include "Dos9_If.h"
 #include "../lang/Dos9_Lang.h"
 #include "../lang/Dos9_ShowHelp.h"
 #include "../errors/Dos9_Errors.h"
 #include "../core/Dos9_Core.h"
+#include "Dos9_If.h"
 
 int Dos9_CmdIf(DOS9CONTEXT* pContext, char* lpParam)
 {
 	char lpArgument[FILENAME_MAX],
-         lpDir[FILENAME_MAX];
+         lpDir[FILENAME_MAX],
          *lpNext,
          *lpToken,
          *lpEnd;
@@ -60,7 +60,7 @@ int Dos9_CmdIf(DOS9CONTEXT* pContext, char* lpParam)
 
 		if (!strcmp(lpArgument, "/?")) {
 
-			Dos9_ShowInternalHelp(DOS9_HELP_IF);
+			Dos9_ShowInternalHelp(pContext, DOS9_HELP_IF);
 			return 0;
 
 		}
@@ -90,7 +90,8 @@ int Dos9_CmdIf(DOS9CONTEXT* pContext, char* lpParam)
 			iFlag|=DOS9_IF_NEGATION;
 			lpParam=lpNext;
 
-			if (!(lpNext=Dos9_GetNextParameter(lpNext, lpArgument, 11))) {
+			if (!(lpNext=Dos9_GetNextParameter(pContext, lpNext,
+                                                    lpArgument, 11))) {
 
 				Dos9_ShowErrorMessageX(pContext,
                                         DOS9_EXPECTED_MORE,
@@ -197,9 +198,13 @@ int Dos9_CmdIf(DOS9CONTEXT* pContext, char* lpParam)
 	} else if (iFlag & DOS9_IF_DEFINED) {
 
 		/* the script used 'DEFINED' */
-		if (!(lpNext=Dos9_GetNextParameter(lpParam, lpArgument, FILENAME_MAX))) {
+		if (!(lpNext=Dos9_GetNextParameter(pContext, lpParam,
+                                        lpArgument, FILENAME_MAX))) {
 
-			Dos9_ShowErrorMessage(DOS9_EXPECTED_MORE, "IF", FALSE);
+			Dos9_ShowErrorMessageX(pContext,
+                                    DOS9_EXPECTED_MORE,
+                                    "IF"
+                                    );
 			return -1;
 
 		}
@@ -318,7 +323,7 @@ int Dos9_CmdIf(DOS9CONTEXT* pContext, char* lpParam)
                     && strchr("( \t,;", *lpNext))) {
 
 					/* if we found an else */
-					Dos9_RunBlock(&bkInfo);
+					Dos9_RunBlock(pContext, &bkInfo);
 
 				} else {
 
@@ -333,7 +338,7 @@ int Dos9_CmdIf(DOS9CONTEXT* pContext, char* lpParam)
 
 	} else {
 
-		Dos9_ShowErrorMessage(pContext,
+		Dos9_ShowErrorMessageX(pContext,
                                 DOS9_EXPECTED_MORE,
                                 "IF"
                                 );

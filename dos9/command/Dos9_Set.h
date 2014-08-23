@@ -27,7 +27,7 @@ int Dos9_CmdSet(DOS9CONTEXT* pContext, char *lpLine);
 int Dos9_CmdSetS(DOS9CONTEXT* pContext, char* lpLine);
 int Dos9_CmdSetP(DOS9CONTEXT* pContext, char* lpLine);
 int Dos9_CmdSetA(DOS9CONTEXT* pContext, char* lpLine, int bFloats);
-int Dos9_CmdSetEvalFloat(ESTR* lpExpression);
-int Dos9_CmdSetEvalInt(ESTR* lpExpression);
+int Dos9_CmdSetEvalFloat(DOS9CONTEXT* pContext, ESTR* lpExpression);
+int Dos9_CmdSetEvalInt(DOS9CONTEXT* pContext, ESTR* lpExpression);
 
 #endif // DOS9_CMD_ECHO_H

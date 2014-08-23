@@ -160,13 +160,14 @@ int Dos9_ForMakeInputInfo(DOS9CONTEXT* pContext,
 int Dos9_ForAdjustInput(DOS9CONTEXT* pContext, char* lpInput);
 /* Adjusts the input */
 
-int Dos9_ForInputParseFileList(FILE_LIST_T* lpList, ESTR* lpInput);
+int Dos9_ForInputParseFileList(DOS9CONTEXT* pContext, FILE_LIST_T* lpList,
+                                    ESTR* lpInput);
 
 int Dos9_ForInputProcess(ESTR* lpInput, INPUTINFO* lpipInfo, int* iPipeFdIn,
                                                             int* iPipeFdOut);
 /* Start a new process for command input */
 
-int Dos9_ForGetInputLine(ESTR* lpReturn, INPUTINFO* lpipInfo);
+int Dos9_ForGetInputLine(DOS9CONTEXT* pContext, ESTR* lpReturn, INPUTINFO* lpipInfo);
 /* Get an input line */
 
 void Dos9_ForCloseInputInfo(INPUTINFO* lpipInfo);

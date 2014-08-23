@@ -77,7 +77,7 @@ int Dos9_CmdRen(DOS9CONTEXT* pContext, char* lpLine)
 
 		strcpy(lpDir, lpFileName);
 
-		if ((lpLine=Dos9_GetNextParameterEs(lpLine, lpEstr))) {
+		if ((lpLine=Dos9_GetNextParameterEs(pContext, lpLine, lpEstr))) {
 
 			/* removing old filename */
 			lpLine=strrchr(lpDir, '\\');
@@ -114,7 +114,7 @@ int Dos9_CmdRen(DOS9CONTEXT* pContext, char* lpLine)
 		}
 	}
 
-	Dos9_ShowErrorMessage(pContext,
+	Dos9_ShowErrorMessageX(pContext,
                             DOS9_EXPECTED_MORE,
                             "REN / RENAME"
                             );

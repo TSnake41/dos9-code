@@ -217,7 +217,7 @@ int Dos9_CmdFor(DOS9CONTEXT* pContext, char* lpLine)
 
 	/* Now the next parameter should be IN */
 
-	lpToken=Dos9_GetNextParameterEs(lpToken, lpParam);
+	lpToken=Dos9_GetNextParameterEs(pContext, lpToken, lpParam);
 
 	if (stricmp(Dos9_EsToChar(lpParam), "IN") || lpToken == NULL ) {
 
@@ -421,7 +421,7 @@ int Dos9_CmdForL(DOS9CONTEXT* pContext, ESTR* lpInput,
 
             Dos9_ShowErrorMessageX(pContext,
                                     DOS9_FOR_BAD_INPUT_SPECIFIER,
-                                    Dos9_EsToChar(lpInput),
+                                    Dos9_EsToChar(lpInput)
                                     );
 
             goto error;
@@ -459,7 +459,7 @@ int Dos9_CmdForL(DOS9CONTEXT* pContext, ESTR* lpInput,
 
 		/* if a goto as been executed while the for-loop
 		   was ran */
-		if (bAbortCommand==TRUE)
+		if (pContext->iMode & DOS9_CONTEXT_ABORT)
 			break;
 
 	}
@@ -489,7 +489,7 @@ int Dos9_CmdForF(DOS9CONTEXT* pContext, ESTR* lpInput, BLOCKINFO* lpbkInfo,
 	if ((Dos9_ForMakeInputInfo(pContext, lpInput, &inputInfo, lpfrInfo) == -1))
 		goto error;
 
-	while (Dos9_ForGetInputLine(lpInputToP, &inputInfo)) {
+	while (Dos9_ForGetInputLine(pContext, lpInputToP, &inputInfo)) {
 
 		if (iSkip > 0) {
 
@@ -499,7 +499,7 @@ int Dos9_CmdForF(DOS9CONTEXT* pContext, ESTR* lpInput, BLOCKINFO* lpbkInfo,
 
 		} else {
 
-			Dos9_ForSplitTokens(lpInputToP, lpfrInfo);
+			Dos9_ForSplitTokens(pContext, lpInputToP, lpfrInfo);
 			/* split the block on subtokens */
 
 			Dos9_RunBlock(pContext, lpbkInfo);
@@ -594,7 +594,7 @@ int Dos9_ForMakeInfo(DOS9CONTEXT* pContext, char* lpOptions, FORINFO* lpfiInfo)
 		} else if (!(stricmp(Dos9_EsToChar(lpParam), "tokens"))) {
 
 			/* make the options */
-			if (Dos9_ForMakeTokens(lpToken, lpfiInfo)==-1) {
+			if (Dos9_ForMakeTokens(pContext, lpToken, lpfiInfo)==-1) {
 
 				goto error;
 
@@ -1020,7 +1020,7 @@ int Dos9_ForVarCheckAssignment(DOS9CONTEXT* pContext, FORINFO* lpfrInfo)
 
 	for (i=0; i<iMax; i++) {
 
-		if ((Dos9_GetLocalVarPointer(lpvLocalVars, cVarName))) {
+		if ((Dos9_GetLocalVarPointer(pContext->pLocalVars, cVarName))) {
 
 			Dos9_ShowErrorMessageX(pContext,
                                     DOS9_FOR_TRY_REASSIGN_VAR,
@@ -1114,7 +1114,7 @@ int Dos9_ForMakeInputInfo(DOS9CONTEXT* pContext, ESTR* lpInput,
 
             lpipInfo->cType=INPUTINFO_TYPE_STREAM;
 
-            if (Dos9_ForInputParseFileList(&(lpipInfo->Info.InputFile),
+            if (Dos9_ForInputParseFileList(pContext, &(lpipInfo->Info.InputFile),
                         lpInput))
                         return -1;
 
@@ -1146,7 +1146,7 @@ int Dos9_ForMakeInputInfo(DOS9CONTEXT* pContext, ESTR* lpInput,
 				Dos9_ShowErrorMessageX(pContext,
                                        DOS9_FAILED_ALLOCATION
                                             | DOS9_PRINT_C_ERROR,
-				                       __FILE__ "/Dos9_MakeInputInfo()",
+				                       __FILE__ "/Dos9_MakeInputInfo()"
 				                       );
 
 			}
@@ -1176,7 +1176,7 @@ int Dos9_ForMakeInputInfo(DOS9CONTEXT* pContext, ESTR* lpInput,
 
 			lpipInfo->cType=INPUTINFO_TYPE_COMMAND;
 
-            #ifdef 0
+            #if 0
 
 			if (_Dos9_Pipe(iPipeFdIn, 1024, O_TEXT) == -1) {
 
@@ -1252,6 +1252,7 @@ int Dos9_ForAdjustInput(DOS9CONTEXT* pContext, char* lpInput)
 /* Fixme : This set of function should be revised */
 int Dos9_ForInputProcess(ESTR* lpInput, INPUTINFO* lpipInfo, int* iPipeFdIn, int* iPipeFdOut)
 {
+#if 0
 	char* lpArgs[10];
 	char lpInArg[16],
 	     lpOutArg[16];
@@ -1378,6 +1379,7 @@ error:
 	close(iPipeFdOut[0]);
 
 	return -1;
+#endif
 }
 
 int Dos9_ForGetStringInput(ESTR* lpReturn, STRINGINFO* lpsiInfo)
@@ -1404,7 +1406,7 @@ int Dos9_ForGetStringInput(ESTR* lpReturn, STRINGINFO* lpsiInfo)
 
 }
 
-int Dos9_ForGetInputLine(ESTR* lpReturn, INPUTINFO* lpipInfo)
+int Dos9_ForGetInputLine(DOS9CONTEXT* pContext, ESTR* lpReturn, INPUTINFO* lpipInfo)
 {
 
 	int iReturn=0;
@@ -1439,10 +1441,10 @@ loop_begin:
 
                     Dos9_ShowErrorMessageX(pContext,
                             DOS9_FILE_ERROR | DOS9_PRINT_C_ERROR,
-                            lpipInfo->Info.InputFile.lpesFiles[
+                            Dos9_EsToChar(lpipInfo->Info.InputFile.lpesFiles[
                             lpipInfo->Info.InputFile.index
-                            ],
-                            );
+                            ]
+                            ));
 
                     break;
 
@@ -1459,7 +1461,7 @@ loop_begin:
 
 	}
 
-	if (bCmdlyCorrect) {
+	if (pContext->iMode & DOS9_CONTEXT_CMDLYCORRECT) {
 
 		lpToken=Dos9_EsToChar(lpReturn);
 		lpToken=Dos9_SkipBlanks(lpToken);

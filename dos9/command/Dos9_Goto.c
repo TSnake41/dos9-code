@@ -61,24 +61,26 @@ int Dos9_CmdGoto(DOS9CONTEXT* pContext, char* lpLine)
 
 		if (!strcmp(lpLabelName, ":/?")) {
 
-			Dos9_ShowInternalHelp(DOS9_HELP_GOTO);
+			Dos9_ShowInternalHelp(pContext, DOS9_HELP_GOTO);
 			return 0;
 
 		}
 
-		if ((lpLine=Dos9_GetNextParameter(lpLine ,lpFileName, FILENAME_MAX))) {
+		if ((lpLine=Dos9_GetNextParameter(pContext,
+                                lpLine ,lpFileName, FILENAME_MAX))) {
 
 			if (!stricmp(lpFileName, "/Q")) {
 
 				/* on a choisi de rendre l'erreux muette */
 				bEchoError=FALSE;
 
-				if (!(Dos9_GetNextParameter(lpLine, lpFileName, FILENAME_MAX)))
+				if (!(Dos9_GetNextParameter(pContext,
+                                lpLine, lpFileName, FILENAME_MAX)))
 					goto next;
 
 			}
 
-			if (bCmdlyCorrect) {
+			if (pContext->iMode & DOS9_CONTEXT_CMDLYCORRECT) {
 
 				/* if the user has set the CMDLYCORRECT flag, the capabilities of
 				   calling another file's label is prohibited */

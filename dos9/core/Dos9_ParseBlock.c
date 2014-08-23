@@ -25,7 +25,7 @@
 #include "Dos9_Debug.h"
 
 /* this is to detect nearest block openning with
-   a parenthesis to lpCh. it assumes it is launched
+   a parenthesis to lpCh. it assumes it is launched at
    a command begin */
 char* Dos9_GetNextBlockBeginEx(char* lpCh, int bIsBlockCmd)
 {
