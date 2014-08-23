@@ -1,4 +1,4 @@
-#include "../libDos9-int.h"
+#include "../libDos9.h"
 #include "../../config.h"
 
 #if !defined(WIN32) && !defined(LIBDOS9_NO_CONSOLE)

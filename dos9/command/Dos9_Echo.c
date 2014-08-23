@@ -43,7 +43,7 @@
 
 #include "../errors/Dos9_Errors.h"
 
-int Dos9_CmdEcho(DOS9CONTEXT pContext, char* lpLine)
+int Dos9_CmdEcho(DOS9CONTEXT* pContext, char* lpLine)
 {
 
 	ESTR* lpEsParameter;
@@ -70,15 +70,15 @@ int Dos9_CmdEcho(DOS9CONTEXT pContext, char* lpLine)
 		fputs(Dos9_EsToChar(lpEsParameter), pContext->pStack->out);
 
 
-	} else if (Dos9_GetNextParameterEs(lpLine, lpEsParameter)) {
+	} else if (Dos9_GetNextParameterEs(pContext, lpLine, lpEsParameter)) {
 
 		if (!stricmp(Dos9_EsToChar(lpEsParameter), "OFF")) {
 
-			bEchoOn=FALSE;
+			pContext->iMode &= ~ DOS9_CONTEXT_ECHO_ON;
 
 		} else if (!stricmp(Dos9_EsToChar(lpEsParameter) , "ON")) {
 
-			bEchoOn=TRUE;
+			pContext->iMode |= DOS9_CONTEXT_ECHO_ON;
 
 		} else if (!strcmp(Dos9_EsToChar(lpEsParameter), "/?")) {
 
@@ -86,7 +86,7 @@ int Dos9_CmdEcho(DOS9CONTEXT pContext, char* lpLine)
 
 		} else {
 
-			Dos9_GetEndOfLine(pContext,lpLine+1, lpEsParameter);
+			Dos9_GetEndOfLine(pContext, lpLine+1, lpEsParameter);
 			fputs(Dos9_EsToChar(lpEsParameter), pContext->pStack->out);
 
 		}
@@ -94,7 +94,7 @@ int Dos9_CmdEcho(DOS9CONTEXT pContext, char* lpLine)
 	} else {
 
 		/* si rien n'est entré on affiche l'état de la commannd echo */
-		if (bEchoOn)
+		if (pContext->iMode & DOS9_CONTEXT_ECHO_ON)
             fputs(lpMsgEchoOn, pContext->pStack->out);
 		else
             fputs(lpMsgEchoOff, pContext->pStack->out);

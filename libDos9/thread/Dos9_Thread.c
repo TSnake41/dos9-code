@@ -22,7 +22,7 @@
 #include <stdlib.h>
 #include <errno.h>
 
-#include "../libDos9-int.h"
+#include "../libDos9.h"
 
 
 STACK* _lpcsThreadStack=NULL;

@@ -181,7 +181,7 @@ int Dos9_CmdCall(DOS9CONTEXT* pContext, char* lpLine)
 		   since the function Dos9_CmdCallFile can cope with
 		   NULL as ``file'' */
 
-		Dos9_CmdCallFile(lpFile, lpLabel, lpLine);
+		Dos9_CmdCallFile(pContext, lpFile, lpLabel, lpLine);
 
 
 	} else {
@@ -198,13 +198,13 @@ int Dos9_CmdCall(DOS9CONTEXT* pContext, char* lpLine)
 
 			/* ``file'' is a batch file, indeed */
 
-			Dos9_CmdCallFile(lpFile, NULL, lpLine);
+			Dos9_CmdCallFile(pContext, lpFile, NULL, lpLine);
 
 		} else {
 
 			/* this is an executable */
 			Dos9_GetEndOfLine(pContext, lpLine, lpEsParameter);
-			Dos9_CmdCallExternal(lpFile, Dos9_EsToChar(lpEsParameter));
+			Dos9_CmdCallExternal(pContext, lpFile, Dos9_EsToChar(lpEsParameter));
 
 		}
 
@@ -226,8 +226,9 @@ error:
 
 }
 
-int Dos9_CmdCallFile(char* lpFile, char* lpLabel, char* lpCmdLine)
+int Dos9_CmdCallFile(DOS9CONTEXT* pContext, char* lpFile, char* lpLabel, char* lpCmdLine)
 {
+	#if 0
 	INPUT_FILE ifOldFile;
 	LOCAL_VAR_BLOCK lpvOldBlock[LOCAL_VAR_BLOCK_SIZE];
 	LOCAL_VAR_BLOCK lpvTmpBlock[LOCAL_VAR_BLOCK_SIZE]={NULL};
@@ -245,9 +246,12 @@ int Dos9_CmdCallFile(char* lpFile, char* lpLabel, char* lpCmdLine)
 
 	if (!lpLabel) {
 
-		if (Dos9_GetFilePath(lpAbsPath, lpFile, sizeof(lpAbsPath))==-1) {
+		if (Dos9_GetFilePath(pContext, lpAbsPath, lpFile, sizeof(lpAbsPath))==-1) {
 
-			Dos9_ShowErrorMessage(DOS9_FILE_ERROR, lpFile, FALSE);
+			Dos9_ShowErrorMessageX(pContext,
+                                    DOS9_FILE_ERROR,
+                                    lpFile
+                                    );
 
 			goto error;
 
@@ -263,9 +267,12 @@ int Dos9_CmdCallFile(char* lpFile, char* lpLabel, char* lpCmdLine)
 
 		Dos9_SetLocalVar(lpvTmpBlock, '0', lpFile);
 
-	} else if (Dos9_JumpToLabel(lpLabel, lpFile)== -1) {
+	} else if (Dos9_JumpToLabel(lpLabel, lpFile) == -1) {
 
-		Dos9_ShowErrorMessage(DOS9_LABEL_ERROR, lpLabel, FALSE);
+		Dos9_ShowErrorMessageX(pContext,
+                               DOS9_LABEL_ERROR,
+                               lpLabel
+                               );
 		goto error;
 
 	} else {
@@ -359,11 +366,13 @@ error:
 
 	return -1;
 
+	#endif
+
 }
 
-int Dos9_CmdCallExternal(char* lpFile, char* lpCh)
+int Dos9_CmdCallExternal(DOS9CONTEXT* pContext, char* lpFile, char* lpCh)
 {
-
+    #if 0
 	BLOCKINFO bkInfo;
 
 	ESTR *lpEsLine=Dos9_EsInit();
@@ -374,7 +383,7 @@ int Dos9_CmdCallExternal(char* lpFile, char* lpCh)
 	Dos9_EsCat(lpEsLine, " ");
 	Dos9_EsCat(lpEsLine, lpCh);
 
-	Dos9_ReplaceVars(lpEsLine);
+	Dos9_ReplaceVars(pContext, lpEsLine);
 
 	bkInfo.lpBegin=Dos9_EsToChar(lpEsLine);
 
@@ -382,10 +391,12 @@ int Dos9_CmdCallExternal(char* lpFile, char* lpCh)
 
 	bkInfo.lpEnd=lpStr;
 
-	Dos9_RunBlock(&bkInfo);
+	Dos9_RunBlock(pContext, &bkInfo); /* Fixme : Is this really needed ?
+                                         We should rather use Dos9_RunLine no?
+                                       */
 
 	Dos9_EsFree(lpEsLine);
 
 	return 0;
-
+    #endif
 }

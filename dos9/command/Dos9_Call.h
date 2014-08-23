@@ -21,6 +21,8 @@
 #ifndef DOS9_CALL_H
 #define DOS9_CALL_H
 
+#include "../core/Dos9_Types.h"
+
 int Dos9_CmdCall(DOS9CONTEXT* pContext, char* lpCh);
 
 /* this is used to call other batch files */

@@ -19,7 +19,7 @@
  */
 
 #include <ctype.h>
-#include "../libDos9-int.h"
+#include "../libDos9.h"
 
 LIBDOS9 int Dos9_RegExpMatch(char* lpRegExp, char* lpMatch)
 {
@@ -60,8 +60,12 @@ LIBDOS9 int Dos9_RegExpMatch(char* lpRegExp, char* lpMatch)
 		}
 	}
 
-	if (*lpRegExp) lpRegExp=Dos9_GetNextChar(lpRegExp);
-	if (!(!*lpMatch && !*lpRegExp)) return FALSE;
+	if (*lpRegExp)
+        lpRegExp=Dos9_GetNextChar(lpRegExp);
+
+	if (!(!*lpMatch && !*lpRegExp))
+        return FALSE;
+
 	return TRUE;
 }
 
@@ -121,15 +125,17 @@ LIBDOS9 int Dos9_FormatFileSize(char* lpBuf, int iLength, unsigned int iFileSize
 		iFileSize/=1000;
 		i++;
 	}
-	if (iFileSize>=100) return snprintf(lpBuf, iLength, " %d %s", iFileSize, lpUnit[i%4]);
-	if (iFileSize>=10) return snprintf(lpBuf, iLength, "  %d %s", iFileSize, lpUnit[i%4]);
+	if (iFileSize>=100)
+        return snprintf(lpBuf, iLength, " %d %s", iFileSize, lpUnit[i%4]);
+	if (iFileSize>=10)
+        return snprintf(lpBuf, iLength, "  %d %s", iFileSize, lpUnit[i%4]);
 	else {
 		iLastPart=iLastPart/10;
 		return snprintf(lpBuf, iLength, "%d,%.2d %s", iFileSize, iLastPart , lpUnit[i%4]);
 	}
 }
 
-LIBDOS9 int         Dos9_GetMatchFileCallback(char* lpPathMatch, int iFlag, void(*pCallBack)(FILELIST*))
+LIBDOS9 int         Dos9_GetMatchFileCallback(char* lpPathMatch, int iFlag, void(*pCallBack)(void*,FILELIST*), void* arg)
 {
 	int iDepth; /* to store depth of  regexp */
 	char lpStaticPart[FILENAME_MAX],
@@ -145,10 +151,11 @@ LIBDOS9 int         Dos9_GetMatchFileCallback(char* lpPathMatch, int iFlag, void
 	                        0,     /* defines the descriptor through which
                                     the callback funtion will read */
 
-	                        pCallBack /* the callback routine in order to benefit from
+	                        pCallBack, /* the callback routine in order to benefit from
                                         from the use of two thread. (this is somewhat
                                         like asynchronious version of the next function
                                      */
+                            arg
 	                       };
 
 	if (iFlag & DOS9_SEARCH_NO_STAT) {
@@ -248,7 +255,8 @@ LIBDOS9 LPFILELIST  Dos9_GetMatchFileList(char* lpPathMatch, int iFlag)
                                     FILEPARAMETER Structures returned */
 	                        0,    /* defines the descriptor through which
                                     the callback funtion will read */
-	                        NULL  /* no callback */
+	                        NULL,  /* no callback */
+	                        NULL, /* no argument (no arms, no chocolate) */
 	                       };
 
 	if (iFlag & DOS9_SEARCH_NO_STAT) {
@@ -717,7 +725,6 @@ int                 _Dos9_WaitForFileListCallBack(LPFILEPARAMETER lpParam)
 	char cUseStat=lpParam->bStat;
 	int iInDescriptor=lpParam->iInput;
 	size_t i=0;
-	void(*pCallback)(FILELIST*)=lpParam->pCallBack;
 
 	FILELIST flElement;
 
@@ -748,7 +755,7 @@ int                 _Dos9_WaitForFileListCallBack(LPFILEPARAMETER lpParam)
 			}
 
 			/* use the callback function */
-			pCallback(&flElement);
+			lpParam->pCallBack(lpParam->arg, &flElement);
 
 			i++;
 		}

@@ -42,7 +42,7 @@
 #include "../core/Dos9_Debug.h"
 #include "../errors/Dos9_Errors.h"
 
-int Dos9_CmdColor(char* lpLine)
+int Dos9_CmdColor(DOS9CONTEXT* pContext, char* lpLine)
 {
 	char lpArg[4];
 
@@ -50,7 +50,7 @@ int Dos9_CmdColor(char* lpLine)
 
 		if (!strcmp(lpArg, "/?")) {
 
-			Dos9_ShowInternalHelp(DOS9_HELP_COLOR);
+			Dos9_ShowInternalHelp(pContext, DOS9_HELP_COLOR);
 
 		} else {
 

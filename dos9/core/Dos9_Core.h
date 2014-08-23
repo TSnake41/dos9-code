@@ -54,8 +54,11 @@
 
 #include <conio.h>
 
-#elif defined  _POSIX_C_SOURCE
+#elif defined(_POSIX_C_SOURCE)
 
+#undef  getch
+#undef  stricmp
+#undef  strnicmp
 #define getch getchar
 #define stricmp strcasecmp
 #define strnicmp strncasecmp

@@ -84,7 +84,7 @@ int Dos9_CmdDel(DOS9CONTEXT* pContext, char* lpLine)
 
 	}
 
-	while ((lpNextToken=Dos9_GetNextParameterEs(lpLine, lpEstr))) {
+	while ((lpNextToken=Dos9_GetNextParameterEs(pContext, lpLine, lpEstr))) {
 
 		lpToken=Dos9_EsToChar(lpEstr);
 
@@ -124,7 +124,7 @@ int Dos9_CmdDel(DOS9CONTEXT* pContext, char* lpLine)
 
 		} else if (!strcmp("/?", lpToken)) {
 
-			Dos9_ShowInternalHelp(DOS9_HELP_DEL);
+			Dos9_ShowInternalHelp(pContext, DOS9_HELP_DEL);
 
 			Dos9_EsFree(lpEstr);
 			return -1;
@@ -135,7 +135,10 @@ int Dos9_CmdDel(DOS9CONTEXT* pContext, char* lpLine)
 
 				/* si un nom a été donné, on affiche, l'erreur */
 
-				Dos9_ShowErrorMessage(DOS9_UNEXPECTED_ELEMENT, lpToken, FALSE);
+				Dos9_ShowErrorMessageX(pContext,
+                                        DOS9_UNEXPECTED_ELEMENT,
+                                        lpToken
+                                        );
 				Dos9_EsFree(lpEstr);
 				return -1;
 
@@ -184,9 +187,10 @@ int Dos9_CmdDel(DOS9CONTEXT* pContext, char* lpLine)
 			   active */
 			if (bParam & DOS9_ASK_CONFIRMATION) {
 
-				iChoice=Dos9_AskConfirmation(DOS9_ASK_YNA
-				                             | DOS9_ASK_INVALID_REASK
-				                             | DOS9_ASK_DEFAULT_Y,
+				iChoice=Dos9_AskConfirmation(pContext,
+                                             DOS9_ASK_YNA
+                                                | DOS9_ASK_INVALID_REASK
+                                                | DOS9_ASK_DEFAULT_Y,
 				                             lpDelConfirm,
 				                             lpFileList->lpFileName
 				                            );

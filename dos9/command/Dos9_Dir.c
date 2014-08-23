@@ -45,7 +45,7 @@
 #include "Dos9_Dir.h"
 
 typedef struct DIRCONTEXT {
-    DOS9CONTEXT pContext;
+    DOS9CONTEXT* pContext;
     int iDirNb;
     int iFileNb;
     char bSimple;
@@ -93,6 +93,8 @@ void Dos9_CmdDirShow(FILELIST* lpElement, DIRCONTEXT* pDir)
 
 			lTime=localtime(&Dos9_GetModifTime(lpElement));
 
+            /* fixme : Truncate the name at the basis dir if not in simple mode */
+
 			fprintf(pDir->pContext->pStack->out,
                     "%02d/%02d/%02d %02d:%02d\t%s\t%s\t%s\n",
                     lTime->tm_mday,
@@ -105,7 +107,7 @@ void Dos9_CmdDirShow(FILELIST* lpElement, DIRCONTEXT* pDir)
 
 		} else {
 
-			fprintf(pContext->pStack->in "%s\n", lpElement->lpFileName);
+			fprintf(pDir->pContext->pStack->in, "%s\n", lpElement->lpFileName);
 
 		}
 	}
@@ -206,7 +208,7 @@ int Dos9_CmdDir(DOS9CONTEXT* pContext, char* lpLine)
         fputs(lpDirListTitle, pContext->pStack->out);
 
     dir_context.wAttr = wAttr;
-    dir_context.bSimple = bSimple
+    dir_context.bSimple = bSimple;
 
 	/* Get a list of file and directories matching to the
 	   current filename and options set */

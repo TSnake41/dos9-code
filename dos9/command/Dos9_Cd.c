@@ -140,7 +140,7 @@ int Dos9_CmdCd(DOS9CONTEXT* pContext, char* lpLine)
 
 	} else {
 
-		fputs(pContext->lpCurrentDir, pContext->pStack->out;
+		fputs(pContext->lpCurrentDir, pContext->pStack->out);
 
 
 	}
