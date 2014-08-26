@@ -24,7 +24,7 @@
 #include <libDos9.h>
 #include "Dos9_Core.h"
 
-DOS9CONTEXT* Dos9_InitContext(COMMANDINFO* pInfo, int nb, char **env);
+DOS9CONTEXT* Dos9_InitContext(COMMANDINFO* pInfo, int nb, char **env)
 {
     DOS9CONTEXT* pContext;
 
@@ -75,7 +75,7 @@ error:
 
 DOS9CONTEXT* Dos9_DuplicateContext(DOS9CONTEXT* pContext)
 {
-    DOS9CONTEXT pNewContext;
+    DOS9CONTEXT* pNewContext;
 
     int i;
 
@@ -158,11 +158,11 @@ error:
         /* this is lawful because the C standard guarantees that operations
            will be evaluated in a sequential way (&& is a sequence point) */
         if ((pLocal[i] != NULL)
-            && !(pLocal[i]=strdup(pLocal[i])) {
+            && !(pLocal[i]=strdup(pLocal[i]))) {
 
             Dos9_ShowErrorMessage(DOS9_FAILED_ALLOCATION | DOS9_PRINT_C_ERROR,
                                     __FILE__ "/Dos9_DuplicateContext()",
-                                    -1,
+                                    -1
                                     );
 
         }

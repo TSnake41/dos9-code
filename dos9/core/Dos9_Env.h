@@ -24,7 +24,7 @@
 /*  Dos9 also provide functions for environment variables, to be able to
     run various threads */
 
-ENVVAR**  Dos9_ReAllocEnvBuf(int* nb, ENVVAR* envbuf);
+ENVVAR**  Dos9_ReAllocEnvBuf(int* nb, ENVVAR** envbuf);
 ENVVAR*   Dos9_AllocEnvVar(const char* name, const char* content);
 
 void     Dos9_AdjustVarName(char* name);

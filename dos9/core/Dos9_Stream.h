@@ -59,8 +59,8 @@ STREAMSTACK* Dos9_PopStreamStack(STREAMSTACK* lpssStreamStack);
 int     Dos9_OpenOutput(STREAMSTACK* lpssStreamStack,
                             PARSED_STREAM_START* lpssStart);
 
-#define Dos9_SetStreamLockState(stack, state) (stack->lock = state)
-#define Dos9_GetStreamLockState(stack) (stack->lock)
+#define Dos9_SetStreamStackLockState(stack, state) (stack->lock = state)
+#define Dos9_GetStreamStackLockState(stack) (stack->lock)
 
 /* Setup aditionnal redirections */
 int     Dos9_RedirectStreams(STREAMSTACK* lpssStack);

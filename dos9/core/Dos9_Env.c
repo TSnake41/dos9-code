@@ -20,29 +20,32 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+#include "../errors/Dos9_Errors.h"
+#include "Dos9_Env.h"
+
 #include <libDos9.h>
 
-int Dos9_EnvCompName(void* p1, void* p2)
+int Dos9_EnvCompName(const void* p1, const void* p2)
 {
-    ENVVAR *pVar1=*p1, *pVar2=*p2;
+    ENVVAR *pVar1=*((ENVVAR**)p1), *pVar2=*((ENVVAR**)p2);
 
-    if (pVar1->name == NULL || pVar2->name = NULL);
-        return pVar1->name - pVar2->name;
+    if ((pVar1->name == NULL) || (pVar2->name == NULL))
+        return pVar2->name - pVar1->name;
 
     return strcasecmp(pVar1->name, pVar2->name);
 }
 
 #define DOS9_ENV_BLOCK_MASK 0x7F
 
-ENVVAR**  Dos9_ReAllocEnvBuf(int* nb, ENVAR** envbuf)
+ENVVAR**  Dos9_ReAllocEnvBuf(int* nb, ENVVAR** envbuf)
 {
     int i=*nb;
-    ENVAR** pNewBuf;
+    ENVVAR** pNewBuf;
 
     /* systematically round to the next 128 multiple */
-    i = (i & ~DOS9_ENV_BLOCK_MASK) + 32 ;
+    i = (i & ~DOS9_ENV_BLOCK_MASK) + DOS9_ENV_BLOCK_MASK +1 ;
 
-    if (!(pNewBuf = realloc(nb, i*sizeof(ENVAR*)))) {
+    if (!(pNewBuf = realloc(envbuf, i*sizeof(ENVVAR*)))) {
 
         Dos9_ShowErrorMessage(DOS9_FAILED_ALLOCATION | DOS9_PRINT_C_ERROR,
                                 __FILE__"/Dos9_ReallocEnvBuf()",
@@ -63,8 +66,8 @@ ENVBUF* Dos9_EnvDup(ENVBUF* pBuf)
 
     int i;
 
-    if (!(pNew = malloc(sizeof(ENVBUF))
-          && pNew->envbuf = malloc(pBuf->nb*sizeof(ENVVAR*)))) {
+    if (!((pNew = malloc(sizeof(ENVBUF)))
+          && (pNew->envbuf = malloc(pBuf->nb*sizeof(ENVVAR*))))) {
 
         Dos9_ShowErrorMessage(DOS9_FAILED_ALLOCATION | DOS9_PRINT_C_ERROR,
                                 __FILE__ "/Dos9_EnvDup()",
@@ -79,7 +82,6 @@ ENVBUF* Dos9_EnvDup(ENVBUF* pBuf)
                                         pBuf->envbuf[i]->content);
 
     pNew->index = pBuf->index;
-    pNew->envbuf[pNew->index] = NULL;
 
     return pNew;
 }
@@ -99,7 +101,7 @@ error:
     }
 
     if (!(pRet->name = strdup(name))
-        || (pRet->content = strdup(content)))
+        || !(pRet->content = strdup(content)))
         goto error;
 
     return pRet;
@@ -107,30 +109,32 @@ error:
 
 void     Dos9_AdjustVarName(char* name)
 {
-    char* pLast;
+    char* pLast=NULL;
 
     while (*name) {
 
         if ((*name != '\t') && (*name != ' '))
             pLast = name;
+
+        name ++;
     }
 
     /* pLast can't be at the end of the string */
-    *(++ pLast) = '\0';
+    if (pLast)
+        *(++ pLast) = '\0';
 }
 
 ENVBUF* Dos9_InitEnv(char** env)
 {
     int nb=0;
     ENVBUF* pEnv;
-    ENVVAR* pBuf;
+    ENVVAR** pBuf;
     char   *pStr,
-           *pEqual;
+           *pEqual,
+           *pCh;
 
     /* count the elements in the env array */
     while (env[nb ++] != NULL)
-
-    nb++; /* count the terminating NULL */
 
     /* allocate the ENVBUF consequently */
     if (!(pEnv = malloc(sizeof(ENVBUF)))) {
@@ -167,7 +171,7 @@ error:
 
         *(pCh++) = '\0';
 
-        pBuf[nb] = Dos9_AllocEnvVar(name, content);
+        pBuf[nb] = Dos9_AllocEnvVar(pStr, pCh);
 
         free(pStr);
 
@@ -176,14 +180,13 @@ error:
     }
 
     pEnv->index = nb;
-    pEnv[nb]=NULL;
 
     /* sort the array, this is little time wasting, but it is far
        simplier to retrieve variables */
 
     qsort(pEnv->envbuf, nb, sizeof(ENVVAR*), Dos9_EnvCompName);
 
-    return 0;
+    return pEnv;
 
 }
 
@@ -195,15 +198,21 @@ error:
 */
 char* Dos9_GetEnv(ENVBUF* pEnv, const char* name)
 {
-    ENVVAR *pRes,
-            key={(char*)name, NULL};
+    ENVVAR **pRes,
+            key={(char*)name, NULL},
+            *pKey=&key;
 
-    pRes = bsearch(&key, pEnv->envbuf, pEnv->index, Dos9_EnvCompName);
+    //printf ("looking for =\"%s\"\n", name)
+
+    pRes = bsearch(&pKey, pEnv->envbuf, pEnv->index, sizeof(ENVVAR*),
+                                                    Dos9_EnvCompName);
+
+    //printf ("got : pRes->")
 
     if (!pRes)
         return NULL;
 
-    return pRes->content;
+    return (*pRes)->content;
 }
 
 /* Set an environment variable.
@@ -219,9 +228,12 @@ char* Dos9_GetEnv(ENVBUF* pEnv, const char* name)
 void Dos9_SetEnv(ENVBUF* pEnv, const char* name, const char* content)
 {
     ENVVAR **pRes,
-            key;
+            key,
+            *pKey=&key;
 
     char*   namecpy;
+
+    int i;
 
     if (content == NULL)
         Dos9_UnSetEnv(pEnv, name);
@@ -234,7 +246,8 @@ void Dos9_SetEnv(ENVBUF* pEnv, const char* name, const char* content)
     key.content = NULL;
     key.name = namecpy;
 
-    pRes = bsearch(&key, pEnv->envbuf, pEnv->index, Dos9_EnvCompName);
+    pRes = bsearch(&pKey, pEnv->envbuf, pEnv->index, sizeof(ENVVAR**),
+                                                    Dos9_EnvCompName);
 
     if (pRes) {
 
@@ -244,7 +257,7 @@ void Dos9_SetEnv(ENVBUF* pEnv, const char* name, const char* content)
 
         free((*pRes)->content);
 
-        if (!(*pRes)->content=strdup(content))) {
+        if (!((*pRes)->content=strdup(content))) {
 
 error:
             Dos9_ShowErrorMessage(DOS9_FAILED_ALLOCATION | DOS9_PRINT_C_ERROR,
@@ -262,11 +275,11 @@ error:
 
     key.name = NULL;
 
-    pRes = bsearch(&key, pEnv->envbuf, pEnv->index, Dos9_EnvCompName);
+    pRes = bsearch(&pKey, pEnv->envbuf, pEnv->index, sizeof(ENVVAR*), Dos9_EnvCompName);
 
     if (pRes) {
 
-        if (!((*pRes)->content = strdup(char )))
+        if (!((*pRes)->content = strdup(content)))
             goto error;
 
         (*pRes)->name = namecpy;
@@ -275,7 +288,7 @@ error:
 
         /* create a new variable */
 
-        if ((pEnv->index+1) == pEnv->nb) {
+        if ((pEnv->index) == pEnv->nb) {
 
             /* it will not fit in the array just extent it */
             pEnv->nb ++;
@@ -292,7 +305,7 @@ error:
 
         pEnv->envbuf[pEnv->index]->name = namecpy;
 
-        pEnv->envbuf[ ++ pEnv->index] = NULL;
+        ++ pEnv->index;
 
     }
 

@@ -391,7 +391,7 @@ LPCOMMANDINFO _Dos9_FillInfoFromList(LPCOMMANDINFO lpCommandInfo, LPCOMMANDLIST 
 
 }
 
-LIBDOS9 COMMANDFLAG     Dos9_DuplicateCommandList(LPCOMMANDLIST lpclList)
+LIBDOS9 LPCOMMANDLIST Dos9_DuplicateCommandList(LPCOMMANDLIST lpclList)
 {
     COMMANDLIST* lpclNew;
 

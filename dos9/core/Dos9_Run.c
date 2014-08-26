@@ -29,7 +29,7 @@
 
 #include "Dos9_Core.h"
 
-//#define DOS9_DBG_MODE
+#define DOS9_DBG_MODE
 
 #include "Dos9_Debug.h"
 
@@ -45,7 +45,8 @@ int Dos9_RunBatch(DOS9CONTEXT* pContext)
 
 	int res;
 
-	while (!(pContext->pIn->bEof)) {
+	while (!(pContext->pIn->bEof)
+            && !(pContext->iMode & DOS9_CONTEXT_ABORT_FILE)) {
 
 		DOS9_DBG("[*] %d : Parsing new line\n", __LINE__);
 
@@ -93,10 +94,6 @@ int Dos9_RunBatch(DOS9CONTEXT* pContext)
 
         /* exec the line */
 		Dos9_RunLine(pContext, lpLine);
-
-        /* If a goto was executed */
-		if (pContext->iMode & DOS9_CONTEXT_ABORT_FILE);
-			break;
 
 		DOS9_DBG("\t[*] Line run.\n");
 

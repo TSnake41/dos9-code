@@ -482,9 +482,8 @@ LIBDOS9 int             Dos9_FreeCommandList(LPCOMMANDLIST lpclList);
     */
 LIBDOS9 COMMANDFLAG     Dos9_GetCommandProc(char* lpCommandLine, LPCOMMANDLIST lpclCommandList,void** lpcpCommandProcedure);
 
-LIBDOS9 int				Dos9_ReplaceCommand(LPCOMMANDINFO lpciCommand, LPCOMMANDLIST lpclCommandList);
-/** \} */
-/** \} */
+LIBDOS9 int Dos9_ReplaceCommand(LPCOMMANDINFO lpciCommand, LPCOMMANDLIST lpclCommandList);
+LIBDOS9 COMMANDLIST* Dos9_DuplicateCommandList(COMMANDLIST* lpclList);
 
 #define DOS9_ALIAS_FLAG 0x80000000
 

@@ -209,8 +209,6 @@ void Dos9_ShowErrorMessage(unsigned int iErrorNumber,
                            int iExitCode)
 {
 
-	Dos9_SetConsoleTextColor(DOS9_BACKGROUND_DEFAULT | DOS9_FOREGROUND_IRED);
-
 	if ((iErrorNumber & ~DOS9_PRINT_C_ERROR) < sizeof(lpErrorMsg))
 		fprintf(stderr,
 		        lpErrorMsg[iErrorNumber & ~DOS9_PRINT_C_ERROR],
