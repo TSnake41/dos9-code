@@ -20,46 +20,47 @@
 
 #ifndef DOS9_HELP_H
 
-#define DOS9_HELP_ECHO      0
-#define DOS9_HELP_SET       1
-#define DOS9_HELP_GOTO      2
-#define DOS9_HELP_IF        3
-#define DOS9_HELP_CD        4
-#define DOS9_HELP_RD        5
-#define DOS9_HELP_MD        6
-#define DOS9_HELP_DEL       7
-#define DOS9_HELP_COPY      8
-#define DOS9_HELP_MOVE      9
-#define DOS9_HELP_CALL      10
-#define DOS9_HELP_FOR       11
-#define DOS9_HELP_SETLOCAL  12
-#define DOS9_HELP_REM       13
-#define DOS9_HELP_DIR       14
-#define DOS9_HELP_CLS       16
-#define DOS9_HELP_TITLE     17
-#define DOS9_HELP_REN       18
-#define DOS9_HELP_TYPE      19
-#define DOS9_HELP_PAUSE     20
-#define DOS9_HELP_COLOR     21
-#define DOS9_HELP_EXIT      22
-#define DOS9_HELP_ALIAS     23
-#define DOS9_HELP_SHIFT     24
-#define DOS9_HELP_FIND      25
-#define DOS9_HELP_MORE      26
-#define DOS9_HELP_BREAK     27
-#define DOS9_HELP_CHCP      28
-#define DOS9_HELP_PUSHD     29
-#define DOS9_HELP_POPD      30
-#define DOS9_HELP_WC        31
-#define DOS9_HELP_XARGS     32
-#define DOS9_HELP_ENDLOCAL  33
-#define DOS9_HELP_PROMPT    34
-#define DOS9_HELP_PECHO     35
-#define DOS9_HELP_TIMEOUT   36
-#define DOS9_HELP_MOD       37
-#define DOS9_HELP_VER		    38
-
-#define DOS9_HELP_ARRAY_SIZE 39
+enum {
+  DOS9_HELP_ECHO = 0,
+  DOS9_HELP_SET,
+  DOS9_HELP_GOTO,
+  DOS9_HELP_IF,
+  DOS9_HELP_CD,
+  DOS9_HELP_RD,
+  DOS9_HELP_MD,
+  DOS9_HELP_DEL,
+  DOS9_HELP_COPY,
+  DOS9_HELP_MOVE,
+  DOS9_HELP_CALL,
+  DOS9_HELP_FOR,
+  DOS9_HELP_SETLOCAL,
+  DOS9_HELP_REM,
+  DOS9_HELP_DIR,
+  DOS9_HELP_CLS,
+  DOS9_HELP_TITLE,
+  DOS9_HELP_REN,
+  DOS9_HELP_TYPE,
+  DOS9_HELP_PAUSE,
+  DOS9_HELP_COLOR,
+  DOS9_HELP_EXIT,
+  DOS9_HELP_ALIAS,
+  DOS9_HELP_SHIFT,
+  DOS9_HELP_FIND,
+  DOS9_HELP_MORE,
+  DOS9_HELP_BREAK,
+  DOS9_HELP_CHCP,
+  DOS9_HELP_PUSHD,
+  DOS9_HELP_POPD,
+  DOS9_HELP_WC,
+  DOS9_HELP_XARGS,
+  DOS9_HELP_ENDLOCAL,
+  DOS9_HELP_PROMPT,
+  DOS9_HELP_PECHO,
+  DOS9_HELP_TIMEOUT,
+  DOS9_HELP_MOD,
+  DOS9_HELP_VER,
+  DOS9_HELP_ARRAY_SIZE
+};
 
 
 /* this is to instanciate a little embedded command
