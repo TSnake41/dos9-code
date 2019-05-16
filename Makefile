@@ -65,7 +65,7 @@ bin: all bindir $(SUBDIRS_BIN)
 
 dist: bin
 	tar zcf dos9-$(VERSION).tar.gz $(BINDIR)
-	
+
 src-dist:
 	tar zcf dos9-$(VERSION)-src.tar.gz --transform 's,^,dos9-$(VERSION)/,' `git ls-files`
 
@@ -101,7 +101,7 @@ PROGRAMS = mimeopen xdg-open
 FUNCTIONS = WIN32
 LIBS = iconv intl pthread m dl
 FLAGS = PIC
-OPTIONS = libcu8 nls cmdlycorrect console modules
+OPTIONS = libcu8 nls cmdlycorrect console modules w10ansi
 DEFAULTOPTIONS = no-libcu8 use-nls no-cmdlycorrect use-console use-modules
 SUBCONFIG = libcu8 libmatheval
 ADDITIONALVARS = HOST BINDIR YEAR VERSION PACKAGE PACKAGE_URL PACKAGE_BUGREPORT
