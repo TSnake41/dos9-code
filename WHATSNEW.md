@@ -2448,8 +2448,6 @@ build without prior
 
 * Added manual page for the **MOD** command.
 
-<<<<<<< HEAD 
-
 ## Sunday 15th, December ##
 
 * Fixed searching issues with hlp script and implemented **help /l**.
@@ -2491,7 +2489,7 @@ build without prior
 ## Monday, Junuary 14th ##
 
 * Added **src-dist** target to **Makefile** to automatically build source code 
-  tarballs reade to be distributed and/or uploaded on the website.
+  tarballs ready to be distributed and/or uploaded on the website.
 
 * Fixed a bug involving **Dos9\_RunBlock\(\)** not parsing blocks correctly.
 
@@ -2499,5 +2497,24 @@ build without prior
 
 * Finally fixed **hlp.bat** to make it able to be run from any directory, 
   especially when the said directory names contains parenthesis or spaces 
-  \(what is very often the case under windows\). 
+  \(what is very often the case under windows\).
+
+## Monday, May 1st, 2020 ##
+
+* Fixed a double declaration inside the code of libinteval. 
+
+## Wednesday, May 3rd, 2020 ##
+
+* Fixed hlp bug with Dos9 on another drive than user directory on Windows.
+
+## Thursday, May 4th, 2020  ##
+
+* Fixed pushd memory leak.
+
+* Reworked directory stack :
+
+* Fixed directory stack allocation bug that makes directory stack unusable 
+  after a Dos9\_PopDir\(\) that cleared the stack.
+
+* Makes Dos9\_CloneInstance\(\) aware of directory stack. 
 
