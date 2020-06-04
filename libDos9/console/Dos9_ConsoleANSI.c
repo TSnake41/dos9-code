@@ -29,10 +29,6 @@
 #include "../libDos9.h"
 #include "../../config.h"
 
-#ifdef WIN32
-#define isatty(f) (_Dos9_GetHandle(f) != (HANDLE)-1)
-#endif
-
 void Dos9_ClearConsoleLine(FILE* f)
 {
     if (!isatty(fileno(f)))

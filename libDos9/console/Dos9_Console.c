@@ -109,6 +109,10 @@ static HANDLE __inline__ _Dos9_GetHandle(FILE* f)
     return h;
 }
 
+#ifdef WIN32
+#define isatty(fd) _isatty(fd)
+#endif
+
 int Dos9_Getch(FILE* f)
 {
     if (_Dos9_GetHandle(f) == (HANDLE)-1)
