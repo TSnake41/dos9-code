@@ -45,7 +45,4 @@ LIBDOS9 int Dos9_LibInit(void)
 
 LIBDOS9 void Dos9_LibClose(void)
 {
-
-
-    return 0;
 }

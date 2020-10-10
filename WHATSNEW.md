@@ -2473,7 +2473,7 @@ build without prior
 
 * Fixed set /p not providing history features under both windows and unices.
 
-* Switched to version 218.3 
+* Switched to version 218.3
 
 ## Thursday 27th ##
 
@@ -2501,7 +2501,7 @@ build without prior
 
 ## Monday, May 1st, 2020 ##
 
-* Fixed a double declaration inside the code of libinteval. 
+* Fixed a double declaration inside the code of libinteval.
 
 ## Wednesday, May 3rd, 2020 ##
 
@@ -2516,5 +2516,35 @@ build without prior
 * Fixed directory stack allocation bug that makes directory stack unusable 
   after a Dos9\_PopDir\(\) that cleared the stack.
 
-* Makes Dos9\_CloneInstance\(\) aware of directory stack. 
+* Makes Dos9\_CloneInstance\(\) aware of directory stack.
+
+* Fix mod deadlock when there is a module loaded.
+
+## Sunday, July 19th ##
+
+* Fixed Makefile for building po files. Some builds of gmake automatically 
+  remove files that are not explicitelly a target of the make file so that the 
+  po files \(**\*.pot** => **\*.po** => **\*.mo**\) where identified as such 
+  and deleted.
+
+## Sunday, October 4th, 2020 ##
+
+* Fixed %=EXITCODEASCII% endianness issue. Removed unneeded switch in 
+  Dos9\_Var.c.
+
+## Thursday, October 8th, 2020 ##
+
+* Changed Dos9\_InitConsole to don't override cursor size on Windows. 
+
+* Fixed some building issues on Clang.
+
+## Friday, October 10th ##
+
+* Fixes to typos.
+
+* Added a test to **Makefile** to check whether **Dos9** is being build using 
+  **mingw-w64**. Indeed, **mingw-w64** requires 
+  **\_\_USE\_MINGW\_ANSI\_STDIO** to be defined otherwise **snprintf** is 
+  replaced with windows provided **\_snprintf** which does not end strings, 
+  leading to a lot of errors as Dos9 assumes ANSI. 
 
