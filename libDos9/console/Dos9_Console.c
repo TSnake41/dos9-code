@@ -8,7 +8,19 @@ Darkbox - A Fast and Portable Console IO Server
 Copyright (c) 2016 Teddy ASTIE (TSnake41)
 
 */
-#ifndef WIN32
+#if defined(LIBDOS9_NO_CONSOLE)
+
+LIBDOS9 int Dos9_Getch(FILE *f)
+{
+  return fgetc(f);
+}
+
+LIBDOS9 int Dos9_Kbhit(FILE *f)
+{
+  return 0;
+}
+
+#elif !defined(WIN32)
 
 #include <termios.h>
 #include <unistd.h>
@@ -91,7 +103,9 @@ int Dos9_Kbhit(FILE *f)
   ioctl(fileno(f), FIONREAD, &bytesWaiting);
   return bytesWaiting;
 }
+
 #else
+
 #include <stdio.h>
 
 #include <windows.h>

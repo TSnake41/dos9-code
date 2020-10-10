@@ -102,7 +102,7 @@ FUNCTIONS = WIN32 MINGW_W64
 LIBS = iconv intl pthread m dl
 FLAGS = PIC
 OPTIONS = libcu8 nls cmdlycorrect console modules w10ansi
-DEFAULTOPTIONS = no-libcu8 use-nls no-cmdlycorrect use-console use-modules
+DEFAULTOPTIONS = no-libcu8 use-nls no-cmdlycorrect no-w10ansi use-console use-modules
 SUBCONFIG = libcu8 libmatheval
 ADDITIONALVARS = HOST BINDIR YEAR VERSION PACKAGE PACKAGE_URL PACKAGE_BUGREPORT
 
