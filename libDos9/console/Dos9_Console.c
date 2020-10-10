@@ -109,10 +109,6 @@ static HANDLE __inline__ _Dos9_GetHandle(FILE* f)
     return h;
 }
 
-#ifdef WIN32
-#define isatty(fd) _isatty(fd)
-#endif
-
 int Dos9_Getch(FILE* f)
 {
     if (_Dos9_GetHandle(f) == (HANDLE)-1)
@@ -128,16 +124,4 @@ int Dos9_Kbhit(FILE* f)
 
     return kbhit();
 }
-#endif
-
-/* TODO: Implement properly Windows 10 VT100 support.
- * Check darkbox core/ansi.c implementation : https://gitlab.com/TSnake41/darkbox/blob/master/lib/core/ansi.c
- */
-
-#if defined(LIBDOS9_NO_CONSOLE)
-#include "Dos9_ConsoleDummy.c"
-#elif !defined(WIN32) || defined(LIBDOS9_W10_ANSI)
-#include "Dos9_ConsoleANSI.c"
-#else
-#include "Dos9_ConsoleWin.c"
 #endif

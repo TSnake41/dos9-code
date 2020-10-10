@@ -3,6 +3,8 @@
 #include "../libDos9.h"
 #include "../../config.h"
 
+#ifdef LIBDOS9_NO_CONSOLE
+
 void Dos9_ClearConsoleScreen(FILE *f)
 {
 }
@@ -40,3 +42,5 @@ void Dos9_GetMousePos(FILE* f, char on_move, CONSOLECOORD* coords, int* type)
     coords->X = 0;
     coords->Y = 0;
 }
+
+#endif

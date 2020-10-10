@@ -19,15 +19,26 @@
  */
 
  #if !defined(_XOPEN_SOURCE)
- #define _XOPEN_SOURCE 700
- #endif
-
-#include <stdio.h>
-#include <stdlib.h>
-#include <fcntl.h>
+#define _XOPEN_SOURCE 700
+#endif
 
 #include "../libDos9.h"
 #include "../../config.h"
+
+#if !defined(LIBDOS9_NO_CONSOLE) && (defined(LIBDOS9_W10_ANSI) || !defined(WIN32))
+
+#include <stdio.h>
+#include <stdlib.h>
+
+#ifndef WIN32
+#include <fcntl.h>
+#endif
+
+#ifdef LIBDOS9_W10_ANSI
+#include <conio.h>
+
+#define isatty(fd) _isatty(fd)
+#endif
 
 void Dos9_ClearConsoleLine(FILE* f)
 {
@@ -257,3 +268,5 @@ LIBDOS9 void Dos9_GetMousePos(FILE* f, char on_move, CONSOLECOORD* coords, int *
 
 	core_input_terminate(f, on_move);
 }
+
+#endif

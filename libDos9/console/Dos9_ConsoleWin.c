@@ -18,18 +18,16 @@
  *
  */
 
-#ifndef _XOPEN_SOURCE
-#define _XOPEN_SOURCE 700
-#endif
+#include "../libDos9.h"
+#include "../../config.h"
+
+#if !defined(LIBDOS9_NO_CONSOLE) && !defined(LIBDOS9_W10_ANSI) && defined(WIN32)
 
 #include <stdio.h>
 #include <stdlib.h>
 #include <conio.h>
 
 #include <windows.h>
-
-#include "../libDos9.h"
-#include "../../config.h"
 
 void Dos9_ClearConsoleLine(FILE* f)
 {
@@ -272,3 +270,5 @@ LIBDOS9 void Dos9_GetMousePos(FILE* f, char on_move, CONSOLECOORD* coords, int *
 
 	} while (!on_move && *b == CORE_NOTHING);
 }
+
+#endif
