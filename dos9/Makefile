@@ -59,7 +59,7 @@ SRC_FILES := \
 	./linenoise/utf8.c ./core/Dos9_Prompt.c ./command/Dos9_Pecho.c \
 	./command/Dos9_CommandInfo.c ./core/Dos9_Completion.c \
 	./linenoise/linenoise.c ./command/Dos9_Timeout.c ./command/Dos9_Mod.c \
-	./command/Dos9_Ver.c
+	./command/Dos9_Ver.c ./Dos9_Emscripten.c
 
 OBJ_FILES := $(SRC_FILES:.c=.o)
 

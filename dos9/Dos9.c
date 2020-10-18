@@ -194,8 +194,13 @@ int main(int argc, char *argv[])
 
     *(ifIn.batch.name) = '\0';
 
+    #ifdef __EMSCRIPTEN__
+    /* End function now. */
+    return 0;
+    #else
     /* Run either the command prompt or the batch script */
     Dos9_RunBatch(&ifIn);
+    #endif
 
 skip:
 
