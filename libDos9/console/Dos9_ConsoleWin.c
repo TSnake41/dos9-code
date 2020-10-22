@@ -21,13 +21,28 @@
 #include "../libDos9.h"
 #include "../../config.h"
 
-#if !defined(LIBDOS9_NO_CONSOLE) && !defined(LIBDOS9_W10_ANSI) && defined(WIN32)
+
+#if !defined(LIBDOS9_NO_CONSOLE) && defined(WIN32)
 
 #include <stdio.h>
 #include <stdlib.h>
 #include <conio.h>
 
 #include <windows.h>
+
+static HANDLE __inline__ _Dos9_GetHandle(FILE* f)
+{
+    HANDLE h = (HANDLE)_get_osfhandle(fileno(f));
+    DWORD mode;
+
+    if (GetConsoleMode(h, &mode) == 0 &&
+            GetLastError() == ERROR_INVALID_HANDLE)
+        return (HANDLE)-1;
+
+    return h;
+}
+
+#ifndef LIBDOS9_W10_ANSI
 
 void Dos9_ClearConsoleLine(FILE* f)
 {
@@ -169,6 +184,8 @@ void Dos9_SetConsoleTitle(FILE* f, char* lpTitle)
 {
     SetConsoleTitle(lpTitle);
 }
+
+#endif
 
 /*
 

@@ -173,6 +173,8 @@ LIBDOS9 void Dos9_SetConsoleCursorState(FILE* f, int bVisible, int iSize )
 
 */
 
+#ifndef LIBDOS9_W10_ANSI
+
 static __thread int latest;
 
 static int tomouse_b(int b)
@@ -268,5 +270,7 @@ LIBDOS9 void Dos9_GetMousePos(FILE* f, char on_move, CONSOLECOORD* coords, int *
 
 	core_input_terminate(f, on_move);
 }
+
+#endif
 
 #endif
